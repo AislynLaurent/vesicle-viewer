@@ -1,0 +1,72 @@
+{% load staticfiles%}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vesicle Viewer | {% block title %}{% endblock %}</title>
+
+    {% block head_meta %}
+        {% block head_meta_charset %}
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        {% endblock head_meta_charset %}
+        {% block head_meta_contentlanguage %}
+            <meta http-equiv="Content-Language" value="en-US" />
+        {% endblock head_meta_contentlanguage %}
+        {% block head_meta_viewport %}
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% endblock head_meta_viewport %}
+    {% endblock head_meta %}
+
+    {% block head_css %}
+        {% block head_css_site %}
+            <link rel="stylesheet" type="text/css" href="{% static 'viewer/style.css' %}">
+            <link href="https://fonts.googleapis.com/css?family=Manjari:100,400,700&display=swap" rel="stylesheet">
+        {% endblock head_css_site %}
+        {% block head_css_section %}{% endblock head_css_section %}
+        {% block head_css_page %}{% endblock head_css_page %}
+    {% endblock head_css %}
+</head>
+
+<body>
+
+    {# Header #}
+    <header>
+        <div class='header-text'>
+            <a href="{% url 'viewer:index' %}">
+                <img src="{% static "viewer/images/viewericon.png" %}" width="30px">
+                <h3>Vesicle Viewer</h3>
+            </a>
+        </div>
+
+        {# Navigation #}
+        <nav>
+            <ul>
+                <li><a href="{% url 'viewer:about' %}">About</a></li>
+                <li><a href="{% url 'viewer:help' %}">Help</a></li>
+                <li><a href="{% url 'viewer:privacy' %}">Privacy</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'viewer:project_list' %}">Projects</a></li>
+                    <li class="sign-in"><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li class="sign-in"><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    {# Main content #}
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {# Footer #}
+    <footer>
+        <p>Developed and supported by the LABR research team at the University of Windsor in collaboration with the
+            University of Tennessee.</p>
+        <p>>> Last updated 09/18/2019</p>
+        <p>>> <em>version ALPHA 0.1</em></p>
+    </footer>
+
+</body>
+</html>

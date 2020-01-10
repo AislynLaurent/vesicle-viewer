@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Logout{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+  <div class="content-box">
+    
+    <h2>You've logged out succesfully</h2>
+    <button
+      type="button" 
+      onclick="window.location.href='{% url 'login'%}'" >
+      Click here to login again.
+    </button>
+
+  </div>
+
+{% endblock content %}

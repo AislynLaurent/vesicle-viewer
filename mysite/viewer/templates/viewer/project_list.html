@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.username }}'s Projects{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    {% if user.is_authenticated %}
+
+        {% if symmetrical_projects %}
+
+            <div class="content-box">
+                    <h1>Symmetrical Projects</h1>
+
+                {% for project in symmetrical_projects %}
+
+                    <div class="project">
+                        <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
+                    </div>
+
+                {% endfor %}
+                
+            </div>
+
+        {% endif %}
+
+    <div class="content-box">
+        <h1>New Project</h1>
+        <button
+            type="button"
+            onclick="window.location.href='{% url 'viewer:project_new' %}'" >
+            Click here to start a new project
+        </button>
+    </div>
+
+    {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+    
+    {% endif %}
+
+{% endblock content %}

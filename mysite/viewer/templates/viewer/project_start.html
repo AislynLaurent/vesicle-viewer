@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Get Started{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+    {% if user.is_authenticated %}
+
+    <div class="content-box">
+        <h1>Welcome {{ user.username }}</h1>
+
+        <p>Login was successful! You can either begin a fresh project or continue working.</p>
+
+        <button
+            type="button" 
+            onclick="window.location.href='{% url 'viewer:project_new' %}'" >
+            Start a new project
+        </button>
+
+        <button 
+            type="button" 
+            onclick="window.location.href='{% url 'viewer:project_list' %}'" >
+            Continue an extisting project
+        </button>
+    </div>
+
+    {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+
+    {% endif %}
+{% endblock content %}

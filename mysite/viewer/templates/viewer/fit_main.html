@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Fit {{ project.project_title }}{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    {% if user.is_authenticated %}
+
+    <div class="content-box">
+        <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h1>
+    </div>
+
+    {% if x_user.display_tutorial is True %}
+        <div class="announcement">
+            <h2>New here?</h2>
+            <p>Here is a short tutorial on how to use this page!</p>
+            <p>
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="dismiss">Dismiss Tutorials</button>
+                </form>
+            </p>
+        </div>
+    {% endif %}
+
+    {% if parameter.lipid_area_upperbound == parameter.lipid_area_lowerbound %}
+        <div class="announcement">
+            <h2>Error!</h2>
+            <p>The upper and lower bound for any given parameter cannot be equal!   </p>
+        </div>
+    {% endif %}
+
+    <div class="content-box parameters" id="left">
+
+        <h2>{{ parameter.description }}</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <table id="center" class="form_box">
+                <tr>
+                    <td>{{ parameter_update_form.errors }}</td>
+                </tr>
+                <!-- LA -->
+                <tr>
+                    <td><h4>LA {{ parameter_update_form.lipid_area_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.lipid_area_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.lipid_area }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.lipid_area_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
+                <!-- HT -->
+                <tr>
+                    <td><h4>HT {{ parameter_update_form.headgroup_thickness_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.headgroup_thickness_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.headgroup_thickness }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.headgroup_thickness_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
+                <!-- HV -->
+                <tr>
+                    <td><h4>HV</h4></td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.headgroup_volume }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+                
+                <!-- TMV -->
+                <tr>
+                    <td><h4>TMV {{ parameter_update_form.terminal_methyl_volume_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.terminal_methyl_volume_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.terminal_methyl_volume }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.terminal_methyl_volume_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
+                <!-- CV -->
+                <tr>
+                    <td><h4>CV</h4></td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.chain_volume }}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
+                <!-- SIG -->
+                <tr>
+                    <td><h4>SIG {{ parameter_update_form.sigma_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.sigma_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter.sigma }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.sigma_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                </tr>
+            </table>
+
+    </div>
+
+    <div id="container">
+
+        <div class="content-box">
+
+                <button type="submit" name="parameter_update">Update Parameters</button>
+            </form>
+
+            <form id="inline" method="POST">
+                {% csrf_token %}
+                <button type="submit" name="parameter_save">Save Parameters</button>
+            </form>
+
+            <form id="inline" method="POST">
+                {% csrf_token %}
+                <button class="success" type="submit" name="fit">Fit!</button>
+            </form>
+
+        </div>
+
+        <div class="content-box">
+
+            <h2>X-Ray Data</h2>
+
+            <div class="graph-box">
+                {% for elem in xray_graph %}
+                    {{elem|safe}}
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <div class="content-box">
+
+            <h2>Neutron Data</h2>
+
+            <div class="graph-box">
+                {% for elem in neutron_graph %}
+                    {{elem|safe}}
+                {% endfor %}
+            </div>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+
+    {% endif %}
+{% endblock content %}

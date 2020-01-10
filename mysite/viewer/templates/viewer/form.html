@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Edit {{ project.project_title }}{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+    {% if user.is_authenticated %}
+
+    <div class="content-box">
+
+        <form class="form_box" method="POST" enctype="multipart/form-data" >
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Done</button>
+        </form>
+    </div>
+
+    {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+
+    {% endif %}
+{% endblock content %}

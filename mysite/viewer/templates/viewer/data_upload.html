@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Upload Data{% endblock title %}
+
+{% load staticfiles%}
+{% load filename %}
+
+{% block content %}
+
+  {% if user.is_authenticated %}
+
+    <div class="announcement">
+
+      <p>Be advised that this tool is <strong>NOT</strong> a safe place to store your data! Please be sure to keep all of your original files.</p>
+
+    </div>
+
+    <div class="content-box">
+
+      <h1>Upload Data Values</h1>
+
+      <p>This program makes a few assumptions about your data:</p>
+
+      <ol>
+        <li>That it's coming from either a .dat or a .txt file</li>
+        <li>That it's stored in columns separated by spaces</li>
+        <li>That the first three columns contain values for <strong>q</strong>, <strong>intensity</strong>, and <strong>error</strong></li>
+      </ol>
+
+      <p>Any headers, footers or additional columns of data will be discarded during processing. When no error column is present, a default value of 1 will be applied.</p>
+
+    </div>
+
+    <div class="content-box">
+
+      <form class="form_box" method="POST" enctype="multipart/form-data" >
+
+          {% csrf_token %}
+          {{ data_upload_form.as_p }}
+          
+          <button type="submit" name="data_upload" >Upload</button>
+      </form>
+
+    </div>
+
+  {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+
+  {% endif %}
+
+{% endblock content %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    <div class="announcement">
+        <h2>This site requires the use of cookies.</h2>
+        <p>This project is currently in <strong>alpha version 0.1</strong>, and is therefore not production ready. Some features are currently in development, and may not preform as expected. Thanks for your patience.</p>
+    </div>
+
+    <div class="content-box">
+        <h1>Vesicle Viewer - Lipid Bilayer SAS Data Visualization Tool</h1>
+
+        <div class='right-image'><img src="{% static "viewer/images/lipidgraph.png" %}"
+                alt="Example lipid composition probability graph" width="400px"></div>
+
+        <h2>Upload your data</h2>
+        <p>Upload and store expeirmental results.</p>
+
+        <h2>Set your parameters</h2>
+        <p>Set default values for parameters based on your needs and decide which ones fluxuate.</p>
+
+        <h2>Visualize your data</h2>
+        <p>Prepare and download graphs showcasing your results.</p>
+    </div>
+    <div class="content-box">
+        <h2>Find out more</h2>
+        <p><a href="">Learn more about the Vesicle Viewer project and how to cite it in your work.</a></p>
+        <p><a href="">Find tutorials and more information on how the tool works.</a></p>
+        <p><a href="">We're commited to keeping your data secure and private - read our privacy policy here.</a></p>
+    </div>
+
+{% endblock content %}
