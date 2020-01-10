@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     '142.93.159.217',
     'vesicleviewer.dmarquardt.ca',
     'www.vesicleviewer.dmarquardt.ca',
+    '127.0.0.1',
 ]
 
 # Application definition
