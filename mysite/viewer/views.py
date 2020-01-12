@@ -493,11 +493,28 @@ def fit_main(request, project_id, parameter_id):
         parameter.description = now.strftime("%m/%d/%H:%M")
         parameter.id = None
         parameter.save()
+        redirect('viewer:fit_main', project_id=project.id, parameter_id=parameter.id)
 
     # Do the fit
     if "fit" in request.POST:
+        # Do fit
         fit_result = symmetrical_fit(project_id, parameter_id)
-        print(fit_result.params)
+        fit_parameters = fit_result.params
+
+        # Set title
+        parameter.description = now.strftime("Fit %m/%d/%H:%M")
+
+        print(fit_parameters['terminal_methyl_volume'].value)
+
+        # Set params
+        parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
+        parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
+        parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
+
+        parameter.id = None
+        parameter.save()
+
+        print(fit_result.params.pretty_print())
 
     # X-Ray graphs
     xray_fig, ax = plt.subplots(xray_datas.count(), squeeze=False)

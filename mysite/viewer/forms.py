@@ -42,48 +42,54 @@ class Parameter_Fit_Form(forms.ModelForm):
         model = Symmetrical_Parameters
 
         fields = [
+            # LA
+            'lipid_area',
             'lipid_area_upperbound',
             'lipid_area_lowerbound',
             'lipid_area_lock',
+
+            # HT
+            'headgroup_thickness',
             'headgroup_thickness_upperbound',
             'headgroup_thickness_lowerbound',
             'headgroup_thickness_lock',
-            # 'headgroup_volume_upperbound',
-            # 'headgroup_volume_lowerbound',
-            # 'headgroup_volume_lock',
+
+            # TMV
+            'terminal_methyl_volume',
             'terminal_methyl_volume_upperbound',
             'terminal_methyl_volume_lowerbound',
             'terminal_methyl_volume_lock',
-            # 'chain_volume_upperbound',
-            # 'chain_volume_lowerbound',
-            # 'chain_volume_lock',
+
+            # Sigma
+            'sigma',
             'sigma_upperbound',
             'sigma_lowerbound',
             'sigma_lock',
         ]
 
-        widgets = { 
+        widgets = {
+            # Values
+            'lipid_area' : forms.NumberInput(attrs={'class' : 'value'}),
+            'headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
+            'terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
+            'sigma' : forms.NumberInput(attrs={'class' : 'value'}),
 
+            # Upperbound
             'lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
-            # 'headgroup_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
-            # 'chain_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'sigma_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
-            
 
+            # Lowerbound
             'lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
-            # 'headgroup_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
-            # 'chain_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'sigma_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
 
+            # Lock
             'lipid_area_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'headgroup_thickness_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
-            # 'headgroup_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'terminal_methyl_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
-            # 'chain_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'sigma_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
 
