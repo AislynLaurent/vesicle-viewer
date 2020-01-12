@@ -168,31 +168,54 @@
                 <button class="success" type="submit" name="fit">Fit!</button>
             </form>
 
+            {% if parameter.fit_report and not show_stats %}
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="statistics">Show Fit Statistics</button>
+                </form>
+            {% endif %}
+            {% if show_stats %}
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="graphs">Show Graphs</button>
+                </form>
+            {% endif %}
+
         </div>
 
-        <div class="content-box">
+        {% if show_stats %}
 
-            <h2>X-Ray Data</h2>
-
-            <div class="graph-box">
-                {% for elem in xray_graph %}
-                    {{elem|safe}}
-                {% endfor %}
+            <div class="content-box">
+                <p>{{parameter.fit_report}}</p>
             </div>
 
-        </div>
+        {% else %}
 
-        <div class="content-box">
+            <div class="content-box">
 
-            <h2>Neutron Data</h2>
+                <h2>X-Ray Data</h2>
 
-            <div class="graph-box">
-                {% for elem in neutron_graph %}
-                    {{elem|safe}}
-                {% endfor %}
+                <div class="graph-box">
+                    {% for elem in xray_graph %}
+                        {{elem|safe}}
+                    {% endfor %}
+                </div>
+
             </div>
 
-        </div>
+            <div class="content-box">
+
+                <h2>Neutron Data</h2>
+
+                <div class="graph-box">
+                    {% for elem in neutron_graph %}
+                        {{elem|safe}}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        {% endif %}
 
     </div>
 

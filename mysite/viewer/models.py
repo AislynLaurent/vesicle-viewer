@@ -185,6 +185,9 @@ class Symmetrical_Parameters(models.Model):
     sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=-3)
     sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
 
+    ## Report
+    fit_report = models.TextField(verbose_name='fitted parameter report', blank=terminal_methyl_volume_upperbound)
+
     # Meta
     class Meta:
         verbose_name = 'parameter'

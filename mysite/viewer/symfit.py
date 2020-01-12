@@ -101,7 +101,6 @@ def adjust_b_values(data, project_lipids, water, d_water):
     headgroup_b = 0
     water_b = 0
 
-    print('before check')
     if data.data_type == 'XR':
         # bw
         water_b = water.electrons
@@ -252,12 +251,37 @@ def symmetrical_fit(project_id, parameter_id):
     # Fit!
     x = None
 
-    data_result = lsq.minimize(
+    fit_result = lsq.minimize(
         symmetrical_objective_function,
         fit_parameters,
         args=(x, datas)
     )
     
-    # print(lsq.fit_report(data_result))
+    # print('report')
+    # print(lsq.fit_report(fit_result))
+    # print('\n')
 
-    return data_result
+    # print('var_names')
+    # print(fit_result.var_names)
+    # print('covar')
+    # print(fit_result.covar)
+    # print('init_vals')
+    # print(fit_result.init_vals)
+    # print('init_values')
+    # print(fit_result.init_values)
+    # print('ier')
+    # print(fit_result.ier)
+    # print('residual')
+    # print(fit_result.residual)
+    # print('chisqr')
+    # print(fit_result.chisqr)
+    # print('redchi')
+    # print(fit_result.redchi)
+    # print('aic')
+    # print(fit_result.aic)
+    # print('bic')
+    # print(fit_result.bic)
+    # print('flatchain')
+    # print(fit_result.flatchain)
+
+    return fit_result

@@ -33,8 +33,8 @@ from .forms import Data_Lipid_Form
 from .forms import Data_Lipid_Atom_Form
 
 # Other imports
-from .fit import symmetrical_fit
-from .fit import calc_sym_model
+from .symfit import symmetrical_fit
+from .symfit import calc_sym_model
 
 ## STATIC PAGES
 # Home
@@ -472,6 +472,7 @@ def fit_main(request, project_id, parameter_id):
     xray_datas = Data_Set.objects.filter(project_title_id=project_id).filter(data_type='XR')
     neutron_datas = Data_Set.objects.filter(project_title_id=project_id).filter(data_type='NU')
     fit_result = None
+    show_statistics = False
 
     # Forms
     # Dismiss the tutorial
@@ -504,17 +505,23 @@ def fit_main(request, project_id, parameter_id):
         # Set title
         parameter.description = now.strftime("Fit %m/%d/%H:%M")
 
-        print(fit_parameters['terminal_methyl_volume'].value)
-
         # Set params
         parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
         parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
         parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
 
+        # Set report
+        parameter.fit_report = lsq.fit_report(fit_result)
+
         parameter.id = None
         parameter.save()
 
-        print(fit_result.params.pretty_print())
+    # Show stats / graph
+    if "statistics" in request.POST:
+        show_statistics = True
+
+    if "graphs" in request.POST:
+        show_statistics = False
 
     # X-Ray graphs
     xray_fig, ax = plt.subplots(xray_datas.count(), squeeze=False)
@@ -535,6 +542,8 @@ def fit_main(request, project_id, parameter_id):
             capsize=2,
             zorder=0
         )
+        ax[i, 0].set_xscale('log')
+        ax[i, 0].set_yscale('log')
         ax[i, 0].set_title(xray_data.data_set_title)
         
         # Fit line
@@ -560,7 +569,19 @@ def fit_main(request, project_id, parameter_id):
     j = 0
     for neutron_data in neutron_datas:
         # Data scatter plot
-        ax[j, 0].scatter(neutron_data.q_value, neutron_data.intensity_value, s=3, color='g')
+        ax[j, 0].errorbar(
+            neutron_data.q_value,
+            neutron_data.intensity_value,
+            yerr=neutron_data.error_value, 
+            fmt='.k',
+            color='c',
+            ecolor='gray', 
+            elinewidth=1, 
+            capsize=2,
+            zorder=0
+        )
+        ax[j, 0].set_xscale('log')
+        ax[j, 0].set_yscale('log')
         ax[j, 0].set_title(neutron_data.data_set_title)
 
         # Fit line
@@ -587,5 +608,7 @@ def fit_main(request, project_id, parameter_id):
         'neutron_datas':neutron_datas, 
         'xray_graph': [xray_graph],
         'neutron_graph': [neutron_graph],
-        'parameter_update_form':parameter_update_form
+        'parameter_update_form':parameter_update_form,
+        'fit_result':fit_result,
+        'show_stats':show_statistics
     })
