@@ -10,6 +10,7 @@ import mpld3
 from datetime import datetime
 import numpy as np
 import lmfit as lsq
+from copy import deepcopy
 
 # Models
 from .models import ExtendedUser
@@ -34,7 +35,7 @@ from .forms import Data_Lipid_Atom_Form
 
 # Other imports
 from .symfit import symmetrical_fit
-from .symfit import calc_sym_model
+from .symfit import symmetrical_graph
 
 ## STATIC PAGES
 # Home
@@ -462,15 +463,21 @@ def data_lipid_delete_warning(request, project_id, data_id, lipid_id):
 ## Fit
 # Main fit page
 def fit_main(request, project_id, parameter_id):
-    # Import
+    ## Import
     x_user = get_object_or_404(ExtendedUser, user=request.user)
+
+    # Overall
     project = get_object_or_404(Project, id=project_id)
     parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
+    project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
+
+    # Data
+    datas = Data_Set.objects.filter(project_title_id=project_id)
+    xray_datas = datas.filter(data_type='XR')
+    neutron_datas = datas.filter(data_type='NU')
 
     # Decalre
     now = datetime.now()
-    xray_datas = Data_Set.objects.filter(project_title_id=project_id).filter(data_type='XR')
-    neutron_datas = Data_Set.objects.filter(project_title_id=project_id).filter(data_type='NU')
     fit_result = None
     show_statistics = False
 
@@ -491,30 +498,43 @@ def fit_main(request, project_id, parameter_id):
 
     # Save parameters
     if "parameter_save" in request.POST:
-        parameter.description = now.strftime("%m/%d/%H:%M")
-        parameter.id = None
-        parameter.save()
-        redirect('viewer:fit_main', project_id=project.id, parameter_id=parameter.id)
+        # Copy current instance
+        new_parameter = deepcopy(parameter)
+
+        # Set new values
+        new_parameter.description = now.strftime("%m/%d/%H:%M")
+        new_parameter.id = None
+
+        # Save
+        new_parameter.save()
+
+        return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
 
     # Do the fit
     if "fit" in request.POST:
         # Do fit
-        fit_result = symmetrical_fit(project_id, parameter_id)
+        fit_result = symmetrical_fit(parameter, project_lipids, datas)
         fit_parameters = fit_result.params
 
+        # Copy current instance
+        new_parameter = deepcopy(parameter)
+
         # Set title
-        parameter.description = now.strftime("Fit %m/%d/%H:%M")
+        new_parameter.description = now.strftime("Fit %m/%d/%H:%M")
 
         # Set params
-        parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
-        parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
-        parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
+        new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
+        new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
+        new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
 
         # Set report
-        parameter.fit_report = lsq.fit_report(fit_result)
+        fit_report = lsq.fit_report(fit_result)
+        new_parameter.fit_report = fit_report.split('\n')
 
-        parameter.id = None
-        parameter.save()
+        new_parameter.id = None
+        new_parameter.save()
+
+        return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
 
     # Show stats / graph
     if "statistics" in request.POST:
@@ -530,7 +550,6 @@ def fit_main(request, project_id, parameter_id):
     i = 0
     for xray_data in xray_datas:
         # Data scatter plot
-        # ax[i, 0].scatter(xray_data.q_value, xray_data.intensity_value, s=3, color='c')
         ax[i, 0].errorbar(
             xray_data.q_value, 
             xray_data.intensity_value, 
@@ -547,10 +566,10 @@ def fit_main(request, project_id, parameter_id):
         ax[i, 0].set_title(xray_data.data_set_title)
         
         # Fit line
-        if fit_result:
+        if parameter.fit_report:
             ax[i, 0].plot(
                 xray_data.q_value,
-                calc_sym_model(fit_result.params, xray_data.q_value, xray_data),
+                symmetrical_graph(parameter, project_lipids, xray_data),
                 color='r',
                 label='Best Fit',
                 zorder=1
@@ -585,10 +604,10 @@ def fit_main(request, project_id, parameter_id):
         ax[j, 0].set_title(neutron_data.data_set_title)
 
         # Fit line
-        if fit_result:
+        if parameter.fit_report:
             ax[j, 0].plot(
                 neutron_data.q_value,
-                calc_sym_model(fit_result.params, neutron_data.q_value, neutron_data),
+                symmetrical_graph(parameter, project_lipids, neutron_data),
                 color='r',
                 label='Best Fit',
                 zorder=1

@@ -104,6 +104,10 @@ td {
     padding: 0;
 }
 
+.indent {
+    margin-left: 40px;
+}
+
 /* Head */
 
 header {

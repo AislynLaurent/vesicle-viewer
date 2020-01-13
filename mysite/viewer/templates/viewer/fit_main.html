@@ -186,7 +186,21 @@
         {% if show_stats %}
 
             <div class="content-box">
-                <p>{{parameter.fit_report}}</p>
+                <h4>Fit Statistics</h4>
+                <div class="indent">
+                    <p>{{ parameter.fit_report.5 }}</p>
+                    <p>{{ parameter.fit_report.6 }}</p>
+                    <p>{{ parameter.fit_report.7 }}</p>
+                    <p>{{ parameter.fit_report.8 }}</p>
+                </div>
+
+                <h4>Variable Parameters</h4>
+                <div class="indent">
+                    <p>{{ parameter.fit_report.12 }}</p>
+                    <p>{{ parameter.fit_report.14 }}</p>
+                    <p>{{ parameter.fit_report.15 }}</p>
+                </div>
+                <p></p>
             </div>
 
         {% else %}

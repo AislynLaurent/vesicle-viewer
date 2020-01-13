@@ -158,20 +158,11 @@ def adjust_b_values(data, project_lipids, water, d_water):
     return(b_values)
 
 # Fit function
-def symmetrical_fit(project_id, parameter_id):
-    # DELCARE
-    # Project
-    parameter = Symmetrical_Parameters.objects.get(id=parameter_id)
-
-    # Project lipids
-    project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
-    
+def symmetrical_paramitize(parameter, project_lipids, datas):
+    ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
     d_water = Molecule.objects.get(compound_name='deuterated_water')
-
-    # Data
-    datas = Data_Set.objects.filter(project_title_id=project_id)
 
     # Parameters
     fit_parameters = lsq.Parameters()
@@ -221,34 +212,83 @@ def symmetrical_fit(project_id, parameter_id):
     )
 
     # Per dataset
-    for data in datas:
+    try:
+        for data in datas:
+            # Get values for this data
+            b_values = adjust_b_values(data, project_lipids, water, d_water)
+
+            fit_parameters.add_many(
+                ( # bc
+                    'chain_b_%i' % data.id,
+                    b_values[0],
+                    False
+                ),
+                ( # bh
+                    'headgroup_b_%i' % data.id,
+                    b_values[1],
+                    False
+                ),
+                ( # bt
+                    'terminal_methyl_b_%i' % data.id,
+                    b_values[2],
+                    False
+                ),
+                ( # bw
+                    'water_b_%i' % data.id,
+                    b_values[3],
+                    False
+                )
+            )
+    except TypeError:
         # Get values for this data
-        b_values = adjust_b_values(data, project_lipids, water, d_water)
+        b_values = adjust_b_values(datas, project_lipids, water, d_water)
 
         fit_parameters.add_many(
             ( # bc
-                'chain_b_%i' % data.id,
+                'chain_b_%i' % datas.id,
                 b_values[0],
                 False
             ),
             ( # bh
-                'headgroup_b_%i' % data.id,
+                'headgroup_b_%i' % datas.id,
                 b_values[1],
                 False
             ),
             ( # bt
-                'terminal_methyl_b_%i' % data.id,
+                'terminal_methyl_b_%i' % datas.id,
                 b_values[2],
                 False
             ),
             ( # bw
-                'water_b_%i' % data.id,
+                'water_b_%i' % datas.id,
                 b_values[3],
                 False
             )
         )
+    
+    # print('report')
+    # print(lsq.fit_report(fit_result))
 
-    # Fit!
+    return fit_parameters
+
+def symmetrical_graph(parameter, project_lipids, data):
+    # Get parameters
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, data)
+
+    # Get result
+    model_result = calc_sym_model(
+        fit_parameters,
+        data.q_value,
+        data
+    )
+
+    return model_result
+
+def symmetrical_fit(parameter, project_lipids, datas):
+    # Get parameters
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, datas)
+
+    # Get result
     x = None
 
     fit_result = lsq.minimize(
@@ -256,32 +296,5 @@ def symmetrical_fit(project_id, parameter_id):
         fit_parameters,
         args=(x, datas)
     )
-    
-    # print('report')
-    # print(lsq.fit_report(fit_result))
-    # print('\n')
-
-    # print('var_names')
-    # print(fit_result.var_names)
-    # print('covar')
-    # print(fit_result.covar)
-    # print('init_vals')
-    # print(fit_result.init_vals)
-    # print('init_values')
-    # print(fit_result.init_values)
-    # print('ier')
-    # print(fit_result.ier)
-    # print('residual')
-    # print(fit_result.residual)
-    # print('chisqr')
-    # print(fit_result.chisqr)
-    # print('redchi')
-    # print(fit_result.redchi)
-    # print('aic')
-    # print(fit_result.aic)
-    # print('bic')
-    # print(fit_result.bic)
-    # print('flatchain')
-    # print(fit_result.flatchain)
 
     return fit_result
