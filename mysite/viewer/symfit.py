@@ -80,32 +80,28 @@ def calc_sym_model(fit_parameters, q, data):
 # Objective function create a residual for each, then flatten
 def symmetrical_objective_function(fit_parameters, x, datas):
     # Delcare
-    residuals = [[0.0]]*datas.count()
-    it = 0
+    residuals = []
+    combined_residuals = []
 
     # Make an array of residuals
     for data in datas:
         # Do math
-        residuals[it] = data.intensity_value - calc_sym_model(fit_parameters, data.q_value, data)
-        # Iterate
-        it = it + 1
+        residuals = data.intensity_value - calc_sym_model(fit_parameters, data.q_value, data)
 
-    np_residuals = np.array(residuals)
+        # Append
+        combined_residuals.extend(residuals)
 
-    return np_residuals.flatten()
+    return combined_residuals
 
 # Augments per data-set
 def adjust_b_values(data, project_lipids, water, d_water):
-    print('in adjust')
     # Declare
     terminal_methyl_b = 0
     chain_b = 0
     headgroup_b = 0
     water_b = 0
 
-    print('before check')
     if data.data_type == 'XR':
-        print('XR')
         # bw
         water_b = water.electrons
 
@@ -117,12 +113,10 @@ def adjust_b_values(data, project_lipids, water, d_water):
             # bh
             headgroup_b = headgroup_b + (project_lipid.project_lipid_name.hg_electrons * project_lipid.lipid_mol_fraction)
     else:
-        print('NR')
         # bw
         water_b = (d_water.scattering_length * data.d2o_mol_fraction) + (water.scattering_length * (1 - data.d2o_mol_fraction))
 
         for project_lipid in project_lipids:
-            print('for lipids')
             # bt
             terminal_methyl_b = terminal_methyl_b + (project_lipid.project_lipid_name.tm_scattering * project_lipid.lipid_mol_fraction)
 
@@ -133,13 +127,11 @@ def adjust_b_values(data, project_lipids, water, d_water):
                 data_lipid = None
 
             if not data_lipid:
-                print('no data')
                 # bc
                 chain_b = chain_b +  (project_lipid.project_lipid_name.tg_scattering * project_lipid.lipid_mol_fraction)
                 # bh
                 headgroup_b = headgroup_b + (project_lipid.project_lipid_name.hg_scattering * project_lipid.lipid_mol_fraction)
             else:
-                print('adjustments')
                 # Delcare
                 total_hg_adjustment = 0
                 total_tg_adjustment = 0
@@ -150,7 +142,6 @@ def adjust_b_values(data, project_lipids, water, d_water):
                 if atoms:
                     # Find adjustments
                     for atom in atoms:
-                        print('for atoms')
                         if atom.atom_location == 'HG':
                             total_hg_adjustment = total_hg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
 
@@ -163,26 +154,15 @@ def adjust_b_values(data, project_lipids, water, d_water):
                 headgroup_b = headgroup_b + ( (headgroup_b - total_hg_adjustment) * project_lipid.lipid_mol_fraction)
 
     b_values = [chain_b, headgroup_b, terminal_methyl_b, water_b]
-
-    print(b_values)
     
     return(b_values)
 
 # Fit function
-def symmetrical_fit(project_id, parameter_id):
-    # DELCARE
-    # Project
-    parameter = Symmetrical_Parameters.objects.get(id=parameter_id)
-
-    # Project lipids
-    project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
-    
+def symmetrical_paramitize(parameter, project_lipids, datas):
+    ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
     d_water = Molecule.objects.get(compound_name='deuterated_water')
-
-    # Data
-    datas = Data_Set.objects.filter(project_title_id=project_id)
 
     # Parameters
     fit_parameters = lsq.Parameters()
@@ -232,48 +212,89 @@ def symmetrical_fit(project_id, parameter_id):
     )
 
     # Per dataset
-    for data in datas:
-        print('call adjust')
+    try:
+        for data in datas:
+            # Get values for this data
+            b_values = adjust_b_values(data, project_lipids, water, d_water)
+
+            fit_parameters.add_many(
+                ( # bc
+                    'chain_b_%i' % data.id,
+                    b_values[0],
+                    False
+                ),
+                ( # bh
+                    'headgroup_b_%i' % data.id,
+                    b_values[1],
+                    False
+                ),
+                ( # bt
+                    'terminal_methyl_b_%i' % data.id,
+                    b_values[2],
+                    False
+                ),
+                ( # bw
+                    'water_b_%i' % data.id,
+                    b_values[3],
+                    False
+                )
+            )
+    except TypeError:
         # Get values for this data
-        b_values = adjust_b_values(data, project_lipids, water, d_water)
-        print('after call')
-        print(b_values)
+        b_values = adjust_b_values(datas, project_lipids, water, d_water)
 
         fit_parameters.add_many(
             ( # bc
-                'chain_b_%i' % data.id,
+                'chain_b_%i' % datas.id,
                 b_values[0],
                 False
             ),
             ( # bh
-                'headgroup_b_%i' % data.id,
+                'headgroup_b_%i' % datas.id,
                 b_values[1],
                 False
             ),
             ( # bt
-                'terminal_methyl_b_%i' % data.id,
+                'terminal_methyl_b_%i' % datas.id,
                 b_values[2],
                 False
             ),
             ( # bw
-                'water_b_%i' % data.id,
+                'water_b_%i' % datas.id,
                 b_values[3],
                 False
             )
         )
+    
+    # print('report')
+    # print(lsq.fit_report(fit_result))
 
-    fit_parameters.pretty_print()
+    return fit_parameters
 
-    # Fit!
+def symmetrical_graph(parameter, project_lipids, data):
+    # Get parameters
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, data)
+
+    # Get result
+    model_result = calc_sym_model(
+        fit_parameters,
+        data.q_value,
+        data
+    )
+
+    return model_result
+
+def symmetrical_fit(parameter, project_lipids, datas):
+    # Get parameters
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, datas)
+
+    # Get result
     x = None
 
-    data_result = lsq.minimize(
+    fit_result = lsq.minimize(
         symmetrical_objective_function,
         fit_parameters,
         args=(x, datas)
     )
-    
-    print(lsq.fit_report(data_result))
 
-    return data_result
-
+    return fit_result

@@ -51,7 +51,7 @@
                     <td>{{ parameter_update_form.lipid_area_upperbound }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter.lipid_area }}</td>
+                    <td>{{ parameter_update_form.lipid_area }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_update_form.lipid_area_lowerbound }}</td>
@@ -68,7 +68,7 @@
                     <td>{{ parameter_update_form.headgroup_thickness_upperbound }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter.headgroup_thickness }}</td>
+                    <td>{{ parameter_update_form.headgroup_thickness }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_update_form.headgroup_thickness_lowerbound }}</td>
@@ -102,7 +102,7 @@
                     <td>{{ parameter_update_form.terminal_methyl_volume_upperbound }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter.terminal_methyl_volume }}</td>
+                    <td>{{ parameter_update_form.terminal_methyl_volume }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_update_form.terminal_methyl_volume_lowerbound }}</td>
@@ -136,7 +136,7 @@
                     <td>{{ parameter_update_form.sigma_upperbound }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter.sigma }}</td>
+                    <td>{{ parameter_update_form.sigma }}</td>
                 </tr>
                 <tr>
                     <td>{{ parameter_update_form.sigma_lowerbound }}</td>
@@ -168,31 +168,68 @@
                 <button class="success" type="submit" name="fit">Fit!</button>
             </form>
 
+            {% if parameter.fit_report and not show_stats %}
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="statistics">Show Fit Statistics</button>
+                </form>
+            {% endif %}
+            {% if show_stats %}
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="graphs">Show Graphs</button>
+                </form>
+            {% endif %}
+
         </div>
 
-        <div class="content-box">
+        {% if show_stats %}
 
-            <h2>X-Ray Data</h2>
+            <div class="content-box">
+                <h4>Fit Statistics</h4>
+                <div class="indent">
+                    <p>{{ parameter.fit_report.5 }}</p>
+                    <p>{{ parameter.fit_report.6 }}</p>
+                    <p>{{ parameter.fit_report.7 }}</p>
+                    <p>{{ parameter.fit_report.8 }}</p>
+                </div>
 
-            <div class="graph-box">
-                {% for elem in xray_graph %}
-                    {{elem|safe}}
-                {% endfor %}
+                <h4>Variable Parameters</h4>
+                <div class="indent">
+                    <p>{{ parameter.fit_report.12 }}</p>
+                    <p>{{ parameter.fit_report.14 }}</p>
+                    <p>{{ parameter.fit_report.15 }}</p>
+                </div>
+                <p></p>
             </div>
 
-        </div>
+        {% else %}
 
-        <div class="content-box">
+            <div class="content-box">
 
-            <h2>Neutron Data</h2>
+                <h2>X-Ray Data</h2>
 
-            <div class="graph-box">
-                {% for elem in neutron_graph %}
-                    {{elem|safe}}
-                {% endfor %}
+                <div class="graph-box">
+                    {% for elem in xray_graph %}
+                        {{elem|safe}}
+                    {% endfor %}
+                </div>
+
             </div>
 
-        </div>
+            <div class="content-box">
+
+                <h2>Neutron Data</h2>
+
+                <div class="graph-box">
+                    {% for elem in neutron_graph %}
+                        {{elem|safe}}
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        {% endif %}
 
     </div>
 

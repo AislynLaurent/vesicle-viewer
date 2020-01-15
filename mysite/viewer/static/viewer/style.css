@@ -104,6 +104,10 @@ td {
     padding: 0;
 }
 
+.indent {
+    margin-left: 40px;
+}
+
 /* Head */
 
 header {
@@ -249,12 +253,16 @@ main img {
     border: solid 1px #6C788E;
 }
 
+.value {
+    width: 80px;
+}
+
 .upper_bound {
-    width: 40px;
+    width: 80px;
 }
 
 .lower_bound {
-    width: 40px;
+    width: 80px;
 }
 
 /* Footer */
