@@ -144,6 +144,41 @@
                 <tr>
                     <td><hr /></td>
                 </tr>
+
+                <!-- Scale -->
+                <tr>
+                    <td><h4>Scale {{ parameter_update_form.scale_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.scale_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.scale }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.scale_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
+                <!-- BG -->
+                <tr>
+                    <td><h4>BG {{ parameter_update_form.background_lock }}</h4></td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.background_upperbound }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.background }}</td>
+                </tr>
+                <tr>
+                    <td>{{ parameter_update_form.background_lowerbound }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
                 <tr>
                     <td></td>
                 </tr>
@@ -156,11 +191,6 @@
         <div class="content-box">
 
                 <button type="submit" name="parameter_update">Update Parameters</button>
-            </form>
-
-            <form id="inline" method="POST">
-                {% csrf_token %}
-                <button type="submit" name="parameter_save">Save Parameters</button>
             </form>
 
             <form id="inline" method="POST">
@@ -199,6 +229,8 @@
                     <p>{{ parameter.fit_report.12 }}</p>
                     <p>{{ parameter.fit_report.14 }}</p>
                     <p>{{ parameter.fit_report.15 }}</p>
+                    <p>{{ parameter.fit_report.16 }}</p>
+                    <p>{{ parameter.fit_report.17 }}</p>
                 </div>
                 <p></p>
             </div>
@@ -209,10 +241,14 @@
 
                 <h2>X-Ray Data</h2>
 
-                <div class="graph-box">
+                <div id="left" class="graph-box">
                     {% for elem in xray_graph %}
                         {{elem|safe}}
                     {% endfor %}
+                </div>
+
+                <div id="left" class="form_box">
+                    <p>Test</p>
                 </div>
 
             </div>

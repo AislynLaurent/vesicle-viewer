@@ -174,11 +174,13 @@ def parameters_new(request, project_id):
 
     for lipid in project_lipids:
         combined_head_volume = combined_head_volume + (
-                eval(lipid.project_lipid_name.hg_volume_equation)
-                * lipid.lipid_mol_fraction
+                lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
             )
         combined_tail_volume = combined_tail_volume + (
-                eval(lipid.project_lipid_name.tg_volume_equation)
+                (
+                    eval(lipid.project_lipid_name.total_volume_equation) 
+                    - lipid.project_lipid_name.hg_volume
+                )
                 * lipid.lipid_mol_fraction
             )
 
@@ -496,19 +498,13 @@ def fit_main(request, project_id, parameter_id):
     else:
         parameter_update_form = Parameter_Fit_Form(instance=parameter)
 
-    # Save parameters
-    if "parameter_save" in request.POST:
-        # Copy current instance
-        new_parameter = deepcopy(parameter)
+    # Update q range for all x-ray datasets
+    if "update_ranges_xr" in request.POST:
+        pass
 
-        # Set new values
-        new_parameter.description = now.strftime("%m/%d/%H:%M")
-        new_parameter.id = None
-
-        # Save
-        new_parameter.save()
-
-        return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
+    # Update q range for all neutron datasets
+    if "update_ranges_nr" in request.POST:
+        pass
 
     # Do the fit
     if "fit" in request.POST:
@@ -526,6 +522,8 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
         new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
         new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
+        new_parameter.scale = round(fit_parameters['scale'].value, 3)
+        new_parameter.background = round(fit_parameters['background'].value, 3)
 
         # Set report
         fit_report = lsq.fit_report(fit_result)
