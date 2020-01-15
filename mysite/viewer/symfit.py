@@ -3,54 +3,56 @@ import numpy as np
 import lmfit as lsq
 
 # Models
-from .models import Project
-from .models import Project_Lipid
-from .models import Symmetrical_Parameters
-from .models import Data_Set
 from .models import Data_Lipid
 from .models import Data_Lipid_Atom
 from .models import Molecule
-from .models import Lipid
 
 # Symmetrical model
 def sym_model(
-    q,  # independant
-    Vc, # chain_volume
-    Vh, # headgroup_volume
-    Vt, # terminal_methyl_volume
-    Vw, # water_volume
-    Al, # area_per_lipid
-    Dh, # headgroup_thickness
-    bc, # chain_b
-    bh, # headgroup_b
-    bt, # terminal_methyl_b
-    bw  # water_b
+    q,      # independant
+    Vc,     # chain_volume
+    Vh,     # headgroup_volume
+    Vt,     # terminal_methyl_volume
+    Vw,     # water_volume
+    Al,     # area_per_lipid
+    Dh,     # headgroup_thickness
+    bc,     # chain_b
+    bh,     # headgroup_b
+    bt,     # terminal_methyl_b
+    bw,     # water_b
+    scale,  # scale
+    bg      # bg
 ):
     return (
-        2*(
-            Vt*(
-                bw*(
-                    ((Al*Dh) - Vh) * (Vc - 2*Vt)
+        ((
+            scale*(
+                2*(
+                    Vt*(
+                        bw*(
+                            ((Al*Dh) - Vh) * (Vc - 2*Vt)
+                        )
+                        + ((Vw*bh) * (Vc - 2*Vt)) - ((Vw*Al*Dh) * (bc - 2*bt))
+                    )
+                    * np.sin(
+                        (q*Vc) / Al
+                    )
+                    + Vt*(
+                        (Vc - 2*Vt) * (bw*Vh - bh*Vw)
+                    )
+                    * np.sin(
+                        q*Dh + ((q*Vc) / Al)
+                    )
+                    + (Vw*Al*Dh)*(bc*Vt - bt*Vc)
+                    * np.sin(
+                        ((2*q) * Vc) / Al
+                    )
+                ) 
+                / (
+                    (q*Dh*Al*Vt*Vw) * (Vc - 2*Vt)
                 )
-                + ((Vw*bh) * (Vc - 2*Vt)) - ((Vw*Al*Dh) * (bc - 2*bt))
             )
-            * np.sin(
-                (q*Vc) / Al
-            )
-            + Vt*(
-                (Vc - 2*Vt) * (bw*Vh - bh*Vw)
-            )
-            * np.sin(
-                q*Dh + ((q*Vc) / Al)
-            )
-            + (Vw*Al*Dh)*(bc*Vt - bt*Vc)
-            * np.sin(
-                ((2*q) * Vc) / Al
-            )
-        ) 
-        / (
-            (q*Dh*Al*Vt*Vw) * (Vc - 2*Vt)
-        )
+        ) ** 2 )
+        + bg
     )
 
 # Calculate result from model for an individual dataset
@@ -72,9 +74,12 @@ def calc_sym_model(fit_parameters, q, data):
     bh = fit_parameters['headgroup_b_%i' % data.id].value
     bt = fit_parameters['terminal_methyl_b_%i' % data.id].value
     bw = fit_parameters['water_b_%i' % data.id].value
+    # Adjust
+    scale = fit_parameters['scale'].value
+    bg = fit_parameters['background'].value
 
     # Return the calculated model
-    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, bc, bh, bt, bw)
+    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, bc, bh, bt, bw, scale, bg)
 
 
 # Objective function create a residual for each, then flatten
@@ -208,6 +213,21 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
             not(parameter.headgroup_thickness_lock),
             parameter.headgroup_thickness_lowerbound,
             parameter.headgroup_thickness_upperbound
+        ),
+        # Tweaks
+        ( # Scale
+            'scale',
+            parameter.scale,
+            not(parameter.scale_lock),
+            parameter.scale_lowerbound,
+            parameter.scale_upperbound
+        ),
+        ( # BG
+            'background',
+            parameter.background,
+            not(parameter.background_lock),
+            parameter.background_lowerbound,
+            parameter.background_upperbound
         )
     )
 
@@ -265,9 +285,6 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
                 False
             )
         )
-    
-    # print('report')
-    # print(lsq.fit_report(fit_result))
 
     return fit_parameters
 

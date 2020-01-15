@@ -22,23 +22,21 @@ class Lipid(models.Model):
     # Names
     lipid_name = models.CharField(verbose_name='lipid name', max_length=100, primary_key=True, unique=True)
 
-    # Volume
-    total_volume = models.FloatField(verbose_name='total volume', default=0)
-
     # Head group
     hg_scattering = models.FloatField(verbose_name='head group scattering length', default=0)
     hg_electrons = models.FloatField(verbose_name='head group electrons', default=0)
-    hg_volume_equation = models.CharField(verbose_name='head group volume equation', max_length=200, default='x')
+    hg_volume = models.FloatField(verbose_name='head group volume', default=0)
 
     # Tail group
     tg_scattering = models.FloatField(verbose_name='tail group scattering length', default=0)
     tg_electrons = models.FloatField(verbose_name='tail group electrons', default=0)
-    tg_volume_equation = models.CharField(verbose_name='tail group volume equation', max_length=200, default='x')
 
     # Terminal methyl
     tm_scattering = models.FloatField(verbose_name='terminal methyl scattering length', default=0)
     tm_electrons = models.FloatField(verbose_name='terminal methyl electrons', default=0)
-    tg_volume_equation = models.CharField(verbose_name='tail group volume equation', max_length=200, default='x')
+
+    # Total volume
+    total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=200, default='x')
 
     # Meta
     class Meta:
@@ -185,6 +183,19 @@ class Symmetrical_Parameters(models.Model):
     sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=-3)
     sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
 
+    # Tweaks
+    # SC
+    scale = models.FloatField(verbose_name='scale', default=1)
+    scale_upperbound = models.FloatField(verbose_name='scale upper bound', default=2)
+    scale_lowerbound = models.FloatField(verbose_name='scale lower bound', default=-2)
+    scale_lock = models.BooleanField(verbose_name='scale lock', default=False)
+
+    # BG
+    background = models.FloatField(verbose_name='background', default=0)
+    background_upperbound = models.FloatField(verbose_name='bg upper bound', default=1)
+    background_lowerbound = models.FloatField(verbose_name='bg lower bound', default=-1)
+    background_lock = models.BooleanField(verbose_name='bg lock', default=False)
+
     ## Report
     fit_report = ArrayField(models.CharField(max_length=500, blank=True), verbose_name='fitted parameter report', null=True, blank=True)
 
@@ -250,18 +261,9 @@ class Data_Set(models.Model):
     intensity_value = ArrayField(models.FloatField(), verbose_name='intensity_values', blank=True)
     error_value = ArrayField(models.FloatField(), verbose_name='error_values', blank=True)
 
-    # Tweaks
-    # SC
-    scale = models.FloatField(verbose_name='scale', default=1)
-    scale_upperbound = models.FloatField(verbose_name='sig upper bound', default=0)
-    scale_lowerbound = models.FloatField(verbose_name='sig lower bound', default=0)
-    scale_lock = models.BooleanField(verbose_name='sig lock', default=True)
-
-    # BG
-    background = models.FloatField(verbose_name='background', default=0)
-    background_upperbound = models.FloatField(verbose_name='sig upper bound', default=0)
-    background_lowerbound = models.FloatField(verbose_name='sig lower bound', default=0)
-    background_lock = models.BooleanField(verbose_name='sig lock', default=True)
+    # q range
+    q_max_index = models.IntegerField(verbose_name='q max', blank=True, null=True)
+    q_min_index = models.IntegerField(verbose_name='q min', blank=True, null=True)
 
     # Meta
     class Meta:
