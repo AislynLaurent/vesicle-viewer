@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import formset_factory
 
 from .models import Atom
 from .models import Project
@@ -122,20 +123,22 @@ class Data_Form(forms.ModelForm):
             'data_type',
         ]
 
-class Data_Range_Form(forms.ModelForm):
-    class Meta:
-        model = Data_Set
-        fields = [
-            'q_max_index',
-            'q_min_index',
-        ]
-
 class Data_Upload_Form(Data_Form):
 
     data_file = forms.FileField()
 
     class Meta(Data_Form.Meta):
         fields = Data_Form.Meta.fields + ['data_file',]
+
+class Data_Range_Form(forms.Form):
+    q_max = forms.IntegerField(
+        widget=forms.NumberInput(attrs={'class' : 'value'})
+    )
+    q_min = forms.IntegerField(
+        widget=forms.NumberInput(attrs={'class' : 'value'})
+    )
+
+Data_Range_Formset = formset_factory(Data_Range_Form)
 
 class Data_Lipid_Form(forms.ModelForm):
     class Meta:

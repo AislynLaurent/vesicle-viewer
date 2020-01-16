@@ -33,7 +33,7 @@
 
     <div class="content-box parameters" id="left">
 
-        <h2>{{ parameter.description }}</h2>
+        <h3>{{ parameter.description }}</h3>
 
         <form method="POST" enctype="multipart/form-data">
 
@@ -241,15 +241,28 @@
 
                 <h2>X-Ray Data</h2>
 
-                <div id="left" class="graph-box">
-                    {% for elem in xray_graph %}
-                        {{elem|safe}}
-                    {% endfor %}
-                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ xray_range_form.management_form }}
 
-                <div id="left" class="form_box">
-                    <p>Test</p>
-                </div>
+                    <button type="submit" name="update_ranges_xr" >Update</button>
+                    <p></p>
+
+                    {% for xray_graph, xray_form in xray_graphs_and_forms %}
+                        <div class="container">
+
+                            <div id="left" class="graph-box">
+                                {{xray_graph|safe}}
+                            </div>
+
+                            <div id="left" class="form_box">
+                                <p>{{xray_form.q_max}}</p>
+                            </div>
+                            
+                        </div>
+                    {% endfor %}
+
+                </form>
 
             </div>
 
@@ -257,11 +270,15 @@
 
                 <h2>Neutron Data</h2>
 
-                <div class="graph-box">
-                    {% for elem in neutron_graph %}
-                        {{elem|safe}}
-                    {% endfor %}
-                </div>
+                {% for neutron_graph in neutron_figures %}
+                    <div id="left" class="graph-box">
+                        {{neutron_graph|safe}}
+                    </div>
+
+                    <div id="left" class="form_box">
+                        <p>Test</p>
+                    </div>
+                {% endfor %}
 
             </div>
 

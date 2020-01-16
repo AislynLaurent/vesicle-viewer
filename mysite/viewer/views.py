@@ -2,6 +2,7 @@
 # From django
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
+from django.forms import modelformset_factory
 
 # Other libraries
 import json as js
@@ -13,25 +14,10 @@ import lmfit as lsq
 from copy import deepcopy
 
 # Models
-from .models import ExtendedUser
-from .models import Lipid
-from .models import Atom
-from .models import Project
-from .models import Project_Lipid
-from .models import Symmetrical_Parameters
-from .models import Data_Set
-from .models import Data_Lipid
-from .models import Data_Lipid_Atom
+from .models import *
 
 # Forms
-from .forms import Project_Form
-from .forms import Project_Lipid_Form
-from .forms import Parameter_Form
-from .forms import Parameter_Fit_Form
-from .forms import Data_Upload_Form
-from .forms import Data_Form
-from .forms import Data_Lipid_Form
-from .forms import Data_Lipid_Atom_Form
+from .forms import *
 
 # Other imports
 from .symfit import symmetrical_fit
@@ -312,6 +298,9 @@ def data_upload(request, project_id):
             data_info.intensity_value = i
             data_info.error_value = e
 
+            data_info.q_min_index = 0
+            data_info.q_max_index = len(q)-1
+
             data_upload_form.save()
 
         return redirect('viewer:project_detail', project_id=project.id)
@@ -500,7 +489,12 @@ def fit_main(request, project_id, parameter_id):
 
     # Update q range for all x-ray datasets
     if "update_ranges_xr" in request.POST:
-        pass
+        xray_range_form = Data_Range_Formset(request.POST)
+        if xray_range_form.is_valid():
+            q_max = xray_range_form.cleaned_data['q_max']
+            q_min = xray_range_form.cleaned_data['q_min']
+    else:
+        xray_range_form = Data_Range_Form()
 
     # Update q range for all neutron datasets
     if "update_ranges_nr" in request.POST:
@@ -541,14 +535,16 @@ def fit_main(request, project_id, parameter_id):
     if "graphs" in request.POST:
         show_statistics = False
 
-    # X-Ray graphs
-    xray_fig, ax = plt.subplots(xray_datas.count(), squeeze=False)
-    plt.subplots_adjust(hspace=0.5)
+    # Graphs
+    xray_figures = []
+    neutron_figures = []
 
-    i = 0
+    # X-Ray graphs
     for xray_data in xray_datas:
+        xray_fig = plt.figure(figsize=(6,2.5))
+
         # Data scatter plot
-        ax[i, 0].errorbar(
+        plt.errorbar(
             xray_data.q_value, 
             xray_data.intensity_value, 
             yerr=xray_data.error_value, 
@@ -559,34 +555,27 @@ def fit_main(request, project_id, parameter_id):
             capsize=2,
             zorder=0
         )
-        ax[i, 0].set_xscale('log')
-        ax[i, 0].set_yscale('log')
-        ax[i, 0].set_title(xray_data.data_set_title)
-        
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.title(xray_data.data_set_title)
+
         # Fit line
         if parameter.fit_report:
-            ax[i, 0].plot(
+            plt.plot(
                 xray_data.q_value,
                 symmetrical_graph(parameter, project_lipids, xray_data),
                 color='r',
                 label='Best Fit',
                 zorder=1
-            )
-            ax[i, 0].legend()
+            )   
 
-        # Move to next dataset
-        i = i+1
-
-    xray_graph = mpld3.fig_to_html(xray_fig)
+        xray_figures.append(mpld3.fig_to_html(xray_fig))
 
     # Neutron graphs
-    neutron_fig, ax = plt.subplots(neutron_datas.count(), squeeze=False)
-    plt.subplots_adjust(hspace=0.5)
-
-    j = 0
     for neutron_data in neutron_datas:
+        neutron_fig = plt.figure(figsize=(6,2.5))
         # Data scatter plot
-        ax[j, 0].errorbar(
+        plt.errorbar(
             neutron_data.q_value,
             neutron_data.intensity_value,
             yerr=neutron_data.error_value, 
@@ -597,35 +586,38 @@ def fit_main(request, project_id, parameter_id):
             capsize=2,
             zorder=0
         )
-        ax[j, 0].set_xscale('log')
-        ax[j, 0].set_yscale('log')
-        ax[j, 0].set_title(neutron_data.data_set_title)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.title(neutron_data.data_set_title)
 
         # Fit line
         if parameter.fit_report:
-            ax[j, 0].plot(
+            plt.plot(
                 neutron_data.q_value,
                 symmetrical_graph(parameter, project_lipids, neutron_data),
                 color='r',
                 label='Best Fit',
                 zorder=1
             )
-            ax[j, 0].legend()
 
-        # Move to next dataset
-        j = j+1
+        neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
-    neutron_graph = mpld3.fig_to_html(neutron_fig)
+    print(xray_range_form)
+    xray_graphs_and_forms = zip(xray_figures, xray_range_form)
+
+    print(xray_graphs_and_forms)
 
     return render(request, 'viewer/fit_main.html', {
         'x_user':x_user,
         'project':project, 
         'parameter':parameter, 
         'xray_datas':xray_datas, 
-        'neutron_datas':neutron_datas, 
-        'xray_graph': [xray_graph],
-        'neutron_graph': [neutron_graph],
+        'neutron_datas':neutron_datas,
+        'xray_figures':xray_figures,
+        'neutron_figures':neutron_figures,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
-        'show_stats':show_statistics
+        'show_stats':show_statistics,
+        'xray_range_form':xray_range_form,
+        'xray_graphs_and_forms':xray_graphs_and_forms
     })
