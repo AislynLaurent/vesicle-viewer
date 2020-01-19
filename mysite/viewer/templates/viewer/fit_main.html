@@ -209,7 +209,7 @@
 
             <div class="content-box">
                 <p></p>
-                {% for xray_graph, xray_range, xray_data in xray_graphs_and_forms %}
+                {% for xray_graph, xray_range, xray_scale, xray_data in xray_graphs_and_forms %}
                     <div id="clear" class="container">
                         <div class="graph-box">
                             {{xray_graph|safe}}
@@ -221,10 +221,17 @@
                                 <table>
                                     <tr>
                                         <td><h4>Data Range</h4></td>
-                                        <td><h4>Max</h4></td>
-                                        <td>{{ xray_range.q_max }}</td>
                                         <td><h4>Min</h4></td>
-                                        <td>{{ xray_range.q_min }}</td>
+                                        <td>{{ xray_range.min_value }}</td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ xray_range.max_value }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><h4>Data Scale</h4></td>
+                                        <td><h4>Scale</h4></td>
+                                        <td>{{ xray_scale.scale }}</td>
+                                        <td><h4>Background</h4></td>
+                                        <td>{{ xray_scale.background }}</td>
                                         <td rowspan="2"><button type="submit" name="{{xray_data.data_set_title}}" >Update</button></td>
                                     </tr>
                                 </table>
@@ -240,7 +247,7 @@
 
             <div class="content-box">
                 <p></p>
-                {% for neutron_graph, neutron_range, neutron_data in neutron_graphs_and_forms %}
+                {% for neutron_graph, neutron_range, neutron_scale, neutron_data in neutron_graphs_and_forms %}
                     <div id="clear" class="container">
                         <div class="graph-box">
                             {{neutron_graph|safe}}
@@ -252,11 +259,18 @@
                                 <table>
                                     <tr>
                                         <td><h4>Data Range</h4></td>
-                                        <td><h4>Max</h4></td>
-                                        <td>{{ neutron_range.q_max }}</td>
                                         <td><h4>Min</h4></td>
-                                        <td>{{ neutron_range.q_min }}</td>
-                                        <td rowspan="2"><button type="submit" name="{{xray_data.data_set_title}}" >Update</button></td>
+                                        <td>{{ neutron_range.min_value }}</td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ neutron_range.max_value }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><h4>Data Scale</h4></td>
+                                        <td><h4>Scale</h4></td>
+                                        <td>{{ neutron_scale.scale }}</td>
+                                        <td><h4>Background</h4></td>
+                                        <td>{{ neutron_scale.background }}</td>
+                                        <td rowspan="2"><button type="submit" name="{{neutron.data_set_title}}" >Update</button></td>
                                     </tr>
                                 </table>
                             </form>

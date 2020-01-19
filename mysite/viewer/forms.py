@@ -86,32 +86,24 @@ class Parameter_Fit_Form(forms.ModelForm):
             'headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
             'terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'sigma' : forms.NumberInput(attrs={'class' : 'value'}),
-            # 'scale' : forms.NumberInput(attrs={'class' : 'value'}),
-            # 'background' : forms.NumberInput(attrs={'class' : 'value'}),
 
             # Upperbound
             'lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'sigma_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
-            # 'scale_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
-            # 'background_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
 
             # Lowerbound
             'lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'sigma_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
-            # 'scale_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
-            # 'background_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
 
             # Lock
             'lipid_area_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'headgroup_thickness_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'terminal_methyl_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'sigma_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
-            # 'scale_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
-            # 'background_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
 
 class Data_Form(forms.ModelForm):
@@ -131,13 +123,43 @@ class Data_Upload_Form(Data_Form):
         fields = Data_Form.Meta.fields + ['data_file',]
 
 class Data_Range_Form(forms.Form):
-    q_max = forms.FloatField(
+    max_value = forms.FloatField(
         widget=forms.NumberInput(attrs={'class' : 'value'})
     )
-    q_min = forms.FloatField(
+    min_value = forms.FloatField(
         widget=forms.NumberInput(attrs={'class' : 'value'})
     )
 
+class Data_Scale_Form(forms.ModelForm):
+    class Meta:
+        model = Data_Set
+        fields = [
+            'scale',
+            'scale_upperbound',
+            'scale_lowerbound',
+            'scale_lock',
+            'background',
+            'background_upperbound',
+            'background_lowerbound',
+            'background_lock',
+        ]
+        widgets = {
+            # Values
+            'scale' : forms.NumberInput(attrs={'class' : 'value'}),
+            'background' : forms.NumberInput(attrs={'class' : 'value'}),
+
+            # Upperbound
+            'scale_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'background_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+
+            # Lowerbound
+            'scale_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'background_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+
+            # Lock
+            'scale_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'background_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+        }
 
 class Data_Lipid_Form(forms.ModelForm):
     class Meta:

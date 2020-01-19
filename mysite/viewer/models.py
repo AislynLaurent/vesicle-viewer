@@ -143,10 +143,7 @@ class Symmetrical_Parameters(models.Model):
     # Radius
     vesicle_radius = models.FloatField(verbose_name='vesicle radius', default=0)
         # Calculated from the lipid volume along with the thickness
-
-    # Water
-    water_volume = models.FloatField(verbose_name='vesicle radius', default=0)
-
+        
     ## Fixed
     # Chain volume
     chain_volume = models.FloatField(verbose_name='chain volume', default=0)
@@ -252,8 +249,8 @@ class Data_Set(models.Model):
     error_value = ArrayField(models.FloatField(), verbose_name='error_values', blank=True)
 
     # q range
-    q_max_index = models.IntegerField(verbose_name='q max', blank=True, null=True)
-    q_min_index = models.IntegerField(verbose_name='q min', blank=True, null=True)
+    max_index = models.IntegerField(verbose_name='max index', blank=True, null=True)
+    min_index = models.IntegerField(verbose_name='min index', blank=True, null=True)
 
     # Tweaks
     # SC

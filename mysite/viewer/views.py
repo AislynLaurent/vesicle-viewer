@@ -158,6 +158,7 @@ def parameters_new(request, project_id):
 
     x = project.system_tempurature
 
+    # Calculate combined volume
     for lipid in project_lipids:
         combined_head_volume = combined_head_volume + (
                 lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
@@ -198,7 +199,7 @@ def parameters_new(request, project_id):
 
             lipid_area = form.cleaned_data['lipid_area']
             parameters.lipid_area_upperbound = lipid_area*1.5
-            parameters.lipid_area_lowerbound = -(lipid_area*1.5)
+            parameters.lipid_area_lowerbound = 1
 
             headgroup_thickness = form.cleaned_data['headgroup_thickness']
             parameters.headgroup_thickness_upperbound = headgroup_thickness*1.5
@@ -489,54 +490,62 @@ def fit_main(request, project_id, parameter_id):
 
     # Ranges
     xray_ranges = []
+    xray_scales = []
 
     # Update q range for all x-ray datasets
     for xray_data in xray_datas:
         if xray_data.data_set_title in request.POST:
             xray_range_form = Data_Range_Form(request.POST)
-            if xray_range_form.is_valid():
+            xray_scale_form = Data_Scale_Form(request.POST)
+            if xray_range_form.is_valid() and xray_scale_form.is_valid():
                 # Get range values
-                q_max = xray_range_form.cleaned_data['q_max']
-                q_min = xray_range_form.cleaned_data['q_min']
+                max_value = xray_range_form.cleaned_data['max_value']
+                min_value = xray_range_form.cleaned_data['min_value']
 
                 # Find the indexes for the closes value in q_value
-                q_max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(q_max - x[1]))
-                q_min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(q_min - x[1]))
+                max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
+                min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
 
                 # Set the indexes in the db - +1 to take the closest on the inside for the low end
-                xray_data.q_max_index = q_max_index[0]
-                xray_data.q_min_index = q_min_index[0] + 1
+                xray_data.max_index = max_index[0]
+                xray_data.min_index = min_index[0] + 1
 
                 xray_data.save()
         else:
             xray_range_form = Data_Range_Form()
+            xray_scale_form = Data_Scale_Form()
 
         xray_ranges.append(xray_range_form)
+        xray_scales.append(xray_scale_form)
 
     # Ranges
     neutron_ranges = []
+    neutron_scales = []
 
     # Update q range for all x-ray datasets
     for neutron_data in neutron_datas:
         if neutron_data.data_set_title in request.POST:
             neutron_range_form = Data_Range_Form(request.POST)
+            neutron_scale_form = Data_Scale_Form(request.POST)
             if neutron_range_form.is_valid():
-                q_max = neutron_range_form.cleaned_data['q_max']
-                q_min = neutron_range_form.cleaned_data['q_min']
+                max_value = neutron_range_form.cleaned_data['max_value']
+                min_value = neutron_range_form.cleaned_data['min_value']
 
                 # Find the indexes for the closes value in q_value
-                q_max_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(q_max - x[1]))
-                q_min_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(q_min - x[1]))
+                max_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(max_value - x[1]))
+                min_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(min_value - x[1]))
 
                 # Set the indexes in the db - +1 to take the closest on the inside for the low end
-                neutron_data.q_max_index = q_max_index[0]
-                neutron_data.q_min_index = q_min_index[0] + 1
+                neutron_data.max_index = max_index[0]
+                neutron_data.min_index = min_index[0] + 1
 
                 neutron_data.save()
         else:
             neutron_range_form = Data_Range_Form()
+            neutron_scale_form = Data_Scale_Form()
 
         neutron_ranges.append(neutron_range_form)
+        neutron_scales.append(neutron_scale_form)
 
     # Update q range for all neutron datasets
     if "update_ranges_nr" in request.POST:
@@ -545,7 +554,7 @@ def fit_main(request, project_id, parameter_id):
     # Do the fit
     if "fit" in request.POST:
         # Do fit
-        fit_result = symmetrical_fit(parameter, project_lipids, datas)
+        fit_result = symmetrical_fit(parameter, project_lipids, datas, project.system_tempurature)
         fit_parameters = fit_result.params
 
         # Copy current instance
@@ -558,8 +567,6 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
         new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
         new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
-        new_parameter.scale = round(fit_parameters['scale'].value, 3)
-        new_parameter.background = round(fit_parameters['background'].value, 3)
 
         # Set report
         fit_report = lsq.fit_report(fit_result)
@@ -587,9 +594,9 @@ def fit_main(request, project_id, parameter_id):
 
         # Data scatter plot
         plt.errorbar(
-            xray_data.q_value[xray_data.q_min_index:xray_data.q_max_index], 
-            xray_data.intensity_value[xray_data.q_min_index:xray_data.q_max_index], 
-            # yerr=xray_data.error_value[xray_data.q_min_index:xray_data.q_max_index], 
+            xray_data.q_value[xray_data.min_index:xray_data.max_index], 
+            xray_data.intensity_value[xray_data.min_index:xray_data.max_index], 
+            # yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
             fmt='.k',
             color='c',
             ecolor='gray', 
@@ -604,8 +611,8 @@ def fit_main(request, project_id, parameter_id):
         # Fit line
         if parameter.fit_report:
             plt.plot(
-                xray_data.q_value,
-                symmetrical_graph(parameter, project_lipids, xray_data),
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                symmetrical_graph(parameter, project_lipids, xray_data, project.system_tempurature),
                 color='r',
                 label='Best Fit',
                 zorder=1
@@ -618,8 +625,8 @@ def fit_main(request, project_id, parameter_id):
         neutron_fig = plt.figure(figsize=(6,2.5))
         # Data scatter plot
         plt.errorbar(
-            neutron_data.q_value[neutron_data.q_min_index:neutron_data.q_max_index],
-            neutron_data.intensity_value[neutron_data.q_min_index:neutron_data.q_max_index],
+            neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+            neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
             # yerr=neutron_data.error_value[neutron_data.q_min_index:neutron_data.q_max_index],
             fmt='.k',
             color='c',
@@ -635,8 +642,8 @@ def fit_main(request, project_id, parameter_id):
         # Fit line
         if parameter.fit_report:
             plt.plot(
-                neutron_data.q_value,
-                symmetrical_graph(parameter, project_lipids, neutron_data),
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature),
                 color='r',
                 label='Best Fit',
                 zorder=1
@@ -644,8 +651,8 @@ def fit_main(request, project_id, parameter_id):
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
-    xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_datas)
-    neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_datas)
+    xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
+    neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
     return render(request, 'viewer/fit_main.html', {
         'x_user':x_user,
