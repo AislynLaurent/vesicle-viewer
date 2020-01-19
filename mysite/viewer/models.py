@@ -55,8 +55,8 @@ class Lipid(models.Model):
 class Molecule(models.Model):
     # Names
     compound_name = models.CharField(max_length=100, primary_key=True, unique=True)
-    # Volume
-    total_volume = models.FloatField(verbose_name='total volume', default=0)
+    # Total volume
+    total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=200, default='x')
     # Scattering length
     scattering_length = models.FloatField(verbose_name='scattering length', default=0)
     # Electrons
@@ -140,9 +140,12 @@ class Symmetrical_Parameters(models.Model):
     bilayer_thickness_lowerbound = models.FloatField(verbose_name='bilayer lower bound', default=0)
     bilayer_thickness_lock = models.BooleanField(verbose_name='bilayer lock', default=False)
 
-    #Radius
+    # Radius
     vesicle_radius = models.FloatField(verbose_name='vesicle radius', default=0)
         # Calculated from the lipid volume along with the thickness
+
+    # Water
+    water_volume = models.FloatField(verbose_name='vesicle radius', default=0)
 
     ## Fixed
     # Chain volume
@@ -182,19 +185,6 @@ class Symmetrical_Parameters(models.Model):
     sigma_upperbound = models.FloatField(verbose_name='sig upper bound', default=3)
     sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=-3)
     sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
-
-    # Tweaks
-    # SC
-    scale = models.FloatField(verbose_name='scale', default=1)
-    scale_upperbound = models.FloatField(verbose_name='scale upper bound', default=2)
-    scale_lowerbound = models.FloatField(verbose_name='scale lower bound', default=-2)
-    scale_lock = models.BooleanField(verbose_name='scale lock', default=False)
-
-    # BG
-    background = models.FloatField(verbose_name='background', default=0)
-    background_upperbound = models.FloatField(verbose_name='bg upper bound', default=1)
-    background_lowerbound = models.FloatField(verbose_name='bg lower bound', default=-1)
-    background_lock = models.BooleanField(verbose_name='bg lock', default=False)
 
     ## Report
     fit_report = ArrayField(models.CharField(max_length=500, blank=True), verbose_name='fitted parameter report', null=True, blank=True)
@@ -264,6 +254,19 @@ class Data_Set(models.Model):
     # q range
     q_max_index = models.IntegerField(verbose_name='q max', blank=True, null=True)
     q_min_index = models.IntegerField(verbose_name='q min', blank=True, null=True)
+
+    # Tweaks
+    # SC
+    scale = models.FloatField(verbose_name='scale', default=1)
+    scale_upperbound = models.FloatField(verbose_name='scale upper bound', default=2)
+    scale_lowerbound = models.FloatField(verbose_name='scale lower bound', default=-2)
+    scale_lock = models.BooleanField(verbose_name='scale lock', default=False)
+
+    # BG
+    background = models.FloatField(verbose_name='background', default=0)
+    background_upperbound = models.FloatField(verbose_name='bg upper bound', default=1)
+    background_lowerbound = models.FloatField(verbose_name='bg lower bound', default=-1)
+    background_lock = models.BooleanField(verbose_name='bg lock', default=False)
 
     # Meta
     class Meta:

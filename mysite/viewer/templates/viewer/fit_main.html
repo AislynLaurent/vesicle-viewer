@@ -145,40 +145,6 @@
                     <td><hr /></td>
                 </tr>
 
-                <!-- Scale -->
-                <tr>
-                    <td><h4>Scale {{ parameter_update_form.scale_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
-
-                <!-- BG -->
-                <tr>
-                    <td><h4>BG {{ parameter_update_form.background_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
-
                 <tr>
                     <td></td>
                 </tr>
@@ -238,45 +204,63 @@
         {% else %}
 
             <div class="content-box">
-
                 <h2>X-Ray Data</h2>
-
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ xray_range_form.management_form }}
-
-                    <button type="submit" name="update_ranges_xr" >Update</button>
-                    <p></p>
-
-                    {% for xray_graph, xray_form in xray_graphs_and_forms %}
-                        <div class="container">
-
-                            <div id="left" class="graph-box">
-                                {{xray_graph|safe}}
-                            </div>
-
-                            <div id="left" class="form_box">
-                                <p>{{xray_form.q_max}}</p>
-                            </div>
-                            
-                        </div>
-                    {% endfor %}
-
-                </form>
-
             </div>
 
             <div class="content-box">
+                <p></p>
+                {% for xray_graph, xray_range, xray_data in xray_graphs_and_forms %}
+                    <div id="clear" class="container">
+                        <div class="graph-box">
+                            {{xray_graph|safe}}
+                        </div>
 
-                <h2>Neutron Data</h2>
-
-                {% for neutron_graph in neutron_figures %}
-                    <div id="left" class="graph-box">
-                        {{neutron_graph|safe}}
+                        <div class="form_box">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <table>
+                                    <tr>
+                                        <td><h4>Data Range</h4></td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ xray_range.q_max }}</td>
+                                        <td><h4>Min</h4></td>
+                                        <td>{{ xray_range.q_min }}</td>
+                                        <td rowspan="2"><button type="submit" name="{{xray_data.data_set_title}}" >Update</button></td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </div>
                     </div>
+                {% endfor %}
+            </div>
 
-                    <div id="left" class="form_box">
-                        <p>Test</p>
+            <div class="content-box">
+                <h2>Neutron Data</h2>
+            </div>
+
+            <div class="content-box">
+                <p></p>
+                {% for neutron_graph, neutron_range, neutron_data in neutron_graphs_and_forms %}
+                    <div id="clear" class="container">
+                        <div class="graph-box">
+                            {{neutron_graph|safe}}
+                        </div>
+
+                        <div class="form_box">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <table>
+                                    <tr>
+                                        <td><h4>Data Range</h4></td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ neutron_range.q_max }}</td>
+                                        <td><h4>Min</h4></td>
+                                        <td>{{ neutron_range.q_min }}</td>
+                                        <td rowspan="2"><button type="submit" name="{{xray_data.data_set_title}}" >Update</button></td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </div>
                     </div>
                 {% endfor %}
 
