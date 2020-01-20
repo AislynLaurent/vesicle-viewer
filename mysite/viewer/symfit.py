@@ -16,6 +16,7 @@ def sym_model(
     Vw,     # water_volume
     Al,     # area_per_lipid
     Dh,     # headgroup_thickness
+    sig,    # smearing factor
     bc,     # chain_b
     bh,     # headgroup_b
     bt,     # terminal_methyl_b
@@ -24,35 +25,14 @@ def sym_model(
     bg      # bg
 ):
     return (
-        ((
-            scale*(
-                2*(
-                    Vt*(
-                        bw*(
-                            ((Al*Dh) - Vh) * (Vc - 2*Vt)
-                        )
-                        + ((Vw*bh) * (Vc - 2*Vt)) - ((Vw*Al*Dh) * (bc - 2*bt))
-                    )
-                    * np.sin(
-                        (q*Vc) / Al
-                    )
-                    + Vt*(
-                        (Vc - 2*Vt) * (bw*Vh - bh*Vw)
-                    )
-                    * np.sin(
-                        q*Dh + ((q*Vc) / Al)
-                    )
-                    + (Vw*Al*Dh)*(bc*Vt - bt*Vc)
-                    * np.sin(
-                        ((2*q) * Vc) / Al
-                    )
-                ) 
-                / (
-                    (q*Dh*Al*Vt*Vw) * (Vc - 2*Vt)
-                )
-            )
-        ) ** 2 )
-        + bg
+        scale*((((2*(np.exp(-((q*sig)**2)/2)))/q*Dh*Al*Vt*Vw*(Vc-2*Vt))*
+        np.abs(
+        Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))*
+        np.sin(q*Vc/Al)
+        +Vt*(Vc-2*Vt)*(bw*Vh-bh*Vw)*np.sin(q*Dh+q*Vc/Al)
+        +Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
+        ))**2)
+        +bg
     )
 
 # Calculate result from model for an individual dataset
@@ -65,21 +45,23 @@ def calc_sym_model(fit_parameters, q, data):
     Vc = fit_parameters['chain_volume'].value
     Vh = fit_parameters['headgroup_volume'].value
     Vt = fit_parameters['terminal_methyl_volume'].value
-    Vw = fit_parameters['water_volume'].value
     # Unknown
     Al = fit_parameters['area_per_lipid'].value
     Dh = fit_parameters['headgroup_thickness'].value
+    # Smearing factor
+    sig = fit_parameters['sigma'].value
     # Per dataset
     bc = fit_parameters['chain_b_%i' % data.id].value
     bh = fit_parameters['headgroup_b_%i' % data.id].value
     bt = fit_parameters['terminal_methyl_b_%i' % data.id].value
     bw = fit_parameters['water_b_%i' % data.id].value
-    # Adjust
-    scale = fit_parameters['scale'].value
-    bg = fit_parameters['background'].value
+    Vw = fit_parameters['combined_water_volume_%i' % data.id].value
+    # Tweaks
+    scale = fit_parameters['scale_%i' % data.id].value
+    bg = fit_parameters['background_%i' % data.id].value
 
     # Return the calculated model
-    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, bc, bh, bt, bw, scale, bg)
+    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
 
 
 # Objective function create a residual for each, then flatten
@@ -91,7 +73,7 @@ def symmetrical_objective_function(fit_parameters, x, datas):
     # Make an array of residuals
     for data in datas:
         # Do math
-        residuals = data.intensity_value - calc_sym_model(fit_parameters, data.q_value, data)
+        residuals = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data)
 
         # Append
         combined_residuals.extend(residuals)
@@ -99,12 +81,22 @@ def symmetrical_objective_function(fit_parameters, x, datas):
     return combined_residuals
 
 # Augments per data-set
-def adjust_b_values(data, project_lipids, water, d_water):
+def adjust_b_values(data, project_lipids, water, d_water, temp):
+    # Temp
+    x = temp
+
     # Declare
     terminal_methyl_b = 0
     chain_b = 0
     headgroup_b = 0
     water_b = 0
+    calculated_water_volume = 0
+
+    # Calculate water volume
+    calculated_water_volume = (
+        (eval(d_water.total_volume_equation) * data.d2o_mol_fraction) 
+        + (eval(water.total_volume_equation) * (1 - data.d2o_mol_fraction))
+    )
 
     if data.data_type == 'XR':
         # bw
@@ -158,12 +150,12 @@ def adjust_b_values(data, project_lipids, water, d_water):
                 # bh
                 headgroup_b = headgroup_b + ( (headgroup_b - total_hg_adjustment) * project_lipid.lipid_mol_fraction)
 
-    b_values = [chain_b, headgroup_b, terminal_methyl_b, water_b]
+    b_values = [chain_b, headgroup_b, terminal_methyl_b, water_b, calculated_water_volume]
     
     return(b_values)
 
 # Fit function
-def symmetrical_paramitize(parameter, project_lipids, datas):
+def symmetrical_paramitize(parameter, project_lipids, datas, temp):
     ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
@@ -194,11 +186,6 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
             parameter.terminal_methyl_volume_lowerbound,
             parameter.terminal_methyl_volume_upperbound
         ),
-        ( # Vw
-            'water_volume',
-            water.total_volume,
-            False
-        ),
         # Unknown
         ( # Al
             'area_per_lipid',
@@ -214,20 +201,13 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
             parameter.headgroup_thickness_lowerbound,
             parameter.headgroup_thickness_upperbound
         ),
-        # Tweaks
-        ( # Scale
-            'scale',
-            parameter.scale,
-            not(parameter.scale_lock),
-            parameter.scale_lowerbound,
-            parameter.scale_upperbound
-        ),
-        ( # BG
-            'background',
-            parameter.background,
-            not(parameter.background_lock),
-            parameter.background_lowerbound,
-            parameter.background_upperbound
+        # Smearing factor
+        ( # Sigma
+            'sigma',
+            parameter.sigma,
+            not(parameter.sigma_lock),
+            parameter.sigma_lowerbound,
+            parameter.sigma_upperbound
         )
     )
 
@@ -235,7 +215,7 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
     try:
         for data in datas:
             # Get values for this data
-            b_values = adjust_b_values(data, project_lipids, water, d_water)
+            b_values = adjust_b_values(data, project_lipids, water, d_water, temp)
 
             fit_parameters.add_many(
                 ( # bc
@@ -257,11 +237,31 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
                     'water_b_%i' % data.id,
                     b_values[3],
                     False
+                ),
+                ( # Vw
+                    'combined_water_volume_%i' % data.id,
+                    b_values[4],
+                    False
+                ),
+                # Tweaks
+                ( # Scale
+                    'scale_%i' % data.id,
+                    data.scale,
+                    not(data.scale_lock),
+                    data.scale_lowerbound,
+                    data.scale_upperbound
+                ),
+                ( # BG
+                    'background_%i' % data.id,
+                    data.background,
+                    not(data.background_lock),
+                    data.background_lowerbound,
+                    data.background_upperbound
                 )
             )
     except TypeError:
         # Get values for this data
-        b_values = adjust_b_values(datas, project_lipids, water, d_water)
+        b_values = adjust_b_values(datas, project_lipids, water, d_water, temp)
 
         fit_parameters.add_many(
             ( # bc
@@ -283,27 +283,47 @@ def symmetrical_paramitize(parameter, project_lipids, datas):
                 'water_b_%i' % datas.id,
                 b_values[3],
                 False
+            ),
+            ( # Vw
+                'combined_water_volume_%i' % datas.id,
+                b_values[4],
+                False
+            ),
+            # Tweaks
+            ( # Scale
+                'scale_%i' % datas.id,
+                datas.scale,
+                not(datas.scale_lock),
+                datas.scale_lowerbound,
+                datas.scale_upperbound
+            ),
+            ( # BG
+                'background_%i' % datas.id,
+                datas.background,
+                not(datas.background_lock),
+                datas.background_lowerbound,
+                datas.background_upperbound
             )
         )
 
     return fit_parameters
 
-def symmetrical_graph(parameter, project_lipids, data):
+def symmetrical_graph(parameter, project_lipids, data, temp):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, project_lipids, data)
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, data, temp)
 
     # Get result
     model_result = calc_sym_model(
         fit_parameters,
-        data.q_value,
+        data.q_value[data.min_index:data.max_index],
         data
     )
 
     return model_result
 
-def symmetrical_fit(parameter, project_lipids, datas):
+def symmetrical_fit(parameter, project_lipids, datas, temp):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, project_lipids, datas)
+    fit_parameters = symmetrical_paramitize(parameter, project_lipids, datas, temp)
 
     # Get result
     x = None

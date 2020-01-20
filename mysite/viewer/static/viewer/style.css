@@ -223,10 +223,10 @@ main img {
 .graph-box {
     background-color: #FCFDFF;
     border-radius: 5px;
-    margin: 10px;
+    margin: 15px 0 15px 0;
 }
 
-.parameters h2 {
+.parameters h3 {
     margin: auto;
     padding: 10px;
     text-align: center;

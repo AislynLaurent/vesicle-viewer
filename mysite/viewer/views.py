@@ -2,6 +2,7 @@
 # From django
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
+from django.forms import modelformset_factory
 
 # Other libraries
 import json as js
@@ -13,25 +14,10 @@ import lmfit as lsq
 from copy import deepcopy
 
 # Models
-from .models import ExtendedUser
-from .models import Lipid
-from .models import Atom
-from .models import Project
-from .models import Project_Lipid
-from .models import Symmetrical_Parameters
-from .models import Data_Set
-from .models import Data_Lipid
-from .models import Data_Lipid_Atom
+from .models import *
 
 # Forms
-from .forms import Project_Form
-from .forms import Project_Lipid_Form
-from .forms import Parameter_Form
-from .forms import Parameter_Fit_Form
-from .forms import Data_Upload_Form
-from .forms import Data_Form
-from .forms import Data_Lipid_Form
-from .forms import Data_Lipid_Atom_Form
+from .forms import *
 
 # Other imports
 from .symfit import symmetrical_fit
@@ -172,6 +158,7 @@ def parameters_new(request, project_id):
 
     x = project.system_tempurature
 
+    # Calculate combined volume
     for lipid in project_lipids:
         combined_head_volume = combined_head_volume + (
                 lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
@@ -212,7 +199,7 @@ def parameters_new(request, project_id):
 
             lipid_area = form.cleaned_data['lipid_area']
             parameters.lipid_area_upperbound = lipid_area*1.5
-            parameters.lipid_area_lowerbound = -(lipid_area*1.5)
+            parameters.lipid_area_lowerbound = 1
 
             headgroup_thickness = form.cleaned_data['headgroup_thickness']
             parameters.headgroup_thickness_upperbound = headgroup_thickness*1.5
@@ -311,6 +298,9 @@ def data_upload(request, project_id):
             data_info.q_value = q
             data_info.intensity_value = i
             data_info.error_value = e
+
+            data_info.q_min_index = 0
+            data_info.q_max_index = len(q)-1
 
             data_upload_form.save()
 
@@ -498,9 +488,64 @@ def fit_main(request, project_id, parameter_id):
     else:
         parameter_update_form = Parameter_Fit_Form(instance=parameter)
 
+    # Ranges
+    xray_ranges = []
+    xray_scales = []
+
     # Update q range for all x-ray datasets
-    if "update_ranges_xr" in request.POST:
-        pass
+    for xray_data in xray_datas:
+        if xray_data.data_set_title in request.POST:
+            xray_range_form = Data_Range_Form(request.POST)
+            xray_scale_form = Data_Scale_Form(request.POST)
+            if xray_range_form.is_valid() and xray_scale_form.is_valid():
+                # Get range values
+                max_value = xray_range_form.cleaned_data['max_value']
+                min_value = xray_range_form.cleaned_data['min_value']
+
+                # Find the indexes for the closes value in q_value
+                max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
+                min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
+
+                # Set the indexes in the db - +1 to take the closest on the inside for the low end
+                xray_data.max_index = max_index[0]
+                xray_data.min_index = min_index[0] + 1
+
+                xray_data.save()
+        else:
+            xray_range_form = Data_Range_Form()
+            xray_scale_form = Data_Scale_Form()
+
+        xray_ranges.append(xray_range_form)
+        xray_scales.append(xray_scale_form)
+
+    # Ranges
+    neutron_ranges = []
+    neutron_scales = []
+
+    # Update q range for all x-ray datasets
+    for neutron_data in neutron_datas:
+        if neutron_data.data_set_title in request.POST:
+            neutron_range_form = Data_Range_Form(request.POST)
+            neutron_scale_form = Data_Scale_Form(request.POST)
+            if neutron_range_form.is_valid():
+                max_value = neutron_range_form.cleaned_data['max_value']
+                min_value = neutron_range_form.cleaned_data['min_value']
+
+                # Find the indexes for the closes value in q_value
+                max_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(max_value - x[1]))
+                min_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(min_value - x[1]))
+
+                # Set the indexes in the db - +1 to take the closest on the inside for the low end
+                neutron_data.max_index = max_index[0]
+                neutron_data.min_index = min_index[0] + 1
+
+                neutron_data.save()
+        else:
+            neutron_range_form = Data_Range_Form()
+            neutron_scale_form = Data_Scale_Form()
+
+        neutron_ranges.append(neutron_range_form)
+        neutron_scales.append(neutron_scale_form)
 
     # Update q range for all neutron datasets
     if "update_ranges_nr" in request.POST:
@@ -509,7 +554,7 @@ def fit_main(request, project_id, parameter_id):
     # Do the fit
     if "fit" in request.POST:
         # Do fit
-        fit_result = symmetrical_fit(parameter, project_lipids, datas)
+        fit_result = symmetrical_fit(parameter, project_lipids, datas, project.system_tempurature)
         fit_parameters = fit_result.params
 
         # Copy current instance
@@ -522,8 +567,6 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
         new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
         new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
-        new_parameter.scale = round(fit_parameters['scale'].value, 3)
-        new_parameter.background = round(fit_parameters['background'].value, 3)
 
         # Set report
         fit_report = lsq.fit_report(fit_result)
@@ -541,17 +584,19 @@ def fit_main(request, project_id, parameter_id):
     if "graphs" in request.POST:
         show_statistics = False
 
-    # X-Ray graphs
-    xray_fig, ax = plt.subplots(xray_datas.count(), squeeze=False)
-    plt.subplots_adjust(hspace=0.5)
+    # Graphs
+    xray_figures = []
+    neutron_figures = []
 
-    i = 0
+    # X-Ray graphs
     for xray_data in xray_datas:
+        xray_fig = plt.figure(figsize=(6,2.5))
+
         # Data scatter plot
-        ax[i, 0].errorbar(
-            xray_data.q_value, 
-            xray_data.intensity_value, 
-            yerr=xray_data.error_value, 
+        plt.errorbar(
+            xray_data.q_value[xray_data.min_index:xray_data.max_index], 
+            xray_data.intensity_value[xray_data.min_index:xray_data.max_index], 
+            # yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
             fmt='.k',
             color='c',
             ecolor='gray', 
@@ -559,37 +604,30 @@ def fit_main(request, project_id, parameter_id):
             capsize=2,
             zorder=0
         )
-        ax[i, 0].set_xscale('log')
-        ax[i, 0].set_yscale('log')
-        ax[i, 0].set_title(xray_data.data_set_title)
-        
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.title(xray_data.data_set_title)
+
         # Fit line
         if parameter.fit_report:
-            ax[i, 0].plot(
-                xray_data.q_value,
-                symmetrical_graph(parameter, project_lipids, xray_data),
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                symmetrical_graph(parameter, project_lipids, xray_data, project.system_tempurature),
                 color='r',
                 label='Best Fit',
                 zorder=1
-            )
-            ax[i, 0].legend()
+            )   
 
-        # Move to next dataset
-        i = i+1
-
-    xray_graph = mpld3.fig_to_html(xray_fig)
+        xray_figures.append(mpld3.fig_to_html(xray_fig))
 
     # Neutron graphs
-    neutron_fig, ax = plt.subplots(neutron_datas.count(), squeeze=False)
-    plt.subplots_adjust(hspace=0.5)
-
-    j = 0
     for neutron_data in neutron_datas:
+        neutron_fig = plt.figure(figsize=(6,2.5))
         # Data scatter plot
-        ax[j, 0].errorbar(
-            neutron_data.q_value,
-            neutron_data.intensity_value,
-            yerr=neutron_data.error_value, 
+        plt.errorbar(
+            neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+            neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
+            # yerr=neutron_data.error_value[neutron_data.q_min_index:neutron_data.q_max_index],
             fmt='.k',
             color='c',
             ecolor='gray', 
@@ -597,35 +635,32 @@ def fit_main(request, project_id, parameter_id):
             capsize=2,
             zorder=0
         )
-        ax[j, 0].set_xscale('log')
-        ax[j, 0].set_yscale('log')
-        ax[j, 0].set_title(neutron_data.data_set_title)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.title(neutron_data.data_set_title)
 
         # Fit line
         if parameter.fit_report:
-            ax[j, 0].plot(
-                neutron_data.q_value,
-                symmetrical_graph(parameter, project_lipids, neutron_data),
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature),
                 color='r',
                 label='Best Fit',
                 zorder=1
             )
-            ax[j, 0].legend()
 
-        # Move to next dataset
-        j = j+1
+        neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
-    neutron_graph = mpld3.fig_to_html(neutron_fig)
+    xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
+    neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
     return render(request, 'viewer/fit_main.html', {
         'x_user':x_user,
-        'project':project, 
-        'parameter':parameter, 
-        'xray_datas':xray_datas, 
-        'neutron_datas':neutron_datas, 
-        'xray_graph': [xray_graph],
-        'neutron_graph': [neutron_graph],
+        'project':project,
+        'parameter':parameter,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
-        'show_stats':show_statistics
+        'show_stats':show_statistics,
+        'xray_graphs_and_forms':xray_graphs_and_forms,
+        'neutron_graphs_and_forms':neutron_graphs_and_forms
     })

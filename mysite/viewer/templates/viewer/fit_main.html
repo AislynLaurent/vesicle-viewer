@@ -33,7 +33,7 @@
 
     <div class="content-box parameters" id="left">
 
-        <h2>{{ parameter.description }}</h2>
+        <h3>{{ parameter.description }}</h3>
 
         <form method="POST" enctype="multipart/form-data">
 
@@ -145,40 +145,6 @@
                     <td><hr /></td>
                 </tr>
 
-                <!-- Scale -->
-                <tr>
-                    <td><h4>Scale {{ parameter_update_form.scale_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.scale_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
-
-                <!-- BG -->
-                <tr>
-                    <td><h4>BG {{ parameter_update_form.background_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.background_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
-
                 <tr>
                     <td></td>
                 </tr>
@@ -227,10 +193,8 @@
                 <h4>Variable Parameters</h4>
                 <div class="indent">
                     <p>{{ parameter.fit_report.12 }}</p>
+                    <p>{{ parameter.fit_report.13 }}</p>
                     <p>{{ parameter.fit_report.14 }}</p>
-                    <p>{{ parameter.fit_report.15 }}</p>
-                    <p>{{ parameter.fit_report.16 }}</p>
-                    <p>{{ parameter.fit_report.17 }}</p>
                 </div>
                 <p></p>
             </div>
@@ -238,30 +202,79 @@
         {% else %}
 
             <div class="content-box">
-
                 <h2>X-Ray Data</h2>
-
-                <div id="left" class="graph-box">
-                    {% for elem in xray_graph %}
-                        {{elem|safe}}
-                    {% endfor %}
-                </div>
-
-                <div id="left" class="form_box">
-                    <p>Test</p>
-                </div>
-
             </div>
 
             <div class="content-box">
+                <p></p>
+                {% for xray_graph, xray_range, xray_scale, xray_data in xray_graphs_and_forms %}
+                    <div id="clear" class="container">
+                        <div class="graph-box">
+                            {{xray_graph|safe}}
+                        </div>
 
+                        <div class="form_box">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <table>
+                                    <tr>
+                                        <td><h4>Data Range</h4></td>
+                                        <td><h4>Min</h4></td>
+                                        <td>{{ xray_range.min_value }}</td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ xray_range.max_value }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><h4>Data Scale</h4></td>
+                                        <td><h4>Scale</h4></td>
+                                        <td>{{ xray_scale.scale }}</td>
+                                        <td><h4>Background</h4></td>
+                                        <td>{{ xray_scale.background }}</td>
+                                        <td rowspan="2"><button type="submit" name="{{xray_data.data_set_title}}" >Update</button></td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="content-box">
                 <h2>Neutron Data</h2>
+            </div>
 
-                <div class="graph-box">
-                    {% for elem in neutron_graph %}
-                        {{elem|safe}}
-                    {% endfor %}
-                </div>
+            <div class="content-box">
+                <p></p>
+                {% for neutron_graph, neutron_range, neutron_scale, neutron_data in neutron_graphs_and_forms %}
+                    <div id="clear" class="container">
+                        <div class="graph-box">
+                            {{neutron_graph|safe}}
+                        </div>
+
+                        <div class="form_box">
+                            <form method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <table>
+                                    <tr>
+                                        <td><h4>Data Range</h4></td>
+                                        <td><h4>Min</h4></td>
+                                        <td>{{ neutron_range.min_value }}</td>
+                                        <td><h4>Max</h4></td>
+                                        <td>{{ neutron_range.max_value }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><h4>Data Scale</h4></td>
+                                        <td><h4>Scale</h4></td>
+                                        <td>{{ neutron_scale.scale }}</td>
+                                        <td><h4>Background</h4></td>
+                                        <td>{{ neutron_scale.background }}</td>
+                                        <td rowspan="2"><button type="submit" name="{{neutron.data_set_title}}" >Update</button></td>
+                                    </tr>
+                                </table>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
 
             </div>
 
