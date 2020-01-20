@@ -16,6 +16,7 @@ def sym_model(
     Vw,     # water_volume
     Al,     # area_per_lipid
     Dh,     # headgroup_thickness
+    sig,    # smearing factor
     bc,     # chain_b
     bh,     # headgroup_b
     bt,     # terminal_methyl_b
@@ -24,35 +25,14 @@ def sym_model(
     bg      # bg
 ):
     return (
-        ((
-            scale*(
-                2*(
-                    Vt*(
-                        bw*(
-                            ((Al*Dh) - Vh) * (Vc - 2*Vt)
-                        )
-                        + ((Vw*bh) * (Vc - 2*Vt)) - ((Vw*Al*Dh) * (bc - 2*bt))
-                    )
-                    * np.sin(
-                        (q*Vc) / Al
-                    )
-                    + Vt*(
-                        (Vc - 2*Vt) * (bw*Vh - bh*Vw)
-                    )
-                    * np.sin(
-                        q*Dh + ((q*Vc) / Al)
-                    )
-                    + (Vw*Al*Dh)*(bc*Vt - bt*Vc)
-                    * np.sin(
-                        ((2*q) * Vc) / Al
-                    )
-                ) 
-                / (
-                    (q*Dh*Al*Vt*Vw) * (Vc - 2*Vt)
-                )
-            )
-        ) ** 2 )
-        + bg
+        scale*((((2*(np.exp(-((q*sig)**2)/2)))/q*Dh*Al*Vt*Vw*(Vc-2*Vt))*
+        np.abs(
+        Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))*
+        np.sin(q*Vc/Al)
+        +Vt*(Vc-2*Vt)*(bw*Vh-bh*Vw)*np.sin(q*Dh+q*Vc/Al)
+        +Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
+        ))**2)
+        +bg
     )
 
 # Calculate result from model for an individual dataset
@@ -68,6 +48,8 @@ def calc_sym_model(fit_parameters, q, data):
     # Unknown
     Al = fit_parameters['area_per_lipid'].value
     Dh = fit_parameters['headgroup_thickness'].value
+    # Smearing factor
+    sig = fit_parameters['sigma'].value
     # Per dataset
     bc = fit_parameters['chain_b_%i' % data.id].value
     bh = fit_parameters['headgroup_b_%i' % data.id].value
@@ -79,7 +61,7 @@ def calc_sym_model(fit_parameters, q, data):
     bg = fit_parameters['background_%i' % data.id].value
 
     # Return the calculated model
-    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, bc, bh, bt, bw, scale, bg)
+    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
 
 
 # Objective function create a residual for each, then flatten
@@ -219,6 +201,14 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
             parameter.headgroup_thickness_lowerbound,
             parameter.headgroup_thickness_upperbound
         ),
+        # Smearing factor
+        ( # Sigma
+            'sigma',
+            parameter.sigma,
+            not(parameter.sigma_lock),
+            parameter.sigma_lowerbound,
+            parameter.sigma_upperbound
+        )
     )
 
     # Per dataset
