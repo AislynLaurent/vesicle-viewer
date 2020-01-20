@@ -26,25 +26,16 @@ def sym_model(
 ):
     return (
         scale*(
-            (
                 (
-                    ( 2 * (np.exp(-((q*sig)**2)/2)) ) 
-                    / q*Dh*Al*Vt*Vw * (Vc-2*Vt)
-                )
-                * np.abs(
-                    Vt * (
-                        bw * (Al*Dh-Vh) 
-                        * (Vc-2*Vt) + Vw*bh 
-                        * (Vc-2*Vt) - Vw*Al*Dh 
-                        * (bc-2*bt)
+                    ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
+                    * np.abs(
+                        Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))
+                        * np.sin(q*Vc/Al) 
+                        + Vt*(Vc-2*Vt)*(bw*Vh-bh*Vw)*np.sin(q*Dh+q*Vc/Al)
+                        + Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
                     )
-                    * np.sin(q*Vc/Al) 
-                    + Vt * (Vc-2*Vt) * (bw*Vh-bh*Vw) * np.sin(q*Dh+q*Vc/Al) 
-                    + Vw*Al*Dh * (bc*Vt-bt*Vc) * np.sin(2*q*Vt/Al)
-                )
-            )**2
-        )
-        + bg
+                ) **2
+            ) + bg
     )
 
 # Calculate result from model for an individual dataset

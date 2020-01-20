@@ -529,8 +529,9 @@ def fit_main(request, project_id, parameter_id):
     for neutron_data in neutron_datas:
         if neutron_data.data_set_title in request.POST:
             neutron_range_form = Data_Range_Form(request.POST)
-            neutron_scale_form = Data_Scale_Form(request.POST)
+            neutron_scale_form = Data_Scale_Form(request.POST, instance=neutron_data)
             if neutron_range_form.is_valid():
+                # Get range values
                 max_value = neutron_range_form.cleaned_data['max_value']
                 min_value = neutron_range_form.cleaned_data['min_value']
 
@@ -548,7 +549,7 @@ def fit_main(request, project_id, parameter_id):
                     neutron_data.save()
         else:
             neutron_range_form = Data_Range_Form()
-            neutron_scale_form = Data_Scale_Form()
+            neutron_scale_form = Data_Scale_Form(instance=neutron_data)
 
         neutron_ranges.append(neutron_range_form)
         neutron_scales.append(neutron_scale_form)
@@ -606,7 +607,7 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             xray_data.q_value[xray_data.min_index:xray_data.max_index], 
             xray_data.intensity_value[xray_data.min_index:xray_data.max_index], 
-            # yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
+            yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
             fmt='.k',
             color='c',
             ecolor='gray', 
@@ -637,7 +638,7 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
             neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
-            # yerr=neutron_data.error_value[neutron_data.q_min_index:neutron_data.q_max_index],
+            yerr=neutron_data.error_value[neutron_data.min_index:neutron_data.max_index],
             fmt='.k',
             color='c',
             ecolor='gray', 
