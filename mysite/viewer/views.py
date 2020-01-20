@@ -496,7 +496,7 @@ def fit_main(request, project_id, parameter_id):
     for xray_data in xray_datas:
         if xray_data.data_set_title in request.POST:
             xray_range_form = Data_Range_Form(request.POST)
-            xray_scale_form = Data_Scale_Form(request.POST)
+            xray_scale_form = Data_Scale_Form(request.POST, instance=xray_data)
             if xray_range_form.is_valid() and xray_scale_form.is_valid():
                 # Get range values
                 max_value = xray_range_form.cleaned_data['max_value']
@@ -506,14 +506,23 @@ def fit_main(request, project_id, parameter_id):
                 max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
                 min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
 
+                print('Value in form')
+                print(max_index)
+
                 # Set the indexes in the db - +1 to take the closest on the inside for the low end
                 xray_data.max_index = max_index[0]
                 xray_data.min_index = min_index[0] + 1
 
+                print('Value updated in db')
+                print(xray_data.max_index)
+ 
                 xray_data.save()
         else:
             xray_range_form = Data_Range_Form()
-            xray_scale_form = Data_Scale_Form()
+            xray_scale_form = Data_Scale_Form(instance=xray_data)
+
+        print('Value in db')
+        print(xray_data.max_index)
 
         xray_ranges.append(xray_range_form)
         xray_scales.append(xray_scale_form)
@@ -547,10 +556,6 @@ def fit_main(request, project_id, parameter_id):
         neutron_ranges.append(neutron_range_form)
         neutron_scales.append(neutron_scale_form)
 
-    # Update q range for all neutron datasets
-    if "update_ranges_nr" in request.POST:
-        pass
-
     # Do the fit
     if "fit" in request.POST:
         # Do fit
@@ -575,6 +580,12 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.id = None
         new_parameter.save()
 
+        for data in datas:
+            data.scale = round(fit_parameters['scale_%i' % data.id].value, 3)
+            data.background = round(fit_parameters['background_%i' % data.id].value, 3)
+
+            data.save()
+
         return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
 
     # Show stats / graph
@@ -590,7 +601,7 @@ def fit_main(request, project_id, parameter_id):
 
     # X-Ray graphs
     for xray_data in xray_datas:
-        xray_fig = plt.figure(figsize=(6,2.5))
+        xray_fig = plt.figure(figsize=(6,4.5))
 
         # Data scatter plot
         plt.errorbar(
@@ -622,7 +633,7 @@ def fit_main(request, project_id, parameter_id):
 
     # Neutron graphs
     for neutron_data in neutron_datas:
-        neutron_fig = plt.figure(figsize=(6,2.5))
+        neutron_fig = plt.figure(figsize=(6,4.5))
         # Data scatter plot
         plt.errorbar(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
