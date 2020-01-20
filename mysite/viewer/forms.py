@@ -124,9 +124,11 @@ class Data_Upload_Form(Data_Form):
 
 class Data_Range_Form(forms.Form):
     max_value = forms.FloatField(
+        required=False,
         widget=forms.NumberInput(attrs={'class' : 'value'})
     )
     min_value = forms.FloatField(
+        required=False,
         widget=forms.NumberInput(attrs={'class' : 'value'})
     )
 

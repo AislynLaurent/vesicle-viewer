@@ -502,27 +502,21 @@ def fit_main(request, project_id, parameter_id):
                 max_value = xray_range_form.cleaned_data['max_value']
                 min_value = xray_range_form.cleaned_data['min_value']
 
-                # Find the indexes for the closes value in q_value
-                max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
-                min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
+                try:
+                    # Find the indexes for the closes value in q_value
+                    max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
+                    min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
 
-                print('Value in form')
-                print(max_index)
+                    # Set the indexes in the db - +1 to take the closest on the inside for the low end
+                    xray_data.max_index = max_index[0]
+                    xray_data.min_index = min_index[0] + 1
 
-                # Set the indexes in the db - +1 to take the closest on the inside for the low end
-                xray_data.max_index = max_index[0]
-                xray_data.min_index = min_index[0] + 1
-
-                print('Value updated in db')
-                print(xray_data.max_index)
- 
-                xray_data.save()
+                    xray_data.save()
+                except TypeError:
+                    xray_data.save()
         else:
             xray_range_form = Data_Range_Form()
             xray_scale_form = Data_Scale_Form(instance=xray_data)
-
-        print('Value in db')
-        print(xray_data.max_index)
 
         xray_ranges.append(xray_range_form)
         xray_scales.append(xray_scale_form)
@@ -535,23 +529,27 @@ def fit_main(request, project_id, parameter_id):
     for neutron_data in neutron_datas:
         if neutron_data.data_set_title in request.POST:
             neutron_range_form = Data_Range_Form(request.POST)
-            neutron_scale_form = Data_Scale_Form(request.POST)
+            neutron_scale_form = Data_Scale_Form(request.POST, instance=neutron_data)
             if neutron_range_form.is_valid():
+                # Get range values
                 max_value = neutron_range_form.cleaned_data['max_value']
                 min_value = neutron_range_form.cleaned_data['min_value']
 
-                # Find the indexes for the closes value in q_value
-                max_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(max_value - x[1]))
-                min_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(min_value - x[1]))
+                try:
+                    # Find the indexes for the closes value in q_value
+                    max_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(max_value - x[1]))
+                    min_index = min(enumerate(neutron_data.q_value), key=lambda x: abs(min_value - x[1]))
 
-                # Set the indexes in the db - +1 to take the closest on the inside for the low end
-                neutron_data.max_index = max_index[0]
-                neutron_data.min_index = min_index[0] + 1
+                    # Set the indexes in the db - +1 to take the closest on the inside for the low end
+                    neutron_data.max_index = max_index[0]
+                    neutron_data.min_index = min_index[0] + 1
 
-                neutron_data.save()
+                    neutron_data.save()
+                except TypeError:
+                    neutron_data.save()
         else:
             neutron_range_form = Data_Range_Form()
-            neutron_scale_form = Data_Scale_Form()
+            neutron_scale_form = Data_Scale_Form(instance=neutron_data)
 
         neutron_ranges.append(neutron_range_form)
         neutron_scales.append(neutron_scale_form)
@@ -586,6 +584,8 @@ def fit_main(request, project_id, parameter_id):
 
             data.save()
 
+        print(lsq.fit_report(fit_result))
+
         return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
 
     # Show stats / graph
@@ -607,7 +607,7 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             xray_data.q_value[xray_data.min_index:xray_data.max_index], 
             xray_data.intensity_value[xray_data.min_index:xray_data.max_index], 
-            # yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
+            yerr=xray_data.error_value[xray_data.min_index:xray_data.max_index], 
             fmt='.k',
             color='c',
             ecolor='gray', 
@@ -638,7 +638,7 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
             neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
-            # yerr=neutron_data.error_value[neutron_data.q_min_index:neutron_data.q_max_index],
+            yerr=neutron_data.error_value[neutron_data.min_index:neutron_data.max_index],
             fmt='.k',
             color='c',
             ecolor='gray', 
