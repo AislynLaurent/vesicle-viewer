@@ -181,33 +181,7 @@ def parameters_new(request, project_id):
 
             # Math'ed values
             parameters.headgroup_volume = combined_head_volume
-            parameters.headgroup_volume_upperbound = combined_head_volume*1.5
-            parameters.headgroup_volume_lowerbound = -(combined_head_volume*1.5)
-
             parameters.chain_volume = combined_tail_volume
-            parameters.chain_volume_upperbound = combined_tail_volume*1.5
-            parameters.chain_volume_lowerbound = -(combined_tail_volume*1.5)
-
-            # Upper & lowerbounds
-            bilayer_thickness = form.cleaned_data['bilayer_thickness']
-            parameters.bilayer_thickness_upperbound = bilayer_thickness*1.5
-            parameters.bilayer_thickness_lowerbound = -(bilayer_thickness*1.5)
-
-            terminal_methyl_volume = form.cleaned_data['terminal_methyl_volume']
-            parameters.terminal_methyl_volume_upperbound = terminal_methyl_volume*1.5
-            parameters.terminal_methyl_volume_lowerbound = -(terminal_methyl_volume*1.5)
-
-            lipid_area = form.cleaned_data['lipid_area']
-            parameters.lipid_area_upperbound = lipid_area*1.5
-            parameters.lipid_area_lowerbound = 1
-
-            headgroup_thickness = form.cleaned_data['headgroup_thickness']
-            parameters.headgroup_thickness_upperbound = headgroup_thickness*1.5
-            parameters.headgroup_thickness_lowerbound = -(headgroup_thickness*1.5)
-
-            sigma = form.cleaned_data['sigma']
-            parameters.sigma_upperbound = sigma*1.5
-            parameters.sigma_lowerbound = -(sigma*1.5)
 
             parameters.save()
             return redirect('viewer:project_detail', project_id=project.id)
@@ -530,7 +504,7 @@ def fit_main(request, project_id, parameter_id):
         if neutron_data.data_set_title in request.POST:
             neutron_range_form = Data_Range_Form(request.POST)
             neutron_scale_form = Data_Scale_Form(request.POST, instance=neutron_data)
-            if neutron_range_form.is_valid():
+            if neutron_range_form.is_valid() and neutron_scale_form.is_valid():
                 # Get range values
                 max_value = neutron_range_form.cleaned_data['max_value']
                 min_value = neutron_range_form.cleaned_data['min_value']

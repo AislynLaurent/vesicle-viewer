@@ -25,7 +25,7 @@ def sym_model(
     bg      # bg
 ):
     return (
-        scale*(
+        q**(-2) * scale*(
                 (
                     ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
                     * np.abs(
