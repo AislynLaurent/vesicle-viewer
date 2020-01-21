@@ -42,6 +42,14 @@ def privacy(request):
     return render(request, 'viewer/privacy.html', context)
 
 ## MODEL PAGES
+# Lipid
+def lipid_detail(request, lipid_name):
+    lipid = get_object_or_404(Lipid, lipid_name=lipid_name)
+    return render(request, 'viewer/lipid_detail.html', {'lipid':lipid})
+
+def molecule_detail(request, molecule_name):
+    molecule = get_object_or_404(Molecule, compound_name=molecule_name)
+    return render(request, 'viewer/lipid_detail.html', {'molecule':molecule})
 
 ## DYNAMIC PAGES
 ## Project stuff

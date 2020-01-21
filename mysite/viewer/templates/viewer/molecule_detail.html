@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    <div class="content-box">
+        <h1>{{ molecule.compound_name }}</h1>
+    </div>
+    <div class="content-box">
+        <h2>Overall</h2>
+        <div class="indent">
+            <p><strong>Volume Equation:</strong> {{ molecule.total_volume_equation }}</p>
+            <p><strong>Scattering Length:</strong> {{ molecule.scattering_length }}</p>
+            <p><strong>Number of Electrons:</strong> {{ molecule.electrons }}</p>
+        </div>
+        <p></p>
+    </div>
+
+{% endblock content %}

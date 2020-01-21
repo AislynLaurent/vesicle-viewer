@@ -1,6 +1,8 @@
 # Basics
+from __future__ import unicode_literals
 from django.db import models
 from django.conf import settings
+from django.db.models.signals import *
 
 # Add-ons
 from django.contrib.auth.models import AbstractUser
@@ -15,6 +17,12 @@ class ExtendedUser(models.Model):
 
     # Tutorials?
     display_tutorial = models.BooleanField(verbose_name='display_tutorial', default=True)
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        ExtendedUser.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
 
 ## Constants
 # Lipids
@@ -131,7 +139,7 @@ class Symmetrical_Parameters(models.Model):
     project_title = models.ForeignKey(Project, related_name='parameters', on_delete=models.CASCADE)
 
     ## Description
-    description = models.CharField(max_length=255, blank=True)
+    description = models.CharField(max_length=255)
 
     ## Overall
     # Thickness

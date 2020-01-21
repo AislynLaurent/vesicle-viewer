@@ -30,7 +30,7 @@
 
         {% if project_lipids %}
 
-            <table class="project-lipids">
+            <table class="project-lipids indent">
 
                 <tr>
                     <td><h4>Name</h4></td>
@@ -40,7 +40,7 @@
                 </tr>
                 {% for lipid in project_lipids %}
                 <tr>
-                    <td>{{ lipid.project_lipid_name }}</td>
+                    <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
                     <td>{{ lipid.lipid_mol_fraction }}</td>
                     <td><a href="{% url 'viewer:project_lipid_edit' project_id=project.id  lipid_id=lipid.id %}">Edit</a></td>
                     <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
@@ -63,7 +63,7 @@
 
     {% if datas %}
 
-        <table class="data">
+        <table class="data indent">
             <tr>
                 <td><h4>Name</h4></td>
                 <td><h4>Data Type</h4></td>
@@ -100,7 +100,7 @@
 
         <p>The augmented versions of the lipids present in each particular dataset.</p>
 
-        <table class="project-lipids">
+        <table class="project-lipids indent">
 
             <tr>
                 <td><h4>Data Set</h4></td>
@@ -143,46 +143,30 @@
 
         {% if parameters %}
 
-            <table class="parameters">
+            <table class="parameters indent">
                     <tr>
                         <td><h4>Description</h4></td>
-                        <td><h4>Bilayer Thickness</h4></td>
-                        <td><h4>Vesicle Radius</h4></td>
-                        <td><h4>LA</h4></td>
-                        <td><h4>HT</h4></td>
-                        <td><h4>HV</h4></td>
-                        <td><h4>TMV</h4></td>
-                        <td><h4>CV</h4></td>
-                        <td><h4>SIG</h4></td>
-                        <td><h4>Scale</h4></td>
-                        <td><h4>BG</h4></td>
-                        <td></td>
+                        <td><h4>Overall Lipid Area</h4></td>
+                        <td><h4>Headgroup Thickness</h4></td>
+                        <td><h4>Terminal Methlyn Vol.</h4></td>
                         <td></td>
                         <td></td>
                     </tr>
                 {% for parameter in parameters %}
                     <tr>
-                        <td>{{ parameter.description }}</td>
-                        <td>{{ parameter.bilayer_thickness }}</td>
-                        <td>{{ parameter.vesicle_radius }}</td>
+                        <td><a href="{% url 'viewer:fit_main' project_id=project.id parameter_id=parameter.id %}">{{ parameter.description }}</a></td>
                         <td>{{ parameter.lipid_area }}</td>
                         <td>{{ parameter.headgroup_thickness }}</td>
-                        <td>{{ parameter.headgroup_volume }}</td>
                         <td>{{ parameter.terminal_methyl_volume }}</td>
-                        <td>{{ parameter.chain_volume }}</td>
-                        <td>{{ parameter.sigma }}</td>
-                        <td>{{ parameter.scale }}</td>
-                        <td>{{ parameter.background }}</td>
                         <td><a href="{% url 'viewer:parameters_edit' project_id=project.id  parameter_id=parameter.id %}">Edit</a></td>
                         <td><a href="{% url 'viewer:parameter_delete_warning' project_id=project.id parameter_id=parameter.id %}">Delete</a></td>
-                        <td><a href="{% url 'viewer:fit_main' project_id=project.id parameter_id=parameter.id %}">Fit</a></td>
                     </tr>
                 {% endfor %}
             </table>
 
-            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id %}">Add another set of parameters</a></h3>
+            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id %}">Generate new parameters</a></h3>
         {% else %}
-            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id %}">Add parameters</a></h3>
+            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id %}">Generate new parameters</a></h3>
         {% endif %}
         
     </div>
