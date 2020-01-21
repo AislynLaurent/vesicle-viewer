@@ -9,6 +9,12 @@ urlpatterns = [
     path('help', views.get_help, name='help'),
     path('privacy', views.privacy, name='privacy'),
     
+    ## Models
+    # Lipid
+    path('lipid/<slug:lipid_name>', views.lipid_detail, name='lipid_detail'),
+    # Molecule
+    path('molecule/<slug:molecule_name>', views.molecule_detail, name='molecule_detail'),
+
     ## Pojects
     # New project
     path('project/new', views.project_new, name='project_new'),

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    <div class="content-box">
+        <h1>{{ lipid.lipid_name }}</h1>
+    </div>
+    <div class="content-box">
+        <h2>Overall</h2>
+        <div class="indent">
+            <p><strong>Volume Equation:</strong> {{ lipid.total_volume_equation }}</p>
+        </div>
+
+        <h2>Headgroup</h2>
+        <div class="indent">
+            <p><strong>Scattering Length:</strong> {{ lipid.hg_scattering }}</p>
+            <p><strong>Number of Electrons:</strong> {{ lipid.hg_electrons }}</p>
+            <p><strong>Headgroup Volume:</strong> {{ lipid.hg_volume }}</p>
+        </div>
+
+        <h2>Tailgroup</h2>
+        <div class="indent">
+            <p><strong>Scattering Length:</strong> {{ lipid.tg_scattering }}</p>
+            <p><strong>Number of Electrons:</strong> {{ lipid.tg_electrons }}</p>
+        </div>
+
+        <h2>Terminal Methyl</h2>
+        <div class="indent">
+            <p><strong>Scattering Length:</strong> {{ lipid.tm_scattering }}</p>
+            <p><strong>Number of Electrons:</strong> {{ lipid.tm_electrons }}</p>
+        </div>
+        <p></p>
+    </div>
+
+{% endblock content %}
