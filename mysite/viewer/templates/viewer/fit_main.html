@@ -182,21 +182,15 @@
         {% if show_stats %}
 
             <div class="content-box">
-                <h4>Fit Statistics</h4>
-                <div class="indent">
-                    <p>{{ parameter.fit_report.5 }}</p>
-                    <p>{{ parameter.fit_report.6 }}</p>
-                    <p>{{ parameter.fit_report.7 }}</p>
-                    <p>{{ parameter.fit_report.8 }}</p>
-                </div>
+                {% for i in parameter.fit_report %}
 
-                <h4>Variable Parameters</h4>
-                <div class="indent">
-                    <p>{{ parameter.fit_report.12 }}</p>
-                    <p>{{ parameter.fit_report.13 }}</p>
-                    <p>{{ parameter.fit_report.14 }}</p>
-                </div>
-                <p></p>
+                    {% if i == "[[Fit Statistics]]" or i == "[[Variables]]" or i == "[[Correlations]] (unreported correlations are < 0.100)" %}
+                        <h3>{{ i }}</h2>
+                    {% else %}
+                        <p class="indent">{{ i }}</p>
+                    {% endif %}
+
+                {% endfor %}
             </div>
 
         {% else %}
