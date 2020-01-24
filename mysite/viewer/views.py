@@ -566,7 +566,7 @@ def fit_main(request, project_id, parameter_id):
 
             data.save()
 
-        print(lsq.fit_report(fit_result))
+        # print(lsq.fit_report(fit_result))
 
         return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
 
@@ -589,16 +589,21 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             xray_data.q_value[xray_data.min_index:xray_data.max_index], 
             xray_data.intensity_value[xray_data.min_index:xray_data.max_index],
+            xray_data.error_value[xray_data.min_index:xray_data.max_index],
             fmt='o',
             color='c',
             mfc='w',
             ecolor='gray', 
-            elinewidth=1, 
-            capsize=2,
+            elinewidth=0.5, 
+            capsize=1,
             zorder=0
         )
         plt.xscale('log')
+        plt.xlabel('q(A-1)')
+
         plt.yscale('log')
+        plt.ylabel('Intensity (A.U.)')
+
         plt.title(xray_data.data_set_title)
 
         # Fit line
@@ -620,6 +625,7 @@ def fit_main(request, project_id, parameter_id):
         plt.errorbar(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
             neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
+            neutron_data.error_value[neutron_data.min_index:neutron_data.max_index],
             fmt='o',
             color='c',
             mfc='w',
@@ -629,7 +635,11 @@ def fit_main(request, project_id, parameter_id):
             zorder=0
         )
         plt.xscale('log')
+        plt.xlabel('q(A-1)')
+
         plt.yscale('log')
+        plt.ylabel('Intensity (A.U.)')
+
         plt.title(neutron_data.data_set_title)
 
         # Fit line
