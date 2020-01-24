@@ -163,7 +163,7 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
     d_water = Molecule.objects.get(compound_name='deuterated_water')
-
+    
     # Parameters
     fit_parameters = lsq.Parameters()
     fit_parameters.add_many(
@@ -172,15 +172,11 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
             'chain_volume',
             parameter.chain_volume,
             not(parameter.chain_volume_lock),
-            parameter.chain_volume_lowerbound,
-            parameter.chain_volume_upperbound
         ),
         ( # Vh
             'headgroup_volume',
             parameter.headgroup_volume,
             not(parameter.headgroup_volume_lock),
-            parameter.headgroup_volume_lowerbound,
-            parameter.headgroup_volume_upperbound
         ),
         ( # Vt
             'terminal_methyl_volume',

@@ -167,28 +167,28 @@ class Symmetrical_Parameters(models.Model):
 
     ## Varied
     # Terminal methyl volume
-    terminal_methyl_volume = models.FloatField(verbose_name='terminal methyl volume', default=2)
-    terminal_methyl_volume_upperbound = models.FloatField(verbose_name='tmv upper bound', default=100)
-    terminal_methyl_volume_lowerbound = models.FloatField(verbose_name='tmv lower bound', default=0)
+    terminal_methyl_volume = models.FloatField(verbose_name='terminal methyl volume', default=55)
+    terminal_methyl_volume_upperbound = models.FloatField(verbose_name='tmv upper bound', default=60)
+    terminal_methyl_volume_lowerbound = models.FloatField(verbose_name='tmv lower bound', default=45)
     terminal_methyl_volume_lock = models.BooleanField(verbose_name='tmv lock', default=False)
 
     # Lipid area
     lipid_area = models.FloatField(verbose_name='lipid area', default=60)
-    lipid_area_upperbound = models.FloatField(verbose_name='la upper bound', default=100)
-    lipid_area_lowerbound = models.FloatField(verbose_name='la lower bound', default=0)
+    lipid_area_upperbound = models.FloatField(verbose_name='la upper bound', default=80)
+    lipid_area_lowerbound = models.FloatField(verbose_name='la lower bound', default=40)
     lipid_area_lock = models.BooleanField(verbose_name='la lock', default=False)
 
     # Headgroup thickness
-    headgroup_thickness = models.FloatField(verbose_name='headgroup thickness', default=6)
-    headgroup_thickness_upperbound = models.FloatField(verbose_name='ht upper bound', default=100)
-    headgroup_thickness_lowerbound = models.FloatField(verbose_name='ht lower bound', default=0)
+    headgroup_thickness = models.FloatField(verbose_name='headgroup thickness', default=8)
+    headgroup_thickness_upperbound = models.FloatField(verbose_name='ht upper bound', default=15)
+    headgroup_thickness_lowerbound = models.FloatField(verbose_name='ht lower bound', default=5)
     headgroup_thickness_lock = models.BooleanField(verbose_name='ht lock', default=False)
 
     ## Other
     # SIG
     sigma = models.FloatField(verbose_name='sigma', default=2.5)
-    sigma_upperbound = models.FloatField(verbose_name='sig upper bound', default=100)
-    sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=0)
+    sigma_upperbound = models.FloatField(verbose_name='sig upper bound', default=4)
+    sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=2)
     sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
 
     ## Report
@@ -263,8 +263,8 @@ class Data_Set(models.Model):
     # Tweaks
     # SC
     scale = models.FloatField(verbose_name='scale', default=1)
-    scale_upperbound = models.FloatField(verbose_name='scale upper bound', default=2)
-    scale_lowerbound = models.FloatField(verbose_name='scale lower bound', default=0)
+    scale_upperbound = models.FloatField(verbose_name='scale upper bound', default=10)
+    scale_lowerbound = models.FloatField(verbose_name='scale lower bound', default=1e-6)
     scale_lock = models.BooleanField(verbose_name='scale lock', default=False)
 
     # BG
