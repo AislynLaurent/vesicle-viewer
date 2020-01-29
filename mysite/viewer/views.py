@@ -549,9 +549,9 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.description = now.strftime("Fit %m/%d/%H:%M")
 
         # Set params
-        new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 3)
-        new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 3)
-        new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 3)
+        new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 6)
+        new_parameter.lipid_area = round(fit_parameters['area_per_lipid'].value, 6)
+        new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 6)
 
         # Set report
         fit_report = lsq.fit_report(fit_result)
@@ -561,8 +561,8 @@ def fit_main(request, project_id, parameter_id):
         new_parameter.save()
 
         for data in datas:
-            data.scale = round(fit_parameters['scale_%i' % data.id].value, 3)
-            data.background = round(fit_parameters['background_%i' % data.id].value, 3)
+            data.scale = fit_parameters['scale_%i' % data.id].value
+            data.background = fit_parameters['background_%i' % data.id].value
 
             data.save()
 
