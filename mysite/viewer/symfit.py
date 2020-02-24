@@ -38,8 +38,48 @@ def sym_model(
         ) + bg
     )
 
+# Symmetrical model and separated form factor
+def sym_model_separated(
+    q,      # independant
+    Vc,     # chain_volume
+    Vh,     # headgroup_volume
+    Vt,     # terminal_methyl_volume
+    Vw,     # water_volume
+    Al,     # area_per_lipid
+    Dh,     # headgroup_thickness
+    sig,    # smearing factor
+    r,      # Average vesicle radius
+    rs,     # Relative size polydispersity
+    bc,     # chain_b
+    bh,     # headgroup_b
+    bt,     # terminal_methyl_b
+    bw,     # water_b
+    scale,  # scale
+    bg      # bg
+):
+
+    z = r**2 / rs**2 - 1
+    s = (z+1) / r
+
+    return (
+        q**(-2) * scale*(
+            (
+                (4*np.pi*(z+1)*(z+3))/q 
+                * (((1+q**2/s**2)**(-z/2))*s*np.sin((4+z)*np.arctan(q/s)))/((q**2+s**2)**2)
+            ) * (
+                ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
+                * np.abs(
+                    Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))
+                    * np.sin(q*Vc/Al) 
+                    + Vt*(Vc-2*Vt)*(bw*Vh-bh*Vw)*np.sin(q*Dh+q*Vc/Al)
+                    + Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
+                )
+            ) **2
+        ) + bg
+    )
+
 # Calculate result from model for an individual dataset
-def calc_sym_model(fit_parameters, q, data):
+def calc_sym_model(fit_parameters, q, data, sff):
     # Convert array
     q_array = np.array(q)
 
@@ -53,6 +93,9 @@ def calc_sym_model(fit_parameters, q, data):
     Dh = fit_parameters['headgroup_thickness'].value
     # Smearing factor
     sig = fit_parameters['sigma'].value
+    # Separated form factor
+    r = fit_parameters['average_vesicle_radius'].value
+    rs = fit_parameters['relative_size'].value
     # Per dataset
     bc = fit_parameters['chain_b_%i' % data.id].value
     bh = fit_parameters['headgroup_b_%i' % data.id].value
@@ -64,11 +107,14 @@ def calc_sym_model(fit_parameters, q, data):
     bg = fit_parameters['background_%i' % data.id].value
 
     # Return the calculated model
-    return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
+    if sff:
+        return sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
+    else:
+        return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
 
 
 # Objective function create a residual for each, then flatten
-def symmetrical_objective_function(fit_parameters, x, datas):
+def symmetrical_objective_function(fit_parameters, x, datas, sff):
     # Delcare
     residuals = []
     combined_residuals = []
@@ -76,7 +122,7 @@ def symmetrical_objective_function(fit_parameters, x, datas):
     # Make an array of residuals
     for data in datas:
         # Do math
-        residuals = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data)
+        residuals = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
 
         # Append
         combined_residuals.extend(residuals)
@@ -207,6 +253,21 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
             not(parameter.sigma_lock),
             parameter.sigma_lowerbound,
             parameter.sigma_upperbound
+        ),
+        ## Separated form factor
+        ( # Average vesicle radius
+            'average_vesicle_radius',
+            parameter.average_vesicle_radius,
+            not(parameter.average_vesicle_radius_lock),
+            parameter.average_vesicle_radius_upperbound,
+            parameter.average_vesicle_radius_lowerbound
+        ),
+        ( # Relative size polydispersity
+            'relative_size',
+            parameter.relative_size,
+            not(parameter.relative_size_lock),
+            parameter.relative_size_upperbound,
+            parameter.relative_size_lowerbound
         )
     )
 
@@ -315,7 +376,8 @@ def symmetrical_graph(parameter, project_lipids, data, temp):
     model_result = calc_sym_model(
         fit_parameters,
         data.q_value[data.min_index:data.max_index],
-        data
+        data,
+        parameter.separated
     )
 
     return model_result
@@ -330,7 +392,7 @@ def symmetrical_fit(parameter, project_lipids, datas, temp):
     fit_result = lsq.minimize(
         symmetrical_objective_function,
         fit_parameters,
-        args=(x, datas)
+        args=(x, datas, parameter.separated)
     )
 
     return fit_result

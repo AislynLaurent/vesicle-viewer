@@ -9,12 +9,12 @@
 
     <h1>Warning!</h1>
 
-    <p>This action will permanently delete this item, and with it any work you've done on it. <em>Note: the other details of project <strong>"{{ project.project_title }}"</strong> will remain untouched.</em></p>
+    <p>This action will permanently delete this item, and with it any work you've done on it. <em>Note: the other details of sample <strong>"{{ sample.sample_title }}"</strong> will remain untouched.</em></p>
     <p>Are you sure you want to proceed?</p>
 
     <button
         type="button" 
-        onclick="window.location.href='{% url 'viewer:project_detail' project_id=project.id %}'" >
+        onclick="window.location.href='{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}'" >
         No, go back
     </button>
 

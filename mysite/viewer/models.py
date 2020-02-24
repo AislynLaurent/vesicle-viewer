@@ -133,24 +133,60 @@ class Project(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.project_title)])
 
+# Project Lipids
+class Project_Lipid(models.Model):
+    # Project
+    project_title = models.ForeignKey(Project, related_name='project_lipid', on_delete=models.CASCADE)
+
+    # Lipid
+    project_lipid_name = models.ForeignKey(Lipid, related_name='project_lipid_name', on_delete=models.CASCADE)
+
+    # Percentage
+    lipid_mol_fraction = models.FloatField(verbose_name='project_lipid_mol_fraction', default=0)
+
+    # Meta
+    class Meta:
+        verbose_name = 'project lipid'
+        verbose_name_plural = 'project lipids'
+
+    # Methods
+    def __str__(self):
+        return '%s' % (self.project_lipid_name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Sample
+class Sample(models.Model):
+    # Project
+    project_title = models.ForeignKey(Project, related_name='sample', on_delete=models.CASCADE)
+    #Title
+    sample_title = models.CharField(verbose_name='sample title', max_length=200)
+
+    # Meta
+    class Meta:
+        verbose_name = 'sample'
+        verbose_name_plural = 'samples'
+
+    # # Methods
+    def __str__(self):
+        return '%s-%s' % (self.project_title, self.sample_title)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.project_title)])
+
 # Parameters
 class Symmetrical_Parameters(models.Model):
     ## Project
-    project_title = models.ForeignKey(Project, related_name='parameters', on_delete=models.CASCADE)
+    sample_title = models.ForeignKey(Sample, related_name='parameters', on_delete=models.CASCADE)
 
     ## Description
-    description = models.CharField(max_length=255)
+    name = models.CharField(verbose_name="name", max_length=255)
 
-    ## Overall
-    # Thickness
-    bilayer_thickness = models.FloatField(verbose_name='bilayer thickness', default=0)
-    bilayer_thickness_upperbound = models.FloatField(verbose_name='bilayer upper bound', default=100)
-    bilayer_thickness_lowerbound = models.FloatField(verbose_name='bilayer lower bound', default=0)
-    bilayer_thickness_lock = models.BooleanField(verbose_name='bilayer lock', default=False)
-
-    # Radius
-    vesicle_radius = models.FloatField(verbose_name='vesicle radius', default=0)
-        # Calculated from the lipid volume along with the thickness
+    ## Use the separated form factor?
+    separated = models.BooleanField(verbose_name="separated form factor", default=False)
 
     ## Fixed
     # Chain volume
@@ -179,7 +215,7 @@ class Symmetrical_Parameters(models.Model):
     lipid_area_lock = models.BooleanField(verbose_name='la lock', default=False)
 
     # Headgroup thickness
-    headgroup_thickness = models.FloatField(verbose_name='headgroup thickness', default=8)
+    headgroup_thickness = models.FloatField(verbose_name='headgroup thickness',default=8)
     headgroup_thickness_upperbound = models.FloatField(verbose_name='ht upper bound', default=15)
     headgroup_thickness_lowerbound = models.FloatField(verbose_name='ht lower bound', default=5)
     headgroup_thickness_lock = models.BooleanField(verbose_name='ht lock', default=False)
@@ -191,6 +227,19 @@ class Symmetrical_Parameters(models.Model):
     sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=2)
     sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
 
+    ## Separated form factor
+    # Average vesicle radius
+    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=2)
+    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=4)
+    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=1)
+    average_vesicle_radius_lock = models.BooleanField(verbose_name='avr lock', default=True)
+
+    # Relative size polydispersity
+    relative_size = models.FloatField(verbose_name='relative size', default=2)
+    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=4)
+    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=1)
+    relative_size_lock = models.BooleanField(verbose_name='rs lock', default=True)
+
     ## Report
     fit_report = ArrayField(models.CharField(max_length=500, blank=True), verbose_name='fitted parameter report', null=True, blank=True)
 
@@ -201,31 +250,7 @@ class Symmetrical_Parameters(models.Model):
 
     # Methods
     def __str__(self):
-        return '%s-%s' % (self.project_title, self.description)
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('viewer.views.details', args=[str(self.id)])
-
-# Project Lipids
-class Project_Lipid(models.Model):
-    # Project
-    project_title = models.ForeignKey(Project, related_name='project_lipid', on_delete=models.CASCADE)
-
-    # Lipid
-    project_lipid_name = models.ForeignKey(Lipid, related_name='project_lipid_name', on_delete=models.CASCADE)
-
-    # Percentage
-    lipid_mol_fraction = models.FloatField(verbose_name='project_lipid_mol_fraction', default=0)
-
-    # Meta
-    class Meta:
-        verbose_name = 'project lipid'
-        verbose_name_plural = 'project lipids'
-
-    # Methods
-    def __str__(self):
-        return '%s' % (self.project_lipid_name)
+        return '%s-%s' % (self.sample_title, self.name)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -234,7 +259,7 @@ class Project_Lipid(models.Model):
 # Data Set
 class Data_Set(models.Model):
     # Project
-    project_title = models.ForeignKey(Project, related_name='datas', on_delete=models.CASCADE)
+    sample_title = models.ForeignKey(Sample, related_name='datas', on_delete=models.CASCADE)
 
     # Choices
     DATA_TYPE_CHOICES = (
@@ -247,7 +272,7 @@ class Data_Set(models.Model):
     upload_time = models.DateTimeField(auto_now_add=True)
 
     # Data information
-    d2o_mol_fraction = models.FloatField(verbose_name='d2o percentage', default=0)
+    d2o_mol_fraction = models.FloatField(verbose_name='d2o mol fraction', default=0)
     data_type = models.CharField(verbose_name='data type', choices=DATA_TYPE_CHOICES, max_length=2, default='XR')
 
     # Data values
