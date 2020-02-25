@@ -189,7 +189,7 @@ class Data_Scale_Form(forms.ModelForm):
             'background_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
 
-class Data_Lipid_Form(forms.Form):
+class Data_Lipid_Form(forms.ModelForm):
     class Meta:
         model = Data_Lipid
         fields = [
@@ -199,7 +199,7 @@ class Data_Lipid_Form(forms.Form):
 
     def __init__(self, project_id, *args, **kwargs):
         super(Data_Lipid_Form, self).__init__(*args, **kwargs)
-        self.fields['data_lipid_name'].queryset = Project_Lipid.objects.filter(project_title_id=project_id)
+        self.fields['data_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
 
 class Data_Lipid_Atom_Form(forms.Form):
     # Choices

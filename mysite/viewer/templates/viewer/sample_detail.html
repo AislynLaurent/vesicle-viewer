@@ -59,7 +59,7 @@
 
             <tr>
                 <td><h4>Data Set</h4></td>
-                <td><h4>Name</h4></td>
+                <td><h4>Lipid Name</h4></td>
                 <td></td>
                 <td></td>
             </tr>
@@ -80,7 +80,7 @@
                                         - {{ lipid.data_lipid_suffix }}
                                     {% endif %}
                                 </td>
-                                <td><a href="{% url 'viewer:data_lipid_edit' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">Edit</a></td>
+                                <td><a href="{% url 'viewer:data_lipid_edit' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">View</a></td>
                                 <td><a href="{% url 'viewer:data_lipid_delete_warning' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">Delete</a></td>
                             </tr>
                         {% endif %}

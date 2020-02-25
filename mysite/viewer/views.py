@@ -398,7 +398,7 @@ def data_lipid_new(request, project_id, sample_id, data_id):
     data = get_object_or_404(Data_Set, id=data_id)
 
     number_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).count()
-    number_data_lipids = Data_Lipid.objects.filter(data_lipid_name__sample_title__id=sample_id).count()
+    number_data_lipids = Data_Lipid.objects.filter(data_lipid_name__project_title__id=project_id).count()
 
     enough_adjustments = False
 
@@ -406,13 +406,9 @@ def data_lipid_new(request, project_id, sample_id, data_id):
         enough_adjustments = True
 
     if "lipid_info" in request.POST:
-        lipid_info_form = Data_Lipid_Form(request.POST, project_id)
+        lipid_info_form = Data_Lipid_Form(project_id, request.POST)
 
         if lipid_info_form.is_valid():
-            # lipid_info = lipid_info_form.save(commit=False)
-            # lipid_info.data_set_title = data
-            # lipid_info.save()
-
             in_lipid_name = lipid_info_form.cleaned_data['data_lipid_name']
             in_lipid_suffix = lipid_info_form.cleaned_data['data_lipid_suffix']
 
@@ -452,7 +448,7 @@ def data_lipid_edit(request, project_id, sample_id, data_id, lipid_id):
     data_lipid_atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid)
 
     if "lipid_info" in request.POST:
-        lipid_info_form = Data_Lipid_Form(request.POST, instance=data_lipid)
+        lipid_info_form = Data_Lipid_Form(project_id, request.POST, instance=data_lipid)
     else:
         lipid_info_form = Data_Lipid_Form(project_id, instance=data_lipid)
 
@@ -500,7 +496,7 @@ def data_lipid_delete_warning(request, project_id, sample_id, data_id, lipid_id)
         data_lipid.delete()
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
 
 ## Fit
 # Main fit page
