@@ -229,15 +229,15 @@ class Symmetrical_Parameters(models.Model):
 
     ## Separated form factor
     # Average vesicle radius
-    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=2)
-    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=4)
-    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=1)
+    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=500)
+    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=1000)
+    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=250)
     average_vesicle_radius_lock = models.BooleanField(verbose_name='avr lock', default=True)
 
     # Relative size polydispersity
-    relative_size = models.FloatField(verbose_name='relative size', default=2)
-    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=4)
-    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=1)
+    relative_size = models.FloatField(verbose_name='relative size', default=0.25)
+    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=0.7)
+    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=0.1)
     relative_size_lock = models.BooleanField(verbose_name='rs lock', default=True)
 
     ## Report
