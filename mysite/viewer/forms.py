@@ -1,13 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 
-from .models import Atom
-from .models import Project
-from .models import Project_Lipid
-from .models import Symmetrical_Parameters
-from .models import Data_Set
-from .models import Data_Lipid
-from .models import Data_Lipid_Atom
+from .models import *
 
 class Project_Form(forms.ModelForm):
     class Meta:
@@ -16,6 +10,13 @@ class Project_Form(forms.ModelForm):
             'project_title',
             'model_type',
             'system_tempurature',
+        ]
+
+class Sample_Form(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = [
+            'sample_title',
         ]
 
 class Project_Lipid_Form(forms.ModelForm):
@@ -30,8 +31,7 @@ class Parameter_Form(forms.ModelForm):
     class Meta:
         model = Symmetrical_Parameters
         fields = [
-            'description',
-            'bilayer_thickness',
+            'name',
             'lipid_area',
             'headgroup_thickness',
             'terminal_methyl_volume',
@@ -39,10 +39,15 @@ class Parameter_Form(forms.ModelForm):
         ]
 
 class Parameter_Fit_Form(forms.ModelForm):
+    separated = forms.BooleanField(required=False, help_text="Include SFF?")
+
     class Meta:
         model = Symmetrical_Parameters
 
         fields = [
+            # SFF
+            'separated',
+            
             # LA
             'lipid_area',
             'lipid_area_upperbound',
@@ -67,17 +72,30 @@ class Parameter_Fit_Form(forms.ModelForm):
             'sigma_lowerbound',
             'sigma_lock',
 
-        #     # Scale
-        #     'scale',
-        #     'scale_upperbound',
-        #     'scale_lowerbound',
-        #     'scale_lock',
+            # TMV
+            'terminal_methyl_volume',
+            'terminal_methyl_volume_upperbound',
+            'terminal_methyl_volume_lowerbound',
+            'terminal_methyl_volume_lock',
 
-        #     # BG
-        #     'background',
-        #     'background_upperbound',
-        #     'background_lowerbound',
-        #     'background_lock',
+            # Sigma
+            'sigma',
+            'sigma_upperbound',
+            'sigma_lowerbound',
+            'sigma_lock',
+
+            # Average vesicle radius
+            'average_vesicle_radius',
+            'average_vesicle_radius_upperbound',
+            'average_vesicle_radius_lowerbound',
+            'average_vesicle_radius_lock',
+
+            # Relative size polydispersity
+            'relative_size',
+            'relative_size_upperbound',
+            'relative_size_lowerbound',
+            'relative_size_lock',
+
         ]
 
         widgets = {
@@ -86,24 +104,32 @@ class Parameter_Fit_Form(forms.ModelForm):
             'headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
             'terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'sigma' : forms.NumberInput(attrs={'class' : 'value'}),
+            'average_vesicle_radius' : forms.NumberInput(attrs={'class' : 'value'}),
+            'relative_size' : forms.NumberInput(attrs={'class' : 'value'}),
 
             # Upperbound
             'lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'sigma_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'average_vesicle_radius_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'relative_size_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
 
             # Lowerbound
             'lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'sigma_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'average_vesicle_radius_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'relative_size_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
 
             # Lock
             'lipid_area_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'headgroup_thickness_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'terminal_methyl_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'sigma_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'average_vesicle_radius_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'relative_size_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
 
 class Data_Form(forms.ModelForm):
@@ -163,13 +189,17 @@ class Data_Scale_Form(forms.ModelForm):
             'background_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
 
-class Data_Lipid_Form(forms.ModelForm):
+class Data_Lipid_Form(forms.Form):
     class Meta:
         model = Data_Lipid
         fields = [
             'data_lipid_name',
             'data_lipid_suffix',
         ]
+
+    def __init__(self, project_id, *args, **kwargs):
+        super(Data_Lipid_Form, self).__init__(*args, **kwargs)
+        self.fields['data_lipid_name'].queryset = Project_Lipid.objects.filter(project_title_id=project_id)
 
 class Data_Lipid_Atom_Form(forms.Form):
     # Choices

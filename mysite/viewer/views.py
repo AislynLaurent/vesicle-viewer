@@ -75,23 +75,19 @@ def project_list(request):
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     project_lipids = Project_Lipid.objects.filter(project_title_id=project_id)
-    parameters = Symmetrical_Parameters.objects.filter(project_title_id=project_id)
-    datas = Data_Set.objects.filter(project_title_id=project_id)
-    data_lipids = Data_Lipid.objects.filter(data_lipid_name__project_title__id=project_id).select_related('data_lipid_name')
+    samples = Sample.objects.filter(project_title_id=project_id)
 
-    percentage = 0
+    mol_fraction = 0
     for lipid in project_lipids:
-        percentage = percentage + lipid.lipid_mol_fraction
+        mol_fraction = mol_fraction + lipid.lipid_mol_fraction
 
     return render(
         request,
         'viewer/project_detail.html', {
             'project':project,
             'project_lipids':project_lipids,
-            'datas':datas,
-            'data_lipids':data_lipids,
-            'parameters':parameters,
-            'total_lipid_percentage':percentage,
+            'total_lipid_mol_fraction':mol_fraction,
+            'samples':samples,
         }
     )
 
@@ -155,10 +151,74 @@ def project_lipid_delete_warning(request, project_id, lipid_id):
 
     return render(request, 'viewer/delete_warning.html', {'project':project})
 
+## Samples
+# Add a new sample
+def sample_new(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == 'POST':
+        form = Sample_Form(request.POST)
+        if form.is_valid():
+            sample = form.save(commit=False)
+            sample.project_title = project
+            sample.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Sample_Form()
+    return render(request, 'viewer/form.html', {'form': form})
+
+# Specific sample details
+def sample_detail(request, project_id, sample_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+    parameters = Symmetrical_Parameters.objects.filter(sample_title_id=sample_id)
+    datas = Data_Set.objects.filter(sample_title_id=sample_id)
+    data_lipids = Data_Lipid.objects.filter(data_set_title__sample_title__id=sample_id).select_related('data_lipid_name')
+
+    return render(
+        request,
+        'viewer/sample_detail.html', {
+            'project':project,
+            'sample':sample,
+            'datas':datas,
+            'data_lipids':data_lipids,
+            'parameters':parameters,
+        }
+    )
+
+# Edit an existing sample
+def sample_edit(request, project_id, sample_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+
+    if request.method == 'POST':
+        form = Sample_Form(request.POST, instance=sample)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.owner = request.user
+            post.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Sample_Form(instance=sample)
+
+    return render(request, 'viewer/form.html', {'form': form})
+
+# Delete sample
+def sample_delete_warning(request, project_id, sample_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+    
+    if request.method == 'POST':
+        sample.delete()
+        return redirect('viewer:project_detail', project_id=project.id)
+
+    return render(request, 'viewer/delete_warning.html', {'project':project})
+
 ## Parameters
 # Add parameters to a project
-def parameters_new(request, project_id):
+def parameters_new(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
 
     combined_head_volume = 0
@@ -185,22 +245,23 @@ def parameters_new(request, project_id):
             parameters = form.save(commit=False)
 
             # overall
-            parameters.project_title = project
+            parameters.sample_title = sample
 
             # Math'ed values
             parameters.headgroup_volume = combined_head_volume
             parameters.chain_volume = combined_tail_volume
 
             parameters.save()
-            return redirect('viewer:project_detail', project_id=project.id)
+            return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
         form = Parameter_Form()
 
     return render(request, 'viewer/form.html', {'form': form})
 
 # Edit parameters
-def parameters_edit(request, project_id, parameter_id):
+def parameters_edit(request, project_id, sample_id, parameter_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     parameters = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
 
     if request.method == 'POST':
@@ -208,27 +269,29 @@ def parameters_edit(request, project_id, parameter_id):
         if form.is_valid():
             parameters = form.save(commit=False)
             parameters.save()
-            return redirect('viewer:project_detail', project_id=project.id)
+            return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
         form = Parameter_Form(instance=parameters)
 
     return render(request, 'viewer/form.html', {'form': form})
 
 # Delete parameters
-def parameter_delete_warning(request, project_id, parameter_id):
+def parameter_delete_warning(request, project_id, sample_id, parameter_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
     
     if request.method == 'POST':
         parameter.delete()
-        return redirect('viewer:project_detail', project_id=project.id)
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
 
 ## Data
 # Input data
-def data_upload(request, project_id):
+def data_upload(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
 
     q = []
     i = []
@@ -239,7 +302,7 @@ def data_upload(request, project_id):
         data_upload_form = Data_Upload_Form(request.POST, request.FILES)
         if data_upload_form.is_valid():
             data_info = data_upload_form.save(commit=False)
-            data_info.project_title = project
+            data_info.sample_title = sample
 
             data_file = request.FILES["data_file"]
 
@@ -286,7 +349,7 @@ def data_upload(request, project_id):
 
             data_upload_form.save()
 
-        return redirect('viewer:project_detail', project_id=project.id)
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
         data_upload_form = Data_Upload_Form()
 
@@ -299,8 +362,9 @@ def data_upload(request, project_id):
     )
 
 # Edit data files
-def data_edit(request, project_id, data_id):
+def data_edit(request, project_id, sample_id, data_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     data = get_object_or_404(Data_Set, id=data_id)
 
     if request.method == 'POST':
@@ -308,32 +372,33 @@ def data_edit(request, project_id, data_id):
         if form.is_valid():
             data = form.save(commit=False)
             data.save()
-            return redirect('viewer:project_detail', project_id=project.id)
+            return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
         form = Data_Form(instance=data)
 
     return render(request, 'viewer/form.html', {'form': form})
 
 # Delete data
-def data_delete_warning(request, project_id, data_id):
-
+def data_delete_warning(request, project_id, sample_id, data_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     data = get_object_or_404(Data_Set, id=data_id)
     
     if request.method == 'POST':
         data.delete()
-        return redirect('viewer:project_detail', project_id=project.id)
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
 
 ## Data Lipids
 # Add lipids adjustment
-def data_lipid_new(request, project_id, data_id):
+def data_lipid_new(request, project_id, sample_id, data_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     data = get_object_or_404(Data_Set, id=data_id)
 
     number_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).count()
-    number_data_lipids = Data_Lipid.objects.filter(data_lipid_name__project_title__id=project_id).count()
+    number_data_lipids = Data_Lipid.objects.filter(data_lipid_name__sample_title__id=sample_id).count()
 
     enough_adjustments = False
 
@@ -341,7 +406,7 @@ def data_lipid_new(request, project_id, data_id):
         enough_adjustments = True
 
     if "lipid_info" in request.POST:
-        lipid_info_form = Data_Lipid_Form(request.POST)
+        lipid_info_form = Data_Lipid_Form(request.POST, project_id)
 
         if lipid_info_form.is_valid():
             # lipid_info = lipid_info_form.save(commit=False)
@@ -361,16 +426,17 @@ def data_lipid_new(request, project_id, data_id):
             )
 
             if existing_lipid:
-                return redirect('viewer:data_lipid_edit', project_id=project.id, data_id=data.id, lipid_id=existing_lipid.id)
+                return redirect('viewer:data_lipid_edit', project_id=project.id, sample_id=sample.id, data_id=data.id, lipid_id=existing_lipid.id)
             elif created_lipid:
-                return redirect('viewer:data_lipid_edit', project_id=project.id, data_id=data.id, lipid_id=created_lipid.id)
+                return redirect('viewer:data_lipid_edit', project_id=project.id, sample_id=sample.id, data_id=data.id, lipid_id=created_lipid.id)
     else:
-        lipid_info_form = Data_Lipid_Form()
+        lipid_info_form = Data_Lipid_Form(project_id)
 
     return render(
         request,
         'viewer/data_lipid_adjustment.html', {
             'project':project,
+            'sample':sample,
             'data':data,
             'lipid_info_form':lipid_info_form,
             'enough_adjustments':enough_adjustments
@@ -378,8 +444,9 @@ def data_lipid_new(request, project_id, data_id):
     )
 
 # Edit lipid adjustments
-def data_lipid_edit(request, project_id, data_id, lipid_id):
+def data_lipid_edit(request, project_id, sample_id, data_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     data = get_object_or_404(Data_Set, id=data_id)
     data_lipid = get_object_or_404(Data_Lipid, id=lipid_id)
     data_lipid_atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid)
@@ -387,7 +454,7 @@ def data_lipid_edit(request, project_id, data_id, lipid_id):
     if "lipid_info" in request.POST:
         lipid_info_form = Data_Lipid_Form(request.POST, instance=data_lipid)
     else:
-        lipid_info_form = Data_Lipid_Form(instance=data_lipid)
+        lipid_info_form = Data_Lipid_Form(project_id, instance=data_lipid)
 
     if "atom_ammount" in request.POST:
         atom_ammount_form = Data_Lipid_Atom_Form(request.POST)
@@ -411,7 +478,7 @@ def data_lipid_edit(request, project_id, data_id, lipid_id):
         atom_ammount_form = Data_Lipid_Atom_Form()
 
     if "done" in request.POST:
-        return redirect('viewer:project_detail', project_id=project.id)
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
     return render(
         request, 
@@ -424,29 +491,31 @@ def data_lipid_edit(request, project_id, data_id, lipid_id):
     )
 
 # Delete lipid adjustment
-def data_lipid_delete_warning(request, project_id, data_id, lipid_id):
+def data_lipid_delete_warning(request, project_id, sample_id, data_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     data_lipid = get_object_or_404(Data_Lipid, id=lipid_id)
     
     if request.method == 'POST':
         data_lipid.delete()
-        return redirect('viewer:project_detail', project_id=project.id)
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
     return render(request, 'viewer/delete_warning.html', {'project':project})
 
 ## Fit
 # Main fit page
-def fit_main(request, project_id, parameter_id):
+def fit_main(request, project_id, sample_id, parameter_id):
     ## Import
     x_user = get_object_or_404(ExtendedUser, user=request.user)
 
     # Overall
     project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
     parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
     project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
 
     # Data
-    datas = Data_Set.objects.filter(project_title_id=project_id)
+    datas = Data_Set.objects.filter(sample_title_id=sample_id)
     xray_datas = datas.filter(data_type='XR')
     neutron_datas = datas.filter(data_type='NU')
 
@@ -546,7 +615,7 @@ def fit_main(request, project_id, parameter_id):
         new_parameter = deepcopy(parameter)
 
         # Set title
-        new_parameter.description = now.strftime("Fit %m/%d/%H:%M")
+        new_parameter.name = now.strftime("%m/%d/%H:%M")
 
         # Set params
         new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 6)
@@ -568,7 +637,7 @@ def fit_main(request, project_id, parameter_id):
 
         # print(lsq.fit_report(fit_result))
 
-        return redirect('viewer:fit_main', project_id=project.id, parameter_id=new_parameter.id)
+        return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
 
     # Show stats / graph
     if "statistics" in request.POST:
@@ -660,6 +729,7 @@ def fit_main(request, project_id, parameter_id):
     return render(request, 'viewer/fit_main.html', {
         'x_user':x_user,
         'project':project,
+        'sample':sample,
         'parameter':parameter,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,

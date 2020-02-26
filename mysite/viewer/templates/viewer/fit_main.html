@@ -8,7 +8,25 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h1>
+        <h1><a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a></h1>
+        
+        <form id="inline" method="POST">
+            {% csrf_token %}
+            <button class="success" type="submit" name="fit">Fit!</button>
+        </form>
+
+        {% if parameter.fit_report and not show_stats %}
+            <form id="inline" method="POST">
+                {% csrf_token %}
+                <button type="submit" name="statistics">Show Fit Statistics</button>
+            </form>
+        {% endif %}
+        {% if show_stats %}
+            <form id="inline" method="POST">
+                {% csrf_token %}
+                <button type="submit" name="graphs">Show Graphs</button>
+            </form>
+        {% endif %}
     </div>
 
     {% if x_user.display_tutorial is True %}
@@ -33,7 +51,7 @@
 
     <div class="content-box parameters" id="left">
 
-        <h3>{{ parameter.description }}</h3>
+        <h3>{{ parameter.name }}</h3>
 
         <form method="POST" enctype="multipart/form-data">
 
@@ -43,6 +61,15 @@
                 <tr>
                     <td>{{ parameter_update_form.errors }}</td>
                 </tr>
+
+                <!-- Include SFF? -->
+                <tr>
+                    <td>SFF? {{ parameter_update_form.separated }}</td>
+                </tr>
+                <tr>
+                    <td><hr /></td>
+                </tr>
+
                 <!-- LA -->
                 <tr>
                     <td><h4>LA {{ parameter_update_form.lipid_area_lock }}</h4></td>
@@ -145,39 +172,91 @@
                     <td><hr /></td>
                 </tr>
 
+                {% if parameter.separated %}
+
+                    <!-- AVR -->
+                    <tr>
+                        <td><h4>R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.average_vesicle_radius }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.average_vesicle_radius_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+
+                    <!-- RSP -->
+                    <tr>
+                        <td><h4>SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.relative_size_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.relative_size }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.relative_size_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+
+                {% else %}
+
+                    <!-- AVR -->
+                    <tr class="hidden">
+                        <td><h4>R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.average_vesicle_radius }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.average_vesicle_radius_lowerbound }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td><hr /></td>
+                    </tr>
+
+                    <!-- RSP -->
+                    <tr class="hidden">
+                        <td><h4>SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.relative_size_upperbound }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.relative_size }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td>{{ parameter_update_form.relative_size_lowerbound }}</td>
+                    </tr>
+                    <tr class="hidden">
+                        <td><hr /></td>
+                    </tr>
+
+                {% endif %}
+
                 <tr>
-                    <td></td>
+                    <td>
+                        <button type="submit" name="parameter_update">Update</button>
+                    </td>
                 </tr>
             </table>
+        </form>
 
     </div>
 
     <div id="container">
-
-        <div class="content-box">
-
-                <button type="submit" name="parameter_update">Update Parameters</button>
-            </form>
-
-            <form id="inline" method="POST">
-                {% csrf_token %}
-                <button class="success" type="submit" name="fit">Fit!</button>
-            </form>
-
-            {% if parameter.fit_report and not show_stats %}
-                <form id="inline" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" name="statistics">Show Fit Statistics</button>
-                </form>
-            {% endif %}
-            {% if show_stats %}
-                <form id="inline" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" name="graphs">Show Graphs</button>
-                </form>
-            {% endif %}
-
-        </div>
 
         {% if show_stats %}
 
