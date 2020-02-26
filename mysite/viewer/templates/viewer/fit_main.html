@@ -10,23 +10,33 @@
     <div class="content-box">
         <h1 id="inline"><a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a></h1>
         
-        <form id="inline" method="POST">
-            {% csrf_token %}
-            <button class="success" type="submit" name="fit">Fit!</button>
-        </form>
+        <div id="right">
 
-        {% if parameter.fit_report and not show_stats %}
             <form id="inline" method="POST">
                 {% csrf_token %}
-                <button type="submit" name="statistics">Show Fit Statistics</button>
+                <button class="success" type="submit" name="fit">Fit!</button>
             </form>
-        {% endif %}
-        {% if show_stats %}
-            <form id="inline" method="POST">
-                {% csrf_token %}
-                <button type="submit" name="graphs">Show Graphs</button>
-            </form>
-        {% endif %}
+
+            {% if parameter.fit_report %}
+                {% if show_stats %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="graphs">Show Graphs</button>
+                    </form>
+                {% else %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="statistics">Show Fit Statistics</button>
+                    </form>
+                {% endif %}
+                
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="download">Download Data</button>
+                </form>
+            {% endif %}
+
+        </div>
     </div>
 
     {% if x_user.display_tutorial is True %}

@@ -2,10 +2,10 @@
 # From django
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
-from django.forms import modelformset_factory
+from django.http import HttpResponse
 
 # Other libraries
-import json as js
+import csv
 from matplotlib import pyplot as plt
 import mpld3
 from datetime import datetime
@@ -344,8 +344,8 @@ def data_upload(request, project_id, sample_id):
             data_info.intensity_value = i
             data_info.error_value = e
 
-            data_info.q_min_index = 0
-            data_info.q_max_index = len(q)-1
+            data_info.min_index = 0
+            data_info.max_index = len(q)-1
 
             data_upload_form.save()
 
@@ -519,6 +519,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     now = datetime.now()
     fit_result = None
     show_statistics = False
+    calculated_i_values = []
 
     # Forms
     # Dismiss the tutorial
@@ -634,6 +635,32 @@ def fit_main(request, project_id, sample_id, parameter_id):
         # print(lsq.fit_report(fit_result))
 
         return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
+
+    # Download data
+    if "download" in request.POST:
+        # Create the HttpResponse object with the appropriate CSV header.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="vv_fitdata_download.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['VesicleViewer Data output', now])
+        writer.writerow(['Q', 'Experimental i', 'Calculated i'])
+
+        for xray_data in xray_datas:
+            writer.writerow([xray_data.data_set_title])
+            calculated_i_values = symmetrical_graph(parameter, project_lipids, xray_data, project.system_tempurature)
+
+            for i in range(xray_data.min_index, xray_data.max_index):
+                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], calculated_i_values[i]])
+
+        for neutron_data in neutron_datas:
+            writer.writerow([neutron_data.data_set_title])
+            calculated_i_values = symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature)
+
+            for i in range(neutron_data.min_index, neutron_data.max_index):
+                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], calculated_i_values[i]])
+
+        return response
 
     # Show stats / graph
     if "statistics" in request.POST:
