@@ -17,6 +17,7 @@ admin.site.register(Project)
 admin.site.register(Sample)
 # Parameters
 admin.site.register(Symmetrical_Parameters)
+admin.site.register(Asymmetrical_Parameters)
 admin.site.register(Project_Lipid)
 # Data
 admin.site.register(Data_Set)

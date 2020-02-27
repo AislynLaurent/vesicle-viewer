@@ -5,7 +5,7 @@ body {
     color: #FCFDFF;
     font-family: 'Manjari', sans-serif;
     margin: auto;
-    width: 80%;
+    width: 85%;
 }
 
 a {
@@ -254,15 +254,15 @@ main img {
 }
 
 .value {
-    width: 80px;
+    width: 50px;
 }
 
 .upper_bound {
-    width: 80px;
+    width: 50px;
 }
 
 .lower_bound {
-    width: 80px;
+    width: 50px;
 }
 
 /* Footer */

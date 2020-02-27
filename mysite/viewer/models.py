@@ -112,6 +112,7 @@ class Project(models.Model):
     # Choices
     MODEL_CHOICES = (
         ('SM', 'Symmetrical'),
+        ('AS', 'Asymmetrical'),
     )
     # Title
     project_title = models.CharField(verbose_name='project title', max_length=200)
@@ -135,6 +136,13 @@ class Project(models.Model):
 
 # Project Lipids
 class Project_Lipid(models.Model):
+    # Choices
+    LOCATION_CHOICES = (
+        ('IN', 'Inner'),
+        ('OUT', 'Outer'),
+        ('BOTH', 'Both'),
+    )
+
     # Project
     project_title = models.ForeignKey(Project, related_name='project_lipid', on_delete=models.CASCADE)
 
@@ -143,6 +151,9 @@ class Project_Lipid(models.Model):
 
     # Percentage
     lipid_mol_fraction = models.FloatField(verbose_name='project_lipid_mol_fraction', default=0)
+
+    # Leaflet
+    lipid_location = models.CharField(verbose_name='model', choices=LOCATION_CHOICES, max_length=4)
 
     # Meta
     class Meta:
@@ -177,10 +188,10 @@ class Sample(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.project_title)])
 
-# Parameters
+# Symmetrical Parameters
 class Symmetrical_Parameters(models.Model):
     ## Project
-    sample_title = models.ForeignKey(Sample, related_name='parameters', on_delete=models.CASCADE)
+    sample_title = models.ForeignKey(Sample, related_name='sym_parameters', on_delete=models.CASCADE)
 
     ## Description
     name = models.CharField(verbose_name="name", max_length=255)
@@ -229,15 +240,15 @@ class Symmetrical_Parameters(models.Model):
 
     ## Separated form factor
     # Average vesicle radius
-    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=2)
-    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=4)
-    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=1)
+    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=500)
+    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=1000)
+    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=250)
     average_vesicle_radius_lock = models.BooleanField(verbose_name='avr lock', default=True)
 
     # Relative size polydispersity
-    relative_size = models.FloatField(verbose_name='relative size', default=2)
-    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=4)
-    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=1)
+    relative_size = models.FloatField(verbose_name='relative size', default=0.25)
+    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=0.7)
+    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=0.1)
     relative_size_lock = models.BooleanField(verbose_name='rs lock', default=True)
 
     ## Report
@@ -245,8 +256,121 @@ class Symmetrical_Parameters(models.Model):
 
     # Meta
     class Meta:
-        verbose_name = 'parameter'
-        verbose_name_plural = 'parameters'
+        verbose_name = 'sym parameter'
+        verbose_name_plural = 'sym parameters'
+
+    # Methods
+    def __str__(self):
+        return '%s-%s' % (self.sample_title, self.name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Symmetrical Parameters
+class Asymmetrical_Parameters(models.Model):
+    ## Project
+    sample_title = models.ForeignKey(Sample, related_name='asym_parameters', on_delete=models.CASCADE)
+
+    ## Description
+    name = models.CharField(verbose_name="name", max_length=255)
+
+    ## Use the separated form factor?
+    separated = models.BooleanField(verbose_name="separated form factor", default=False)
+
+    ### Inside
+    ## Fixed
+    # Chain volume
+    in_chain_volume = models.FloatField(verbose_name='in chain volume', default=0)
+    in_chain_volume_upperbound = models.FloatField(verbose_name='in cv upper bound', default=100)
+    in_chain_volume_lowerbound = models.FloatField(verbose_name='in cv lower bound', default=0)
+    in_chain_volume_lock = models.BooleanField(verbose_name='in cv lock', default=True)
+
+    # Headgroup volume
+    in_headgroup_volume = models.FloatField(verbose_name='in headgroup volume', default=0)
+    in_headgroup_volume_upperbound = models.FloatField(verbose_name='in hv upper bound', default=100)
+    in_headgroup_volume_lowerbound = models.FloatField(verbose_name='in hv lower bound', default=0)
+    in_headgroup_volume_lock = models.BooleanField(verbose_name='in hv lock', default=True)
+
+    ## Varied
+    # Terminal methyl volume
+    in_terminal_methyl_volume = models.FloatField(verbose_name='in terminal methyl volume', default=55)
+    in_terminal_methyl_volume_upperbound = models.FloatField(verbose_name='in tmv upper bound', default=60)
+    in_terminal_methyl_volume_lowerbound = models.FloatField(verbose_name='in tmv lower bound', default=45)
+    in_terminal_methyl_volume_lock = models.BooleanField(verbose_name='in tmv lock', default=False)
+
+    # Lipid area
+    in_lipid_area = models.FloatField(verbose_name='in lipid area', default=60)
+    in_lipid_area_upperbound = models.FloatField(verbose_name='in la upper bound', default=80)
+    in_lipid_area_lowerbound = models.FloatField(verbose_name='in la lower bound', default=40)
+    in_lipid_area_lock = models.BooleanField(verbose_name='in la lock', default=False)
+
+    # Headgroup thickness
+    in_headgroup_thickness = models.FloatField(verbose_name='in headgroup thickness',default=8)
+    in_headgroup_thickness_upperbound = models.FloatField(verbose_name='in ht upper bound', default=15)
+    in_headgroup_thickness_lowerbound = models.FloatField(verbose_name='in ht lower bound', default=5)
+    in_headgroup_thickness_lock = models.BooleanField(verbose_name='in ht lock', default=False)
+
+    ### Outside
+    ## Fixed
+    # Chain volume
+    out_chain_volume = models.FloatField(verbose_name='out chain volume', default=0)
+    out_chain_volume_upperbound = models.FloatField(verbose_name='out cv upper bound', default=100)
+    out_chain_volume_lowerbound = models.FloatField(verbose_name='out cv lower bound', default=0)
+    out_chain_volume_lock = models.BooleanField(verbose_name='out cv lock', default=True)
+
+    # Headgroup volume
+    out_headgroup_volume = models.FloatField(verbose_name='out headgroup volume', default=0)
+    out_headgroup_volume_upperbound = models.FloatField(verbose_name='out hv upper bound', default=100)
+    out_headgroup_volume_lowerbound = models.FloatField(verbose_name='out hv lower bound', default=0)
+    out_headgroup_volume_lock = models.BooleanField(verbose_name='out hv lock', default=True)
+
+    ## Varied
+    # Terminal methyl volume
+    out_terminal_methyl_volume = models.FloatField(verbose_name='out terminal methyl volume', default=55)
+    out_terminal_methyl_volume_upperbound = models.FloatField(verbose_name='out tmv upper bound', default=60)
+    out_terminal_methyl_volume_lowerbound = models.FloatField(verbose_name='out tmv lower bound', default=45)
+    out_terminal_methyl_volume_lock = models.BooleanField(verbose_name='out tmv lock', default=False)
+
+    # Lipid area
+    out_lipid_area = models.FloatField(verbose_name='out lipid area', default=60)
+    out_lipid_area_upperbound = models.FloatField(verbose_name='out la upper bound', default=80)
+    out_lipid_area_lowerbound = models.FloatField(verbose_name='out la lower bound', default=40)
+    out_lipid_area_lock = models.BooleanField(verbose_name='out la lock', default=False)
+
+    # Headgroup thickness
+    out_headgroup_thickness = models.FloatField(verbose_name='out headgroup thickness',default=8)
+    out_headgroup_thickness_upperbound = models.FloatField(verbose_name='out ht upper bound', default=15)
+    out_headgroup_thickness_lowerbound = models.FloatField(verbose_name='out ht lower bound', default=5)
+    out_headgroup_thickness_lock = models.BooleanField(verbose_name='out ht lock', default=False)
+
+    ## Other
+    # SIG
+    sigma = models.FloatField(verbose_name='sigma', default=2.5)
+    sigma_upperbound = models.FloatField(verbose_name='sig upper bound', default=4)
+    sigma_lowerbound = models.FloatField(verbose_name='sig lower bound', default=2)
+    sigma_lock = models.BooleanField(verbose_name='sig lock', default=True)
+
+    ## Separated form factor
+    # Average vesicle radius
+    average_vesicle_radius = models.FloatField(verbose_name='average vesicle radius', default=500)
+    average_vesicle_radius_upperbound = models.FloatField(verbose_name='avr upper bound', default=1000)
+    average_vesicle_radius_lowerbound = models.FloatField(verbose_name='avr lower bound', default=250)
+    average_vesicle_radius_lock = models.BooleanField(verbose_name='avr lock', default=True)
+
+    # Relative size polydispersity
+    relative_size = models.FloatField(verbose_name='relative size', default=0.25)
+    relative_size_upperbound = models.FloatField(verbose_name='rs upper bound', default=0.7)
+    relative_size_lowerbound = models.FloatField(verbose_name='rs lower bound', default=0.1)
+    relative_size_lock = models.BooleanField(verbose_name='rs lock', default=True)
+
+    ## Report
+    fit_report = ArrayField(models.CharField(max_length=500, blank=True), verbose_name='fitted parameter report', null=True, blank=True)
+
+    # Meta
+    class Meta:
+        verbose_name = 'asym parameter'
+        verbose_name_plural = 'asym parameters'
 
     # Methods
     def __str__(self):

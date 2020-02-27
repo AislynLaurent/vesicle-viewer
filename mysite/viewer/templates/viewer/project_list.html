@@ -23,6 +23,22 @@
             </div>
 
         {% endif %}
+        {% if asymmetrical_projects %}
+
+            <div class="content-box">
+                    <h1>Asymmetrical Projects</h1>
+
+                {% for project in asymmetrical_projects %}
+
+                    <div class="project">
+                        <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
+                    </div>
+
+                {% endfor %}
+                
+            </div>
+
+        {% endif %}
 
     <div class="content-box">
         <h1>New Project</h1>

@@ -6,10 +6,7 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        
         <h1>{{ sample.sample_title }}</h1>
-        <h4><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h4>
-
     </div>
     
     <div class="content-box">
@@ -59,7 +56,7 @@
 
             <tr>
                 <td><h4>Data Set</h4></td>
-                <td><h4>Name</h4></td>
+                <td><h4>Lipid Name</h4></td>
                 <td></td>
                 <td></td>
             </tr>
@@ -80,7 +77,7 @@
                                         - {{ lipid.data_lipid_suffix }}
                                     {% endif %}
                                 </td>
-                                <td><a href="{% url 'viewer:data_lipid_edit' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">Edit</a></td>
+                                <td><a href="{% url 'viewer:data_lipid_edit' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">View</a></td>
                                 <td><a href="{% url 'viewer:data_lipid_delete_warning' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">Delete</a></td>
                             </tr>
                         {% endif %}
@@ -96,32 +93,62 @@
 
         <h2>Parameters</h2>
 
-        {% if parameters %}
+        {% if project.model_type == "SM" %}
+            {% if parameters %}
+                <table class="parameters indent">
+                        <tr>
+                            <td><h4>Name</h4></td>
+                            <td><h4>Overall Lipid Area</h4></td>
+                            <td><h4>Headgroup Thickness</h4></td>
+                            <td><h4>Terminal Methly Vol.</h4></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% for parameter in parameters %}
+                            <tr>
+                                <td><a href="{% url 'viewer:fit_main' project_id=project.id sample_id=sample.id parameter_id=parameter.id %}">{{ parameter.name }}</a></td>
+                                <td>{{ parameter.lipid_area }}</td>
+                                <td>{{ parameter.headgroup_thickness }}</td>
+                                <td>{{ parameter.terminal_methyl_volume }}</td>
+                                <td><a href="{% url 'viewer:symmetrical_parameters_edit' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Edit</a></td>
+                                <td><a href="{% url 'viewer:symmetrical_parameter_delete_warning' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Delete</a></td>
+                            </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
 
-            <table class="parameters indent">
-                    <tr>
-                        <td><h4>Name</h4></td>
-                        <td><h4>Overall Lipid Area</h4></td>
-                        <td><h4>Headgroup Thickness</h4></td>
-                        <td><h4>Terminal Methly Vol.</h4></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                {% for parameter in parameters %}
-                    <tr>
-                        <td><a href="{% url 'viewer:fit_main' project_id=project.id sample_id=sample.id parameter_id=parameter.id %}">{{ parameter.name }}</a></td>
-                        <td>{{ parameter.lipid_area }}</td>
-                        <td>{{ parameter.headgroup_thickness }}</td>
-                        <td>{{ parameter.terminal_methyl_volume }}</td>
-                        <td><a href="{% url 'viewer:parameters_edit' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Edit</a></td>
-                        <td><a href="{% url 'viewer:parameter_delete_warning' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Delete</a></td>
-                    </tr>
-                {% endfor %}
-            </table>
+            <h3><a href="{% url 'viewer:symmetrical_parameters_new' project_id=project.id sample_id=sample.id %}">Generate new parameters</a></h3>
+        {% elif project.model_type == "AS" %}
+            {% if parameters %}
+                <table class="parameters indent">
+                        <tr>
+                            <td><h4>Name</h4></td>
+                            <td><h4>In Overall Lipid Area</h4></td>
+                            <td><h4>In Headgroup Thickness</h4></td>
+                            <td><h4>In Terminal Methly Vol.</h4></td>
+                            <td><h4>Out Overall Lipid Area</h4></td>
+                            <td><h4>Out Headgroup Thickness</h4></td>
+                            <td><h4>Out Terminal Methly Vol.</h4></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% for parameter in parameters %}
+                            <tr>
+                                <td><a href="{% url 'viewer:fit_main' project_id=project.id sample_id=sample.id parameter_id=parameter.id %}">{{ parameter.name }}</a></td>
+                                <td>{{ parameter.in_lipid_area }}</td>
+                                <td>{{ parameter.in_headgroup_thickness }}</td>
+                                <td>{{ parameter.in_terminal_methyl_volume }}</td>
+                                <td>{{ parameter.out_lipid_area }}</td>
+                                <td>{{ parameter.out_headgroup_thickness }}</td>
+                                <td>{{ parameter.out_terminal_methyl_volume }}</td>
+                                <td><a href="{% url 'viewer:asymmetrical_parameters_edit' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Edit</a></td>
+                                <td><a href="{% url 'viewer:asymmetrical_parameter_delete_warning' project_id=project.id sample_id=sample.id sample_id=sample.id parameter_id=parameter.id %}">Delete</a></td>
+                            </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
 
-            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id sample_id=sample.id %}">Generate new parameters</a></h3>
-        {% else %}
-            <h3><a href="{% url 'viewer:parameters_new' project_id=project.id sample_id=sample.id %}">Generate new parameters</a></h3>
+            <h3><a href="{% url 'viewer:asymmetrical_parameters_new' project_id=project.id sample_id=sample.id %}">Generate new parameters</a></h3>
         {% endif %}
         
     </div>
