@@ -465,27 +465,22 @@ def data_upload(request, project_id, sample_id):
 
             lines = file_data.split("\n")
 
-            it = 0
-            
-            # skip lines with characters - skip header
-            while True:
-                if re.search('[a-df-zA-Z]', lines[it]):
-                    it = it+1
-                else:
-                    break
-
             #loop over the lines and save them in db. If error , store as string and then display
-            for line in lines[it:]:
+            for line in lines:
                 line = line.strip()
+                
+                # check for letters / words / headers / footers
+                if not line[:1].isdigit() or re.search('[a-df-zA-Z]', line):
+                    pass
+                else:
+                    fields = line.split()
 
-                fields = line.split()
-
-                q.append(float(fields[0]))
-                i.append(float(fields[1]))
-                try:
-                    e.append(float(fields[2]))
-                except IndexError:
-                    e.append(1)
+                    q.append(float(fields[0]))
+                    i.append(float(fields[1]))
+                    try:
+                        e.append(float(fields[2]))
+                    except IndexError:
+                        e.append(1)
 
             data_info.q_value = q
             data_info.intensity_value = i
