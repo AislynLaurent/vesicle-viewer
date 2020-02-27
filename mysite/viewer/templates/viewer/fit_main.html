@@ -52,13 +52,6 @@
         </div>
     {% endif %}
 
-    {% if parameter.lipid_area_upperbound == parameter.lipid_area_lowerbound %}
-        <div class="announcement">
-            <h2>Error!</h2>
-            <p>The upper and lower bound for any given parameter cannot be equal!   </p>
-        </div>
-    {% endif %}
-
     <div class="content-box parameters" id="left">
 
         <h3>{{ parameter.name }}</h3>
@@ -68,6 +61,7 @@
             {% csrf_token %}
 
             <table id="center" class="form_box">
+
                 <tr>
                     <td>{{ parameter_update_form.errors }}</td>
                 </tr>
@@ -77,93 +71,212 @@
                     <td>SFF? {{ parameter_update_form.separated }}</td>
                 </tr>
                 <tr>
-                    <td><hr /></td>
+                    <td colspan="2"><hr /></td>
                 </tr>
 
-                <!-- LA -->
-                <tr>
-                    <td><h4>LA {{ parameter_update_form.lipid_area_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.lipid_area_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.lipid_area }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.lipid_area_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
+                {% if project.model_type == "SM" %}
 
-                <!-- HT -->
-                <tr>
-                    <td><h4>HT {{ parameter_update_form.headgroup_thickness_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.headgroup_thickness_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.headgroup_thickness }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.headgroup_thickness_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
+                    <!-- LA -->
+                    <tr>
+                        <td><h4>LA {{ parameter_update_form.lipid_area_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.lipid_area_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.lipid_area }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.lipid_area_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
 
-                <!-- HV -->
-                <tr>
-                    <td><h4>HV</h4></td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter.headgroup_volume }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
+                    <!-- HT -->
+                    <tr>
+                        <td><h4>HT {{ parameter_update_form.headgroup_thickness_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.headgroup_thickness_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.headgroup_thickness }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.headgroup_thickness_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+
+                    <!-- HV -->
+                    <tr>
+                        <td><h4>HV</h4></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter.headgroup_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+                    
+                    <!-- TMV -->
+                    <tr>
+                        <td><h4>TMV {{ parameter_update_form.terminal_methyl_volume_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.terminal_methyl_volume_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.terminal_methyl_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.terminal_methyl_volume_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+
+                    <!-- CV -->
+                    <tr>
+                        <td><h4>CV</h4></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter.chain_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td><hr /></td>
+                    </tr>
+
+                {% elif project.model_type == "AS" %}
+
+                    <tr>
+                        <td><h2>In</h2></td>
+                        <td><h2>Out</h2></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+
+                    <!-- LA -->
+                    <tr>
+                        <td><h4>LA {{ parameter_update_form.in_lipid_area_lock }}</h4></td>
+                        <td><h4>{{ parameter_update_form.out_lipid_area_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_lipid_area_upperbound }}</td>
+                        <td>{{ parameter_update_form.out_lipid_area_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_lipid_area }}</td>
+                        <td>{{ parameter_update_form.out_lipid_area }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_lipid_area_lowerbound }}</td>
+                        <td>{{ parameter_update_form.out_lipid_area_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+
+                    <!-- HT -->
+                    <tr>
+                        <td><h4>HT {{ parameter_update_form.in_headgroup_thickness_lock }}</h4></td>
+                        <td><h4>{{ parameter_update_form.out_headgroup_thickness_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_headgroup_thickness_upperbound }}</td>
+                        <td>{{ parameter_update_form.out_headgroup_thickness_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_headgroup_thickness }}</td>
+                        <td>{{ parameter_update_form.out_headgroup_thickness }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_headgroup_thickness_lowerbound }}</td>
+                        <td>{{ parameter_update_form.out_headgroup_thickness_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+
+                    <!-- HV -->
+                    <tr>
+                        <td><h4>HV</h4></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter.in_headgroup_volume }}</td>
+                        <td>{{ parameter.out_headgroup_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+                    
+                    <!-- TMV -->
+                    <tr>
+                        <td><h4>TMV {{ parameter_update_form.in_terminal_methyl_volume_lock }}</h4></td>
+                        <td><h4>{{ parameter_update_form.out_terminal_methyl_volume_lock }}</h4></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_terminal_methyl_volume_upperbound }}</td>
+                        <td>{{ parameter_update_form.out_terminal_methyl_volume_upperbound }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_terminal_methyl_volume }}</td>
+                        <td>{{ parameter_update_form.out_terminal_methyl_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter_update_form.in_terminal_methyl_volume_lowerbound }}</td>
+                        <td>{{ parameter_update_form.out_terminal_methyl_volume_lowerbound }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+
+                    <!-- CV -->
+                    <tr>
+                        <td><h4>CV</h4></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>{{ parameter.in_chain_volume }}</td>
+                        <td>{{ parameter.out_chain_volume }}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
+                    <tr>
+                        <td><h2>Shared</h2></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><hr /></td>
+                    </tr>
                 
-                <!-- TMV -->
-                <tr>
-                    <td><h4>TMV {{ parameter_update_form.terminal_methyl_volume_lock }}</h4></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.terminal_methyl_volume_upperbound }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.terminal_methyl_volume }}</td>
-                </tr>
-                <tr>
-                    <td>{{ parameter_update_form.terminal_methyl_volume_lowerbound }}</td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
-
-                <!-- CV -->
-                <tr>
-                    <td><h4>CV</h4></td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>{{ parameter.chain_volume }}</td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td><hr /></td>
-                </tr>
+                {% endif %}
 
                 <!-- SIG -->
                 <tr>
@@ -179,14 +292,14 @@
                     <td>{{ parameter_update_form.sigma_lowerbound }}</td>
                 </tr>
                 <tr>
-                    <td><hr /></td>
+                    <td colspan="2"><hr /></td>
                 </tr>
 
                 {% if parameter.separated %}
 
                     <!-- AVR -->
                     <tr>
-                        <td><h4>R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                        <td><h4>SF.R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
@@ -198,12 +311,12 @@
                         <td>{{ parameter_update_form.average_vesicle_radius_lowerbound }}</td>
                     </tr>
                     <tr>
-                        <td><hr /></td>
+                        <td colspan="2"><hr /></td>
                     </tr>
 
                     <!-- RSP -->
                     <tr>
-                        <td><h4>SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                        <td><h4>SF.SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.relative_size_upperbound }}</td>
@@ -215,14 +328,14 @@
                         <td>{{ parameter_update_form.relative_size_lowerbound }}</td>
                     </tr>
                     <tr>
-                        <td><hr /></td>
+                        <td colspan="2"><hr /></td>
                     </tr>
 
                 {% else %}
 
                     <!-- AVR -->
                     <tr class="hidden">
-                        <td><h4>R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                        <td><h4>SFF R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
                     </tr>
                     <tr class="hidden">
                         <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
@@ -234,12 +347,12 @@
                         <td>{{ parameter_update_form.average_vesicle_radius_lowerbound }}</td>
                     </tr>
                     <tr class="hidden">
-                        <td><hr /></td>
+                        <td colspan="2"><hr /></td>
                     </tr>
 
                     <!-- RSP -->
                     <tr class="hidden">
-                        <td><h4>SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                        <td><h4>SFF SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
                     </tr>
                     <tr class="hidden">
                         <td>{{ parameter_update_form.relative_size_upperbound }}</td>
@@ -251,7 +364,7 @@
                         <td>{{ parameter_update_form.relative_size_lowerbound }}</td>
                     </tr>
                     <tr class="hidden">
-                        <td><hr /></td>
+                        <td colspan="2"><hr /></td>
                     </tr>
 
                 {% endif %}

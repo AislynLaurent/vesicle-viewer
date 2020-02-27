@@ -43,13 +43,21 @@ urlpatterns = [
     # Warning & delete sample
     path('project/<int:project_id>/sample/<int:sample_id>/delete_warning/', views.sample_delete_warning, name='sample_delete_warning'),
 
-    ## Parameters
+    ## Sym Parameters
     # Add project parameters
-    path('project/<int:project_id>/sample/<int:sample_id>/parameters/new/', views.parameters_new, name='parameters_new'),
+    path('project/<int:project_id>/sample/<int:sample_id>/symparameters/new/', views.symmetrical_parameters_new, name='symmetrical_parameters_new'),
     # Edit a projects parameters
-    path('project/<int:project_id>/sample/<int:sample_id>/parameters/<int:parameter_id>/edit/', views.parameters_edit, name='parameters_edit'),
+    path('project/<int:project_id>/sample/<int:sample_id>/symparameters/<int:parameter_id>/edit/', views.symmetrical_parameters_edit, name='symmetrical_parameters_edit'),
     # Warning & delete parameters
-    path('project/<int:project_id>/sample/<int:sample_id>/parameters/<int:parameter_id>/delete_warning/', views.parameter_delete_warning, name='parameter_delete_warning'),
+    path('project/<int:project_id>/sample/<int:sample_id>/symparameters/<int:parameter_id>/delete_warning/', views.symmetrical_parameter_delete_warning, name='symmetrical_parameter_delete_warning'),
+
+    ## Asym Parameters
+    # Add project parameters
+    path('project/<int:project_id>/sample/<int:sample_id>/asymparameters/new/', views.asymmetrical_parameters_new, name='asymmetrical_parameters_new'),
+    # Edit a projects parameters
+    path('project/<int:project_id>/sample/<int:sample_id>/asymparameters/<int:parameter_id>/edit/', views.asymmetrical_parameters_edit, name='asymmetrical_parameters_edit'),
+    # Warning & delete parameters
+    path('project/<int:project_id>/sample/<int:sample_id>/asymparameters/<int:parameter_id>/delete_warning/', views.asymmetrical_parameter_delete_warning, name='asymmetrical_parameter_delete_warning'),
 
     ## Data
     # Upload data
@@ -68,6 +76,6 @@ urlpatterns = [
     path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/lipid/<int:lipid_id>/delete_warning/', views.data_lipid_delete_warning, name='data_lipid_delete_warning'),
 
     ## Fitting
-    # Main fit page
+    # Sym fit page
     path('project/<int:project_id>/sample/<int:sample_id>/fit/<int:parameter_id>/', views.fit_main, name='fit_main'),
 ]
