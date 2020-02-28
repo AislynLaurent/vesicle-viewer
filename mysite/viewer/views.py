@@ -470,7 +470,7 @@ def data_upload(request, project_id, sample_id):
                 line = line.strip()
                 
                 # check for letters / words / headers / footers
-                if not line[:1].isdigit() or re.search('[a-df-zA-Z]', line):
+                if not line[:1].isdigit() or re.search('[a-df-zA-DF-Z]', line):
                     pass
                 else:
                     fields = line.split()
