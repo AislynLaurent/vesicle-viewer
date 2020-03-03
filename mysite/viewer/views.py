@@ -121,6 +121,16 @@ def project_edit(request, project_id):
 
     return render(request, 'viewer/form.html', {'form': form})
 
+# Delete project
+def project_delete_warning(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    
+    if request.method == 'POST':
+        project.delete()
+        return redirect('viewer:project_list')
+
+    return render(request, 'viewer/project_delete_warning.html', {'project':project})
+
 ## Project Lipids
 # Add lipids to a project
 def project_lipid_new(request, project_id):

@@ -24,6 +24,8 @@ urlpatterns = [
     path('project/<int:project_id>', views.project_detail, name='project_detail'),
     # Edit a project
     path('project/<int:project_id>/edit/', views.project_edit, name='project_edit'),
+    # Warning & delete project
+    path('project/<int:project_id>/delete_warning/', views.project_delete_warning, name='project_delete_warning'),
 
     ## Project Lipids
     # Add project lipid
