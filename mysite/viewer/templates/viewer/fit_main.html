@@ -8,9 +8,9 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        <h1 id="inline"><a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a></h1>
+        <h1 id="left"><a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a></h1>
         
-        <div id="right">
+        <div class="fit_buttons" id="right">
 
             <form id="inline" method="POST">
                 {% csrf_token %}

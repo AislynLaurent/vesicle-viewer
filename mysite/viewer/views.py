@@ -668,7 +668,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
     now = datetime.now()
     fit_result = None
     show_statistics = False
-    calculated_i_values = []
 
     # Forms
     # Dismiss the tutorial
@@ -833,6 +832,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
             return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
 
+    # caluclated values
+    calculated_i_values = []
+
     # Download data
     if "download" in request.POST:
         # Create the HttpResponse object with the appropriate CSV header.
@@ -841,6 +843,16 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         writer = csv.writer(response)
         writer.writerow(['VesicleViewer Data output', now])
+        writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
+        writer.writerow([project.project_title, sample.sample_title, parameter.name])
+        writer.writerow([])
+
+        writer.writerow({'Fit Statistics'})
+        for line in parameter.fit_report:
+            writer.writerow([line])
+
+        writer.writerow([])
+
         writer.writerow(['Q', 'Experimental i', 'Calculated i'])
 
         for xray_data in xray_datas:
@@ -850,15 +862,22 @@ def fit_main(request, project_id, sample_id, parameter_id):
             elif project.model_type == "AS":
                 calculated_i_values = asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, xray_data, project.system_tempurature)
 
+            j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
-                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], calculated_i_values[i]])
+                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], calculated_i_values[j]])
+                j = j+1
 
         for neutron_data in neutron_datas:
             writer.writerow([neutron_data.data_set_title])
-            calculated_i_values = symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature)
+            if project.model_type == "SM":
+                calculated_i_values = symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature)
+            elif project.model_type == "AS":
+                calculated_i_values = asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, neutron_data, project.system_tempurature)
 
+            j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):
-                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], calculated_i_values[i]])
+                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], calculated_i_values[j]])
+                j = j+1
 
         return response
 

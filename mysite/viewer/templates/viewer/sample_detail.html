@@ -6,7 +6,7 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        <h1>{{ sample.sample_title }}</h1>
+        <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a> - {{ sample.sample_title }}</h1>
     </div>
     
     <div class="content-box">
