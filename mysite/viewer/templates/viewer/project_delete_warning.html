@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}WARNING{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+  <div class="content-box">
+
+    <h1>Warning!</h1>
+
+    <p>This action will permanently delete {{project.proejct_title}}, and with it any work you've done on it.</p>
+    <p>Are you sure you want to proceed?</p>
+
+    <button
+        type="button" 
+        onclick="window.location.href='{% url 'viewer:project_list' %}'" >
+        No, go back
+    </button>
+
+    <p></p>
+
+    <form method="POST" enctype="multipart/form-data" >
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="warning">Permanently delete</button>
+    </form>
+
+  </div>
+
+{% endblock content %}
