@@ -293,7 +293,9 @@ def symmetrical_parameters_new(request, project_id, sample_id):
             )
         combined_tail_volume = combined_tail_volume + (
                 (
-                    eval(lipid.project_lipid_name.total_volume_equation) 
+                    eval(
+                        lipid.project_lipid_name.total_volume_equation
+                    ) 
                     - lipid.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
