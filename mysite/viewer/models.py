@@ -44,7 +44,7 @@ class Lipid(models.Model):
     tm_electrons = models.FloatField(verbose_name='terminal methyl electrons', default=0)
 
     # Total volume
-    total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=200, default='x')
+    total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=800, default='x')
 
     # Meta
     class Meta:
