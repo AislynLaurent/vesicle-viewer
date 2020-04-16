@@ -21,6 +21,7 @@ from .models import *
 from .forms import *
 
 # Other imports
+from .safe_functions import safe_function_dict
 from .symfit import symmetrical_fit
 from .symfit import symmetrical_graph
 from .asymfit import asymmetrical_fit
@@ -79,28 +80,13 @@ def project_list(request):
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     samples = Sample.objects.filter(project_title_id=project_id)
-    
-    if project.model_type == "SM":
-        project_lipids = Project_Lipid.objects.filter(project_title_id=project_id)
-        in_project_lipids = 0
-        out_project_lipids = 0
-    elif project.model_type == "AS":
-        project_lipids = 0
-        in_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location='IN')
-        out_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location='OUT')
-
-    # mol_fraction = 0
-    # for lipid in project_lipids:
-    #     mol_fraction = mol_fraction + lipid.lipid_mol_fraction
+    project_lipids = Project_Lipid.objects.filter(project_title_id=project_id)
 
     return render(
         request,
         'viewer/project_detail.html', {
             'project':project,
             'project_lipids':project_lipids,
-            'in_project_lipids':in_project_lipids,
-            'out_project_lipids':out_project_lipids,
-            # 'total_lipid_mol_fraction':mol_fraction,
             'samples':samples,
         }
     )
@@ -119,7 +105,7 @@ def project_edit(request, project_id):
     else:
         form = Project_Form(instance=project)
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
 # Delete project
 def project_delete_warning(request, project_id):
@@ -136,65 +122,17 @@ def project_delete_warning(request, project_id):
 def project_lipid_new(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
-    if project.model_type == "SM":
-        if request.method == 'POST':
-            form = Sym_Project_Lipid_Form(request.POST)
-            if form.is_valid():
-                lipids = form.save(commit=False)
-                lipids.project_title = project
-                lipids.lipid_location = "BOTH"
-                lipids.save()
-                return redirect('viewer:project_detail', project_id=project.id)
-        else:
-            form = Sym_Project_Lipid_Form()
+    if request.method == 'POST':
+        form = Project_Lipid_Form(request.POST)
+        if form.is_valid():
+            lipids = form.save(commit=False)
+            lipids.project_title = project
+            lipids.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Project_Lipid_Form()
 
-    elif project.model_type == "AS":
-        if request.method == 'POST':
-            form = Asym_Project_Lipid_Form(request.POST)
-            if form.is_valid():
-                lipids = form.save(commit=False)
-                
-                in_lipid_location = form.cleaned_data['lipid_location']
-
-                lipids.lipid_location = in_lipid_location
-                lipids.project_title = project
-                lipids.save()
-                return redirect('viewer:project_detail', project_id=project.id)
-        else:
-            form = Asym_Project_Lipid_Form()
-
-    return render(request, 'viewer/form.html', {'form': form})
-
-# Edit lipid
-def project_lipid_edit(request, project_id, lipid_id):
-    project = get_object_or_404(Project, id=project_id)
-    lipid = get_object_or_404(Project_Lipid, id=lipid_id)
-
-    if project.model_type == "SM":
-        if request.method == 'POST':
-            form = Sym_Project_Lipid_Form(request.POST, instance=lipid)
-            if form.is_valid():
-                lipids = form.save(commit=False)
-                lipids.save()
-                return redirect('viewer:project_detail', project_id=project.id)
-        else:
-            form = Sym_Project_Lipid_Form(instance=lipid)
-
-    elif project.model_type == "AS":
-        if request.method == 'POST':
-            form = Asym_Project_Lipid_Form(request.POST, instance=lipid)
-            if form.is_valid():
-                lipids = form.save(commit=False)
-
-                in_lipid_location = form.cleaned_data['lipid_location']
-
-                lipids.lipid_location = in_lipid_location
-                lipids.save()
-                return redirect('viewer:project_detail', project_id=project.id)
-        else:
-            form = Asym_Project_Lipid_Form(instance=lipid)
-
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
 # Delete project lipid
 def project_lipid_delete_warning(request, project_id, lipid_id):
@@ -205,7 +143,7 @@ def project_lipid_delete_warning(request, project_id, lipid_id):
         lipid.delete()
         return redirect('viewer:project_detail', project_id=project.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'project_lipid':lipid})
 
 ## Samples
 # Add a new sample
@@ -221,28 +159,55 @@ def sample_new(request, project_id):
             return redirect('viewer:project_detail', project_id=project.id)
     else:
         form = Sample_Form()
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
 # Specific sample details
 def sample_detail(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
     datas = Data_Set.objects.filter(sample_title_id=sample_id)
-    data_lipids = Data_Lipid.objects.filter(data_set_title__sample_title__id=sample_id).select_related('data_lipid_name')
+    
+    sample_lipids_both = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
+    sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
+    sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
+
+    total_mols = 0
+    total_mols_in = 0
+    total_mols_out = 0
 
     if project.model_type == "SM":
         parameters = Symmetrical_Parameters.objects.filter(sample_title_id=sample_id)
+
+        total_mols_in = 1
+        total_mols_out = 1
+
+        for lipid in sample_lipids_both:
+            total_mols = total_mols + lipid.lipid_mol_fraction
+
     elif project.model_type == "AS":
         parameters = Asymmetrical_Parameters.objects.filter(sample_title_id=sample_id)
+
+        total_mols = 1
+
+        for lipid in sample_lipids_in:
+            total_mols_in = total_mols_in + lipid.lipid_mol_fraction
+
+        for lipid in sample_lipids_out:
+            total_mols_out = total_mols_out + lipid.lipid_mol_fraction
 
     return render(
         request,
         'viewer/sample_detail.html', {
             'project':project,
             'sample':sample,
+            'sample_lipids_both':sample_lipids_both,
+            'sample_lipids_in':sample_lipids_in,
+            'sample_lipids_out':sample_lipids_out,
             'datas':datas,
-            'data_lipids':data_lipids,
             'parameters':parameters,
+            'total_mols':total_mols,
+            'total_mols_in':total_mols_in,
+            'total_mols_out':total_mols_out,
         }
     )
 
@@ -261,7 +226,7 @@ def sample_edit(request, project_id, sample_id):
     else:
         form = Sample_Form(instance=sample)
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'form': form})
 
 # Delete sample
 def sample_delete_warning(request, project_id, sample_id):
@@ -272,34 +237,217 @@ def sample_delete_warning(request, project_id, sample_id):
         sample.delete()
         return redirect('viewer:project_detail', project_id=project.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
+
+# Add lipids to a sample
+def sample_lipid_new(request, project_id, sample_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+
+    if project.model_type == "SM":
+        if "lipid_info" in request.POST:
+            lipid_form = Sym_Sample_Lipid_Form(project.id, request.POST)
+            if lipid_form.is_valid():
+                in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
+                in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
+                in_lipid_location = "BOTH"
+
+                existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_lipid_name=in_sample_lipid_name,
+                    defaults={
+                        'sample_title':sample,
+                        'lipid_mol_fraction':in_lipid_mol_fraction,
+                        'lipid_location':in_lipid_location,
+                })
+
+            if existing_lipid:
+                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
+            elif created_lipid:
+                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
+        else:
+            lipid_form = Sym_Sample_Lipid_Form(project.id)
+
+    elif project.model_type == "AS":
+        if "lipid_info" in request.POST:
+            lipid_form = Asym_Sample_Lipid_Form(project.id, request.POST)
+            if lipid_form.is_valid():
+                in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
+                in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
+                in_lipid_location = lipid_form.cleaned_data['lipid_location']
+
+                existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_lipid_name=in_sample_lipid_name,
+                    lipid_location = in_lipid_location,
+                    defaults={
+                        'sample_title':sample,
+                        'lipid_mol_fraction':in_lipid_mol_fraction,
+                })
+
+            if existing_lipid:
+                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
+            elif created_lipid:
+                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
+        else:
+            lipid_form = Asym_Sample_Lipid_Form(project.id)
+
+    return render(
+        request,
+        'viewer/sample_lipid_form.html', {
+            'project':project,
+            'sample':sample,
+            'lipid_form': lipid_form,
+        })
+
+# Edit sample lipid
+def sample_lipid_edit(request, project_id, sample_id, lipid_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+    lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
+    
+    if project.model_type == "SM":
+        if "lipid_info" in request.POST:
+            lipid_form = Sym_Sample_Lipid_Form(project.id, request.POST, instance=lipid)
+            if lipid_form.is_valid():
+                in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
+                in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
+                in_lipid_location = "BOTH"
+
+                existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_lipid_name=in_sample_lipid_name,
+                    defaults={
+                        'sample_title':sample,
+                        'lipid_mol_fraction':in_lipid_mol_fraction,
+                        'lipid_location':in_lipid_location,
+                })
+        else:
+            lipid_form = Sym_Sample_Lipid_Form(project.id, instance=lipid)
+
+    elif project.model_type == "AS":
+        if "lipid_info" in request.POST:
+            lipid_form = Asym_Sample_Lipid_Form(project.id, request.POST, instance=lipid)
+            if lipid_form.is_valid():
+                in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
+                in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
+                in_lipid_location = lipid_form.cleaned_data['lipid_location']
+
+                existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_lipid_name=in_sample_lipid_name,
+                    lipid_location = in_lipid_location,
+                    defaults={
+                        'sample_title':sample,
+                        'lipid_mol_fraction':in_lipid_mol_fraction,
+                })
+        else:
+            lipid_form = Asym_Sample_Lipid_Form(project.id, instance=lipid)
+
+    if lipid.sample_lipid_augment == None:
+        if "augment" in request.POST:
+            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST)
+            if augment_form.is_valid():
+                update_lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
+                update_lipid.save()
+        else:
+            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name)
+    else:
+        if "augment" in request.POST:
+            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST, instance=lipid)
+            if augment_form.is_valid():
+                update_lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
+                update_lipid.save()
+        else:
+            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, instance=lipid)
+
+    if "done" in request.POST:
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+
+    return render(
+        request,
+        'viewer/sample_lipid_form.html', {
+            'project':project,
+            'sample':sample,
+            'lipid': lipid,
+            'lipid_form': lipid_form,
+            'augment_form': augment_form,
+        })
+
+# Edit an existing sample
+def sample_custom_lipid_edit(request, project_id, sample_id, lipid_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+    lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
+    
+    lipid_augment = lipid.sample_lipid_custom_augment
+
+    if lipid_augment:
+        if request.method == 'POST':
+            form = Custom_Lipid_Augmentation_Form(request.POST, instance=lipid_augment)
+            if form.is_valid():
+                custom_lipid = form.save(commit=False)
+                custom_lipid.save()
+                lipid.sample_lipid_custom_augment = custom_lipid
+                return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+        else:
+            form = Custom_Lipid_Augmentation_Form(instance=lipid_augment)
+    else:
+        if request.method == 'POST':
+            form = Custom_Lipid_Augmentation_Form(request.POST)
+            if form.is_valid():
+                custom_lipid = form.save(commit=False)
+                custom_lipid.save()
+                lipid.sample_lipid_custom_augment = custom_lipid
+                lipid.save()
+                return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+        else:
+            form = Custom_Lipid_Augmentation_Form()
+
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'form': form})
+
+# Delete sample lipid
+def sample_lipid_delete_warning(request, project_id, sample_id, lipid_id):
+    project = get_object_or_404(Project, id=project_id)
+    sample = get_object_or_404(Sample, id=sample_id)
+    lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
+    
+    if request.method == 'POST':
+        lipid.delete()
+        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample, 'sample_lipid':lipid})
 
 ## Sym Parameters
 # Add parameters to a project
 def symmetrical_parameters_new(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
-    project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
+    sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id)
 
     combined_head_volume = 0
     combined_tail_volume = 0
 
     x = project.system_tempurature
 
+    # Prepare safe functions for eval
+    safe_functions = safe_function_dict()
+    safe_functions['x'] = x
+
     # Calculate combined volume
-    for lipid in project_lipids:
+    for lipid in sample_lipids:
         combined_head_volume = combined_head_volume + (
-                lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
             )
         combined_tail_volume = combined_tail_volume + (
                 (
                     eval(
-                        lipid.project_lipid_name.total_volume_equation
-                    ) 
-                    - lipid.project_lipid_name.hg_volume
+                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
+                        {"__builtins__":None},
+                        safe_functions
+                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
+    
+    combined_head_volume = round(combined_head_volume, 2)
+    combined_tail_volume = round(combined_tail_volume, 2)
 
     if request.method == 'POST':
         form = Symmetrical_Parameter_Form(request.POST)
@@ -318,7 +466,7 @@ def symmetrical_parameters_new(request, project_id, sample_id):
     else:
         form = Symmetrical_Parameter_Form()
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'form': form})
 
 # Edit parameters
 def symmetrical_parameters_edit(request, project_id, sample_id, parameter_id):
@@ -335,7 +483,7 @@ def symmetrical_parameters_edit(request, project_id, sample_id, parameter_id):
     else:
         form = Symmetrical_Parameter_Form(instance=parameters)
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'parameters':parameters, 'form': form})
 
 # Delete parameters
 def symmetrical_parameter_delete_warning(request, project_id, sample_id, parameter_id):
@@ -347,7 +495,7 @@ def symmetrical_parameter_delete_warning(request, project_id, sample_id, paramet
         parameter.delete()
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample, 'parameters':parameter})
 
 ## Asym Parameters
 # Add parameters to a project
@@ -355,8 +503,8 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
-    in_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location='IN').select_related('project_lipid_name')
-    out_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location='OUT').select_related('project_lipid_name')
+    sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
+    sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
 
     in_combined_head_volume = 0
     in_combined_tail_volume = 0
@@ -366,30 +514,46 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
 
     x = project.system_tempurature
 
+    # Prepare safe functions for eval
+    safe_functions = safe_function_dict()
+    safe_functions['x'] = x
+
     # Calculate combined volume
-    for lipid in in_project_lipids:
+    for lipid in sample_lipids_in:
         in_combined_head_volume = in_combined_head_volume + (
-                lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
             )
         in_combined_tail_volume = in_combined_tail_volume + (
                 (
-                    eval(lipid.project_lipid_name.total_volume_equation) 
-                    - lipid.project_lipid_name.hg_volume
+                    eval(
+                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
+                        {"__builtins__":None},
+                        safe_functions
+                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
 
-    for lipid in out_project_lipids:
+    for lipid in sample_lipids_out:
         out_combined_head_volume = out_combined_head_volume + (
-                lipid.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
             )
         out_combined_tail_volume = out_combined_tail_volume + (
                 (
-                    eval(lipid.project_lipid_name.total_volume_equation) 
-                    - lipid.project_lipid_name.hg_volume
+                    eval(
+                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
+                        {"__builtins__":None},
+                        safe_functions
+                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
+
+    in_combined_head_volume = round(in_combined_head_volume, 2)
+    in_combined_tail_volume = round(in_combined_tail_volume, 2)
+
+    out_combined_head_volume = round(out_combined_head_volume, 2)
+    out_combined_tail_volume = round(out_combined_tail_volume, 2)
 
     if request.method == 'POST':
         form = Asymmetrical_Parameter_Form(request.POST)
@@ -411,7 +575,7 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
     else:
         form = Asymmetrical_Parameter_Form()
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'form': form})
 
 # Edit parameters
 def asymmetrical_parameters_edit(request, project_id, sample_id, parameter_id):
@@ -428,7 +592,7 @@ def asymmetrical_parameters_edit(request, project_id, sample_id, parameter_id):
     else:
         form = Asymmetrical_Parameter_Form(instance=parameters)
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'parameters':parameters, 'form': form})
 
 # Delete parameters
 def asymmetrical_parameter_delete_warning(request, project_id, sample_id, parameter_id):
@@ -440,7 +604,7 @@ def asymmetrical_parameter_delete_warning(request, project_id, sample_id, parame
         parameter.delete()
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample, 'parameters':parameter})
 
 ## Data
 # Input data
@@ -530,7 +694,7 @@ def data_edit(request, project_id, sample_id, data_id):
     else:
         form = Data_Form(instance=data)
 
-    return render(request, 'viewer/form.html', {'form': form})
+    return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'data':data, 'form': form})
 
 # Delete data
 def data_delete_warning(request, project_id, sample_id, data_id):
@@ -542,115 +706,7 @@ def data_delete_warning(request, project_id, sample_id, data_id):
         data.delete()
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
 
-    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
-
-## Data Lipids
-# Add lipids adjustment
-def data_lipid_new(request, project_id, sample_id, data_id):
-    project = get_object_or_404(Project, id=project_id)
-    sample = get_object_or_404(Sample, id=sample_id)
-    data = get_object_or_404(Data_Set, id=data_id)
-
-    number_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).count()
-    number_data_lipids = Data_Lipid.objects.filter(data_lipid_name__project_title__id=project_id).count()
-
-    enough_adjustments = False
-
-    if number_data_lipids > number_project_lipids:
-        enough_adjustments = True
-
-    if "lipid_info" in request.POST:
-        lipid_info_form = Data_Lipid_Form(project_id, request.POST)
-
-        if lipid_info_form.is_valid():
-            in_lipid_name = lipid_info_form.cleaned_data['data_lipid_name']
-            in_lipid_suffix = lipid_info_form.cleaned_data['data_lipid_suffix']
-
-            existing_lipid, created_lipid = Data_Lipid.objects.get_or_create(
-                data_lipid_name=in_lipid_name,
-                defaults={
-                    'data_set_title':data,
-                    'data_lipid_name':in_lipid_name,
-                    'data_lipid_suffix':in_lipid_suffix
-                }
-            )
-
-            if existing_lipid:
-                return redirect('viewer:data_lipid_edit', project_id=project.id, sample_id=sample.id, data_id=data.id, lipid_id=existing_lipid.id)
-            elif created_lipid:
-                return redirect('viewer:data_lipid_edit', project_id=project.id, sample_id=sample.id, data_id=data.id, lipid_id=created_lipid.id)
-    else:
-        lipid_info_form = Data_Lipid_Form(project_id)
-
-    return render(
-        request,
-        'viewer/data_lipid_adjustment.html', {
-            'project':project,
-            'sample':sample,
-            'data':data,
-            'lipid_info_form':lipid_info_form,
-            'enough_adjustments':enough_adjustments
-        }
-    )
-
-# Edit lipid adjustments
-def data_lipid_edit(request, project_id, sample_id, data_id, lipid_id):
-    project = get_object_or_404(Project, id=project_id)
-    sample = get_object_or_404(Sample, id=sample_id)
-    data = get_object_or_404(Data_Set, id=data_id)
-    data_lipid = get_object_or_404(Data_Lipid, id=lipid_id)
-    data_lipid_atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid)
-
-    if "lipid_info" in request.POST:
-        lipid_info_form = Data_Lipid_Form(project_id, request.POST, instance=data_lipid)
-    else:
-        lipid_info_form = Data_Lipid_Form(project_id, instance=data_lipid)
-
-    if "atom_ammount" in request.POST:
-        atom_ammount_form = Data_Lipid_Atom_Form(request.POST)
-        if atom_ammount_form.is_valid():
-
-            in_atom_name = atom_ammount_form.cleaned_data['data_lipid_atom_name']
-            in_atom_location = atom_ammount_form.cleaned_data['atom_location']
-            in_atom_ammount = atom_ammount_form.cleaned_data['data_lipid_atom_ammount']
-
-            existing_atom, created_atom = Data_Lipid_Atom.objects.update_or_create(
-                data_lipid_atom_name=in_atom_name,
-                atom_location=in_atom_location,
-                defaults={
-                    'data_lipid_name':data_lipid,
-                    'data_lipid_atom_name':in_atom_name,
-                    'data_lipid_atom_ammount':in_atom_ammount,
-                    'atom_location':in_atom_location,
-                }
-            )
-    else:
-        atom_ammount_form = Data_Lipid_Atom_Form()
-
-    if "done" in request.POST:
-        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
-
-    return render(
-        request, 
-        'viewer/data_lipid_adjustment.html', {
-            'data_lipid_atoms':data_lipid_atoms,
-            'lipid_info_form':lipid_info_form,
-            'atom_ammount_form':atom_ammount_form,
-            'data':data
-        }
-    )
-
-# Delete lipid adjustment
-def data_lipid_delete_warning(request, project_id, sample_id, data_id, lipid_id):
-    project = get_object_or_404(Project, id=project_id)
-    sample = get_object_or_404(Sample, id=sample_id)
-    data_lipid = get_object_or_404(Data_Lipid, id=lipid_id)
-    
-    if request.method == 'POST':
-        data_lipid.delete()
-        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
-
-    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample})
+    return render(request, 'viewer/delete_warning.html', {'project':project, 'sample':sample, 'data':data})
 
 ## Fit
 # Main fit page
@@ -663,11 +719,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
     sample = get_object_or_404(Sample, id=sample_id)
 
     if project.model_type == "SM":
-        project_lipids = Project_Lipid.objects.filter(project_title_id=project_id).select_related('project_lipid_name')
+        sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
         parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
     elif project.model_type == "AS":
-        in_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location="IN").select_related('project_lipid_name')
-        out_project_lipids = Project_Lipid.objects.filter(project_title_id=project_id, lipid_location="OUT").select_related('project_lipid_name')
+        sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
+        sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
         parameter = get_object_or_404(Asymmetrical_Parameters, id=parameter_id)
         
 
@@ -775,7 +831,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     if project.model_type == "SM":
         if "fit" in request.POST:
             # Do fit
-            fit_result = symmetrical_fit(parameter, project_lipids, datas, project.system_tempurature)
+            fit_result = symmetrical_fit(parameter, sample_lipids, datas, project.system_tempurature)
             fit_parameters = fit_result.params
 
             # Copy current instance
@@ -809,7 +865,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     elif project.model_type == "AS":
         if "fit" in request.POST:
             # Do fit
-            fit_result = asymmetrical_fit(parameter, in_project_lipids, out_project_lipids, datas, project.system_tempurature)
+            fit_result = asymmetrical_fit(parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature)
             fit_parameters = fit_result.params
 
             # Copy current instance
@@ -870,9 +926,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
         for xray_data in xray_datas:
             writer.writerow([xray_data.data_set_title])
             if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, project_lipids, xray_data, project.system_tempurature)
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature)
             elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, xray_data, project.system_tempurature)
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature)
 
             j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
@@ -882,9 +938,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
         for neutron_data in neutron_datas:
             writer.writerow([neutron_data.data_set_title])
             if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature)
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature)
             elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, neutron_data, project.system_tempurature)
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature)
 
             j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):
@@ -900,7 +956,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     if "graphs" in request.POST:
         show_statistics = False
 
-    # Graphs
+    ## GRAPHS
     xray_figures = []
     neutron_figures = []
 
@@ -916,9 +972,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
             fmt='o',
             color='c',
             mfc='w',
-            ecolor='gray', 
+            ecolor='gray',
             elinewidth=0.5, 
-            capsize=1,
+            capsize=2,
             zorder=0
         )
         plt.xscale('log')
@@ -934,7 +990,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             if project.model_type == "SM":
                 plt.plot(
                     xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                    symmetrical_graph(parameter, project_lipids, xray_data, project.system_tempurature),
+                    symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
                     zorder=1
@@ -942,7 +998,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             elif project.model_type == "AS":
                 plt.plot(
                     xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                    asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, xray_data, project.system_tempurature),
+                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
                     zorder=1
@@ -979,7 +1035,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             if project.model_type == "SM":
                 plt.plot(
                     neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                    symmetrical_graph(parameter, project_lipids, neutron_data, project.system_tempurature),
+                    symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
                     zorder=1
@@ -987,7 +1043,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             elif project.model_type == "AS":
                 plt.plot(
                     neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                    asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, neutron_data, project.system_tempurature),
+                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
                     zorder=1

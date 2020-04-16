@@ -3,9 +3,10 @@ import numpy as np
 import lmfit as lsq
 
 # Models
-from .models import Data_Lipid
-from .models import Data_Lipid_Atom
 from .models import Molecule
+
+# Other
+from .safe_functions import safe_function_dict
 
 # Symmetrical model
 def sym_model(
@@ -134,9 +135,13 @@ def symmetrical_objective_function(fit_parameters, x, datas, sff):
     return combined_residuals
 
 # Augments per data-set
-def adjust_b_values(data, project_lipids, water, d_water, temp):
+def adjust_b_values(data, sample_lipids, water, d_water, temp):
     # Temp
     x = temp
+
+    # Prepare safe functions for eval
+    safe_functions = safe_function_dict()
+    safe_functions['x'] = x
 
     # Declare
     terminal_methyl_b = 0
@@ -147,68 +152,65 @@ def adjust_b_values(data, project_lipids, water, d_water, temp):
 
     # Calculate water volume
     calculated_water_volume = (
-        (eval(d_water.total_volume_equation) * data.d2o_mol_fraction) 
-        + (eval(water.total_volume_equation) * (1 - data.d2o_mol_fraction))
+        (
+            eval(
+                d_water.total_volume_equation,
+                    {"__builtins__":None},
+                    safe_functions
+            ) * data.d2o_mol_fraction
+        ) + (
+            eval(
+                water.total_volume_equation,
+                {"__builtins__":None},
+                safe_functions
+            ) * (1 - data.d2o_mol_fraction)
+        )
     )
 
     if data.data_type == 'XR':
         # bw
         water_b = water.electrons
 
-        for project_lipid in project_lipids:
+        for sample_lipid in sample_lipids:
             # bt
-            terminal_methyl_b = terminal_methyl_b + (project_lipid.project_lipid_name.tm_electrons * project_lipid.lipid_mol_fraction)
+            terminal_methyl_b = terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
             # bc
-            chain_b = chain_b +  (project_lipid.project_lipid_name.tg_electrons * project_lipid.lipid_mol_fraction)
+            chain_b = chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
             # bh
-            headgroup_b = headgroup_b + (project_lipid.project_lipid_name.hg_electrons * project_lipid.lipid_mol_fraction)
+            headgroup_b = headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
     else:
         # bw
         water_b = (d_water.scattering_length * data.d2o_mol_fraction) + (water.scattering_length * (1 - data.d2o_mol_fraction))
 
-        for project_lipid in project_lipids:
-            # bt
-            terminal_methyl_b = terminal_methyl_b + (project_lipid.project_lipid_name.tm_scattering * project_lipid.lipid_mol_fraction)
-
-            # Get data lipid
-            try:
-                data_lipid = Data_Lipid.objects.get(data_lipid_name=project_lipid)
-            except Data_Lipid.DoesNotExist:
-                data_lipid = None
-
-            if not data_lipid:
+        for sample_lipid in sample_lipids:
+            if sample_lipid.sample_lipid_augment != None:
+                # bt
+                terminal_methyl_b = terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc
-                chain_b = chain_b +  (project_lipid.project_lipid_name.tg_scattering * project_lipid.lipid_mol_fraction)
+                chain_b = chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bh
-                headgroup_b = headgroup_b + (project_lipid.project_lipid_name.hg_scattering * project_lipid.lipid_mol_fraction)
+                headgroup_b = headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+            elif sample_lipid.sample_lipid_custom_augment != None:
+                # bt
+                terminal_methyl_b = terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bc
+                chain_b = chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bh
+                headgroup_b = headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
             else:
-                # Delcare
-                total_hg_adjustment = 0
-                total_tg_adjustment = 0
-
-                # Get atoms
-                atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid).select_related('data_lipid_atom_name')
-                
-                if atoms:
-                    # Find adjustments
-                    for atom in atoms:
-                        if atom.atom_location == 'HG':
-                            total_hg_adjustment = total_hg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
-                        if atom.atom_location == 'TG':
-                            total_tg_adjustment = total_tg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
+                # bt
+                terminal_methyl_b = terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
                 # bc
-                chain_b = chain_b +  ( (chain_b - total_tg_adjustment) * project_lipid.lipid_mol_fraction)
+                chain_b = chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
                 # bh
-                headgroup_b = headgroup_b + ( (headgroup_b - total_hg_adjustment) * project_lipid.lipid_mol_fraction)
+                headgroup_b = headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
 
     b_values = [chain_b, headgroup_b, terminal_methyl_b, water_b, calculated_water_volume]
     
     return(b_values)
 
 # Fit function
-def symmetrical_paramitize(parameter, project_lipids, datas, temp):
+def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
     ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
@@ -279,7 +281,7 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
     try:
         for data in datas:
             # Get values for this data
-            b_values = adjust_b_values(data, project_lipids, water, d_water, temp)
+            b_values = adjust_b_values(data, sample_lipids, water, d_water, temp)
 
             fit_parameters.add_many(
                 ( # bc
@@ -325,7 +327,7 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
             )
     except TypeError:
         # Get values for this data
-        b_values = adjust_b_values(datas, project_lipids, water, d_water, temp)
+        b_values = adjust_b_values(datas, sample_lipids, water, d_water, temp)
 
         fit_parameters.add_many(
             ( # bc
@@ -372,9 +374,9 @@ def symmetrical_paramitize(parameter, project_lipids, datas, temp):
 
     return fit_parameters
 
-def symmetrical_graph(parameter, project_lipids, data, temp):
+def symmetrical_graph(parameter, sample_lipids, data, temp):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, project_lipids, data, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
 
     # Get result
     model_result = calc_sym_model(
@@ -386,9 +388,9 @@ def symmetrical_graph(parameter, project_lipids, data, temp):
 
     return model_result
 
-def symmetrical_fit(parameter, project_lipids, datas, temp):
+def symmetrical_fit(parameter, sample_lipids, datas, temp):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, project_lipids, datas, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, datas, temp)
 
     # Get result
     x = None

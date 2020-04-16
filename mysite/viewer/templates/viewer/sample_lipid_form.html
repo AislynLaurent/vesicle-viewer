@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Change Lipids{% endblock title %}
+
+{% load staticfiles%}
+{% load filename %}
+
+{% block content %}
+
+  {% if user.is_authenticated %}
+
+      <div class="content-box">
+          <h1>
+              <a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a>
+              \ <a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a>
+              {% if lipid %}
+                  \ {{ lipid.sample_lipid_name }}
+                  {% if lipid.sample_lipid_augment != null %}
+                      - {{ lipid.sample_lipid_augment.augmentation_suffix }}
+                  {% elif lipid.sample_lipid_custom_augment != null %}
+                      - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
+                  {% endif %}
+              {% endif %}
+          </h1>
+      </div>
+
+      <div class="content-box">
+
+        <h2>Lipid Information</h2>
+
+        <form id="clear" method="POST">
+          {% csrf_token %}
+
+          <p>Error: {{ lipid_form.errors }}</p>
+
+          <table class="form_box">
+            <tr>
+              <td><h4>Lipid</h4></td>
+              <td></td>
+              <td><h4>Mol Fraction</h4></td>
+              {% if project.model_type == 'AS' %}
+                <td><h4>Location</h4></td>
+              {% endif %}
+              <td></td>
+            </tr>
+            <tr>
+              <td>{{ lipid_form.sample_lipid_name }}</td>
+              <td>-</td>
+              <td>{{ lipid_form.lipid_mol_fraction }}</td>
+              {% if project.model_type == 'AS' %}
+                <td>{{ lipid_form.lipid_location }}</td>
+              {% endif %}
+              <td><button type="submit" name="lipid_info" >Save</button></td>
+            </tr>
+
+          </table>
+
+        </form>
+
+        <p></p>
+
+        {% if augment_form %}
+
+          <h2>Augmentations</h2>
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <table class="form_box">
+              <tr>
+                <td>{{ augment_form.sample_lipid_augment }}</td>
+                <td><button type="submit" name="augment" >Save</button></td>
+              </tr>
+            </table>
+            
+          </form>
+
+          <p></p>
+
+          <p><a href="{% url 'viewer:sample_custom_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Prepare or edit a custom augmentation</a></p>
+
+          <div class="error">
+            <p><em>Make sure to save before you finish.</em></p>
+          </div>
+
+          <form method="POST">
+            {% csrf_token %}
+            <button type="submit" name="done" >Done</button>
+          </form>
+        
+        {% endif %}
+
+      </div>
+
+  {% else %}
+
+    <div class="content-box">
+        <h1>You're not logged in</h1>
+
+        <p>To view this page, please <a href="{% url 'login' %}">login</a>.</p>
+    </div>
+
+  {% endif %}
+
+{% endblock content %}

@@ -12,6 +12,13 @@ class Project_Form(forms.ModelForm):
             'system_tempurature',
         ]
 
+class Project_Lipid_Form(forms.ModelForm):
+    class Meta:
+        model = Project_Lipid
+        fields = [
+            'project_lipid_name',
+        ]
+
 class Sample_Form(forms.ModelForm):
     class Meta:
         model = Sample
@@ -19,28 +26,51 @@ class Sample_Form(forms.ModelForm):
             'sample_title',
         ]
 
-class Sym_Project_Lipid_Form(forms.ModelForm):
+class Sym_Sample_Lipid_Form(forms.ModelForm):
     class Meta:
-        model = Project_Lipid
+        model = Sample_Lipid
         fields = [
-            'project_lipid_name',
-            'lipid_mol_fraction'
+            'sample_lipid_name',
+            'lipid_mol_fraction',
         ]
 
-class Asym_Project_Lipid_Form(forms.ModelForm):
-    # Choices
-    LOCATION_CHOICES = (
-        ('IN', 'Inner Leaflet'),
-        ('OUT', 'Outer Leaflet')
-    )
-    
-    lipid_location = forms.ChoiceField(choices=LOCATION_CHOICES)
+    def __init__(self, project_id, *args, **kwargs):
+        super(Sym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
+        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
+
+class Asym_Sample_Lipid_Form(forms.ModelForm):
 
     class Meta:
-        model = Project_Lipid
+        model = Sample_Lipid
         fields = [
-            'project_lipid_name',
+            'sample_lipid_name',
             'lipid_mol_fraction',
+            'lipid_location',
+        ]
+
+    def __init__(self, project_id, *args, **kwargs):
+        super(Asym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
+        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
+
+class Lipid_Augmentation_Form(forms.ModelForm):
+    class Meta:
+        model = Sample_Lipid
+        fields = [
+            'sample_lipid_augment',
+        ]
+
+    def __init__(self, lipid_name, *args, **kwargs):
+        super(Lipid_Augmentation_Form, self).__init__(*args, **kwargs)
+        self.fields['sample_lipid_augment'].queryset = Lipid_Augmentation.objects.filter(original_lipid_name__lipid_name=lipid_name)
+
+class Custom_Lipid_Augmentation_Form(forms.ModelForm):
+    class Meta:
+        model = Sample_Lipid_Augmentation
+        fields = [
+            'augmentation_suffix',
+            'hg_scattering_net_change',
+            'tg_scattering_net_change',
+            'tmg_scattering_net_change',
         ]
 
 class Symmetrical_Parameter_Form(forms.ModelForm):
@@ -274,11 +304,11 @@ class Data_Upload_Form(Data_Form):
 class Data_Range_Form(forms.Form):
     max_value = forms.FloatField(
         required=False,
-        widget=forms.NumberInput(attrs={'class' : 'value'})
+        widget=forms.NumberInput(attrs={'class' : 'upper_bound'})
     )
     min_value = forms.FloatField(
         required=False,
-        widget=forms.NumberInput(attrs={'class' : 'value'})
+        widget=forms.NumberInput(attrs={'class' : 'lower_bound'})
     )
 
 class Data_Scale_Form(forms.ModelForm):
@@ -311,26 +341,3 @@ class Data_Scale_Form(forms.ModelForm):
             'scale_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'background_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
         }
-
-class Data_Lipid_Form(forms.ModelForm):
-    class Meta:
-        model = Data_Lipid
-        fields = [
-            'data_lipid_name',
-            'data_lipid_suffix',
-        ]
-
-    def __init__(self, project_id, *args, **kwargs):
-        super(Data_Lipid_Form, self).__init__(*args, **kwargs)
-        self.fields['data_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
-
-class Data_Lipid_Atom_Form(forms.Form):
-    # Choices
-    LOCATION_CHOICES = (
-        ('HG', 'Headgroup'),
-        ('TG', 'Tailgroup')
-    )
-
-    data_lipid_atom_name = forms.ModelChoiceField(queryset=Atom.objects.all())
-    data_lipid_atom_ammount = forms.IntegerField()
-    atom_location = forms.ChoiceField(choices=LOCATION_CHOICES)

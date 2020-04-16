@@ -8,102 +8,50 @@
     <div class="content-box">
         
         <h1>{{ project.project_title }}</h1>
-        <h4>Model: {{ project.model_type }} Temp: {{ project.system_tempurature }}&deg</h4>
 
         <p>You've turned off tutorials.</p>
+        <p></p>
 
-        <h3><a href="{% url 'viewer:project_edit' project_id=project.id %}">Edit this project</a></h3>
-        <h3><a href="{% url 'viewer:project_delete_warning' project_id=project.id %}">Delete this project</a></h3>
+        <h3  id="inline"><a href="{% url 'viewer:project_edit' project_id=project.id %}">Edit this project</a> or </h3>
+        <h3  id="inline"> <a href="{% url 'viewer:project_delete_warning' project_id=project.id %}">Delete this project</a></h3>
 
     </div>
 
-    {% if total_lipid_mol_fraction < 1 %}
-        <div class="announcement">
-            <p>Warning! The lipids in the project do not add up to 1. This will cause errors!</p>
-        </div>
-    {% endif %}
+    <div class="content-box">
+
+        <h2>Project Details</h2>
+
+        <p><h4 class="project-lipids indent" id="inline">Model: </h4> {{ project.model_type }}</p>
+        <p><h4 class="project-lipids indent" id="inline">Temp: </h4> {{ project.system_tempurature }}&deg</h4></p>
+
+    </div>
 
     <div class="content-box">
 
         <h2>Lipids</h2>
 
-        <p>The nominal (common) versions of the lipids present in this project.</p>
+        <p>The lipids present in this project.</p>
 
-        {% if project.model_type == "SM" %}
-            {% if project_lipids %}
+        {% if project_lipids %}
+            <table class="project-lipids indent">
 
-                <table class="project-lipids indent">
+                <tr>
+                    <td><h4>Name</h4></td>
+                    <td></td>
+                </tr>
+                {% for lipid in project_lipids %}
+                <tr>
+                    <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
+                    <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
+                </tr>
+                {% endfor %}
 
-                    <tr>
-                        <td><h4>Name</h4></td>
-                        <td><h4>Mol Fraction</h4></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    {% for lipid in project_lipids %}
-                    <tr>
-                        <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
-                        <td>{{ lipid.lipid_mol_fraction }}</td>
-                        <td><a href="{% url 'viewer:project_lipid_edit' project_id=project.id  lipid_id=lipid.id %}">Edit</a></td>
-                        <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
-                    </tr>
-                    {% endfor %}
+            </table>
 
-                </table>
+            <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add another lipid</a></h3>
 
-                <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add another lipid</a></h3>
-
-            {% else %}
-                <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add a lipid</a></h3>
-            {% endif %}
-        {% elif project.model_type == "AS" %}
-            {% if in_project_lipids or out_project_lipids %}
-
-                <table class="project-lipids indent">
-
-                    <tr>
-                        <td><h3>Inner Leaflet</h3></td>
-                    </tr>
-                    <tr>
-                        <td><h4>Name</h4></td>
-                        <td><h4>Mol Fraction</h4></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    {% for lipid in in_project_lipids %}
-                    <tr>
-                        <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
-                        <td>{{ lipid.lipid_mol_fraction }}</td>
-                        <td><a href="{% url 'viewer:project_lipid_edit' project_id=project.id  lipid_id=lipid.id %}">Edit</a></td>
-                        <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
-                    </tr>
-                    {% endfor %}
-
-                    <tr>
-                        <td><h3>Outer Leaflet</h3></td>
-                    </tr>
-                    <tr>
-                        <td><h4>Name</h4></td>
-                        <td><h4>Mol Fraction</h4></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    {% for lipid in out_project_lipids %}
-                    <tr>
-                        <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
-                        <td>{{ lipid.lipid_mol_fraction }}</td>
-                        <td><a href="{% url 'viewer:project_lipid_edit' project_id=project.id  lipid_id=lipid.id %}">Edit</a></td>
-                        <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
-                    </tr>
-                    {% endfor %}
-
-                </table>
-
-                <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add another lipid</a></h3>
-
-            {% else %}
-                <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add a lipid</a></h3>
-            {% endif %}
+        {% else %}
+            <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add a lipid</a></h3>
         {% endif %}
 
     </div>

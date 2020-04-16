@@ -6,7 +6,26 @@
 {% block content %}
     {% if user.is_authenticated %}
 
+    {% if project %}
+        <div class="content-box">
+            <h1>
+                <a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a>
+                {% if sample %}
+                    \ <a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a>
+                {% endif %}
+                {% if parameters %}
+                    \ {{ parameters.name }}
+                {% endif %}
+                {% if data %}
+                    \ {{ data.data_set_title }}
+                {% endif %}
+            </h1>
+        </div>
+    {% endif %}
+
     <div class="content-box">
+
+        <p></p>
 
         <form class="form_box" method="POST" enctype="multipart/form-data" >
             {% csrf_token %}

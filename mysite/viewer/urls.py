@@ -30,8 +30,8 @@ urlpatterns = [
     ## Project Lipids
     # Add project lipid
     path('project/<int:project_id>/lipid/add/', views.project_lipid_new, name='project_lipid_new'),
-    # Edit a project lipid
-    path('project/<int:project_id>/lipid/<int:lipid_id>/edit/', views.project_lipid_edit, name='project_lipid_edit'),
+    # # Edit a project lipid
+    # path('project/<int:project_id>/lipid/<int:lipid_id>/edit/', views.project_lipid_edit, name='project_lipid_edit'),
     # Warning & delete lipid
     path('project/<int:project_id>/lipid/<int:lipid_id>/delete_warning/', views.project_lipid_delete_warning, name='project_lipid_delete_warning'),
 
@@ -44,6 +44,16 @@ urlpatterns = [
     path('project/<int:project_id>/sample/<int:sample_id>/edit/', views.sample_edit, name='sample_edit'),
     # Warning & delete sample
     path('project/<int:project_id>/sample/<int:sample_id>/delete_warning/', views.sample_delete_warning, name='sample_delete_warning'),
+
+    ## Sample Lipids
+    # Add sample lipid
+    path('project/<int:project_id>/sample/<int:sample_id>/lipid/add/', views.sample_lipid_new, name='sample_lipid_new'),
+    # Edit a sample lipid
+    path('project/<int:project_id>/sample/<int:sample_id>/lipid/<int:lipid_id>/edit/', views.sample_lipid_edit, name='sample_lipid_edit'),
+    # Edit custom augments
+    path('project/<int:project_id>/sample/<int:sample_id>/lipid/<int:lipid_id>/custom/', views.sample_custom_lipid_edit, name='sample_custom_lipid_edit'),
+    # Warning & delete lipid
+    path('project/<int:project_id>/sample/<int:sample_id>/lipid/<int:lipid_id>/delete_warning/', views.sample_lipid_delete_warning, name='sample_lipid_delete_warning'),
 
     ## Sym Parameters
     # Add project parameters
@@ -68,14 +78,6 @@ urlpatterns = [
     path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/edit/', views.data_edit, name='data_edit'),
     # Warning & delete data
     path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/delete_warning/', views.data_delete_warning, name='data_delete_warning'),
-
-    ## Data Lipids
-    # Add lipid adjustments
-    path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/lipid/adjust/', views.data_lipid_new, name='data_lipid_new'),
-    # Edit lipid adjustments
-    path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/lipid/<int:lipid_id>/edit/', views.data_lipid_edit, name='data_lipid_edit'),
-    # Warning & delete lipid adjustments
-    path('project/<int:project_id>/sample/<int:sample_id>/data/<int:data_id>/lipid/<int:lipid_id>/delete_warning/', views.data_lipid_delete_warning, name='data_lipid_delete_warning'),
 
     ## Fitting
     # Sym fit page

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import *
+from django.core.exceptions import ValidationError
 
 # Add-ons
 from django.contrib.auth.models import AbstractUser
@@ -59,10 +60,38 @@ class Lipid(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.lipid_name)])
 
+# Lipid Augmentations
+class Lipid_Augmentation(models.Model):
+    # Lipid
+    original_lipid_name = models.ForeignKey(Lipid, related_name='original_lipid_name', on_delete=models.CASCADE)
+    augmentation_suffix = models.CharField(max_length=100)
+
+    # Headgroup
+    hg_scattering_net_change = models.FloatField(verbose_name='head group scattering length net change', default=0)
+
+    # Tailgroup
+    tg_scattering_net_change = models.FloatField(verbose_name='tail group scattering length net change', default=0)
+
+    # Terminal methyl
+    tmg_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
+
+    # Meta
+    class Meta:
+        verbose_name = 'lipid augmentation'
+        verbose_name_plural = 'lipid augmentations'
+
+    # Methods
+    def __str__(self):
+        return '%s-%s' % (self.original_lipid_name, self.augmentation_suffix)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
 # Misc
 class Molecule(models.Model):
     # Names
-    compound_name = models.CharField(max_length=100, primary_key=True, unique=True)
+    compound_name = models.CharField(verbose_name='compound name', max_length=100, primary_key=True, unique=True)
     # Total volume
     total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=200, default='x')
     # Scattering length
@@ -73,7 +102,7 @@ class Molecule(models.Model):
     # Meta
     class Meta:
         verbose_name = 'molecule'
-        verbose_name_plural = 'molecules'   
+        verbose_name_plural = 'molecules'
 
     # Methods
     def __str__(self):
@@ -82,26 +111,6 @@ class Molecule(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.compound_name)])
-
-# Atoms
-class Atom(models.Model):
-    # Names
-    atom_name = models.CharField(max_length=100, primary_key=True, unique=True)
-    # Scattering length
-    scattering_length_adj = models.FloatField(verbose_name='scattering length adjustment', default=0)
-
-    # Meta
-    class Meta:
-        verbose_name = 'atom'
-        verbose_name_plural = 'atoms'   
-
-    # Methods
-    def __str__(self):
-        return '%s' % (self.atom_name)
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('viewer.views.details', args=[str(self.atom_name)])    
 
 ## User Inputs
 # Project
@@ -117,7 +126,7 @@ class Project(models.Model):
     # Title
     project_title = models.CharField(verbose_name='project title', max_length=200)
     # Symmetry
-    model_type = models.CharField(verbose_name='model', choices=MODEL_CHOICES, max_length=3)
+    model_type = models.CharField(verbose_name='model type', choices=MODEL_CHOICES, max_length=3)
     # Temp
     system_tempurature = models.FloatField(verbose_name='system tempurature', default=0)
 
@@ -136,24 +145,11 @@ class Project(models.Model):
 
 # Project Lipids
 class Project_Lipid(models.Model):
-    # Choices
-    LOCATION_CHOICES = (
-        ('IN', 'Inner'),
-        ('OUT', 'Outer'),
-        ('BOTH', 'Both'),
-    )
-
     # Project
     project_title = models.ForeignKey(Project, related_name='project_lipid', on_delete=models.CASCADE)
 
     # Lipid
     project_lipid_name = models.ForeignKey(Lipid, related_name='project_lipid_name', on_delete=models.CASCADE)
-
-    # Percentage
-    lipid_mol_fraction = models.FloatField(verbose_name='project_lipid_mol_fraction', default=0)
-
-    # Leaflet
-    lipid_location = models.CharField(verbose_name='model', choices=LOCATION_CHOICES, max_length=4)
 
     # Meta
     class Meta:
@@ -187,6 +183,67 @@ class Sample(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.project_title)])
+
+# Lipid Augmentations
+class Sample_Lipid_Augmentation(models.Model):
+    # suffix
+    augmentation_suffix = models.CharField(max_length=100)
+
+    # Headgroup
+    hg_scattering_net_change = models.FloatField(verbose_name='head group scattering length net change', default=0)
+
+    # Tailgroup
+    tg_scattering_net_change = models.FloatField(verbose_name='tail group scattering length net change', default=0)
+
+    # Terminal methyl
+    tmg_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
+
+    # Meta
+    class Meta:
+        verbose_name = 'sample lipid augmentation'
+        verbose_name_plural = 'sample lipid augmentations'
+
+    # Methods
+    def __str__(self):
+        return '%s' % (self.augmentation_suffix)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Sample Lipids
+class Sample_Lipid(models.Model):
+    # Choices
+    LOCATION_CHOICES = (
+        ('IN', 'Inner'),
+        ('OUT', 'Outer'),
+        ('BOTH', 'Both'),
+    )
+
+    # Project
+    sample_title = models.ForeignKey(Sample, related_name='sample_lipid', on_delete=models.CASCADE)
+    # Lipid
+    sample_lipid_name = models.ForeignKey(Project_Lipid, related_name='sample_lipid_name', on_delete=models.CASCADE)
+    # Lipid augmentation
+    sample_lipid_augment = models.ForeignKey(Lipid_Augmentation, related_name='sample_lipid_augment', blank=True, null=True, on_delete=models.CASCADE)
+    sample_lipid_custom_augment = models.ForeignKey(Sample_Lipid_Augmentation, related_name='sample_lipid_custom_augment', blank=True, null=True, on_delete=models.CASCADE)
+    # Percentage
+    lipid_mol_fraction = models.FloatField(verbose_name='sample_lipid_mol_fraction', default=0)
+    # Leaflet
+    lipid_location = models.CharField(verbose_name='model', choices=LOCATION_CHOICES, max_length=4)
+
+    # Meta
+    class Meta:
+        verbose_name = 'sample lipid'
+        verbose_name_plural = 'sample lipids'
+
+    # Methods
+    def __str__(self):
+        return '%s' % (self.sample_lipid_name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
 
 # Symmetrical Parameters
 class Symmetrical_Parameters(models.Model):
@@ -260,6 +317,67 @@ class Symmetrical_Parameters(models.Model):
         verbose_name_plural = 'sym parameters'
 
     # Methods
+    def clean(self):
+        ## Fixed
+        # Chain volume
+        if self.chain_volume_upperbound == self.chain_volume_lowerbound:
+            raise ValidationError('Chain volume upper and lower bound cannot be equal')
+
+        if self.chain_volume_upperbound < self.chain_volume_lowerbound:
+            raise ValidationError('Chain volume lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup volume
+        if self.headgroup_volume_upperbound == self.headgroup_volume_lowerbound:
+            raise ValidationError('Headgroup volume upper and lower bound cannot be equal')
+
+        if self.headgroup_volume_upperbound < self.headgroup_volume_lowerbound:
+            raise ValidationError('Headgroup volume lower bound cannot be greater than it\'s upper bound')
+
+        ## Varied
+        # Terminal methyl volume
+        if self.terminal_methyl_volume_upperbound == self.terminal_methyl_volume_lowerbound:
+            raise ValidationError('Terminal methyl volume upper and lower bound cannot be equal')
+
+        if self.terminal_methyl_volume_upperbound < self.terminal_methyl_volume_lowerbound:
+            raise ValidationError('Terminal methyl volume lower bound cannot be greater than it\'s upper bound')
+
+        # Lipid area
+        if self.lipid_area_upperbound == self.lipid_area_lowerbound:
+            raise ValidationError('Lipid area upper and lower bound cannot be equal')
+
+        if self.lipid_area_upperbound < self.lipid_area_lowerbound:
+            raise ValidationError('Lipid area lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup thickness
+        if self.headgroup_thickness_upperbound == self.headgroup_thickness_lowerbound:
+            raise ValidationError('Headgroup thickness upper and lower bound cannot be equal')
+
+        if self.headgroup_thickness_upperbound < self.headgroup_thickness_lowerbound:
+            raise ValidationError('Headgroup thickness lower bound cannot be greater than it\'s upper bound')
+
+        ## Other
+        # SIG
+        if self.sigma_upperbound == self.sigma_lowerbound:
+            raise ValidationError('Sigma upper and lower bound cannot be equal')
+
+        if self.sigma_upperbound < self.sigma_lowerbound:
+            raise ValidationError('Sigma lower bound cannot be greater than it\'s upper bound')
+
+        ## Separated form factor
+        # Average vesicle radius
+        if self.average_vesicle_radius_upperbound == self.average_vesicle_radius_lowerbound:
+            raise ValidationError('Average radius upper and lower bound cannot be equal')
+
+        if self.average_vesicle_radius_upperbound < self.average_vesicle_radius_lowerbound:
+            raise ValidationError('Average radius lower bound cannot be greater than it\'s upper bound')
+
+        # Relative size polydispersity
+        if self.relative_size_upperbound == self.relative_size_lowerbound:
+            raise ValidationError('Relative size upper and lower bound cannot be equal')
+
+        if self.relative_size_upperbound < self.relative_size_lowerbound:
+            raise ValidationError('Relative size lower bound cannot be greater than it\'s upper bound')
+
     def __str__(self):
         return '%s-%s' % (self.sample_title, self.name)
 
@@ -373,6 +491,107 @@ class Asymmetrical_Parameters(models.Model):
         verbose_name_plural = 'asym parameters'
 
     # Methods
+    def clean(self):
+        ### Inside
+        ## Fixed
+        # Chain volume
+        if self.in_chain_volume_upperbound == self.in_chain_volume_lowerbound:
+            raise ValidationError('Inner chain volume upper and lower bound cannot be equal')
+
+        if self.in_chain_volume_upperbound < self.in_chain_volume_lowerbound:
+            raise ValidationError('Inner chain volume lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup volume
+        if self.in_headgroup_volume_upperbound == self.in_headgroup_volume_lowerbound:
+            raise ValidationError('Inner head group volume upper and lower bound cannot be equal')
+
+        if self.in_headgroup_volume_upperbound < self.in_headgroup_volume_lowerbound:
+            raise ValidationError('Inner head group volume lower bound cannot be greater than it\'s upper bound')
+
+        ## Varied
+        # Terminal methyl volume
+        if self.in_terminal_methyl_volume_upperbound == self.in_terminal_methyl_volume_lowerbound:
+            raise ValidationError('Inner head group volume upper and lower bound cannot be equal')
+
+        if self.in_terminal_methyl_volume_upperbound < self.in_terminal_methyl_volume_lowerbound:
+            raise ValidationError('Inner head group volume lower bound cannot be greater than it\'s upper bound')
+
+        # Lipid area
+        if self.in_lipid_area_upperbound == self.in_lipid_area_lowerbound:
+            raise ValidationError('Inner lipid area upper and lower bound cannot be equal')
+
+        if self.in_lipid_area_upperbound < self.in_lipid_area_lowerbound:
+            raise ValidationError('Inner lipid area lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup thickness
+        if self.in_headgroup_thickness_upperbound == self.in_headgroup_thickness_lowerbound:
+            raise ValidationError('Inner head group thickness upper and lower bound cannot be equal')
+
+        if self.in_headgroup_thickness_upperbound < self.in_headgroup_thickness_lowerbound:
+            raise ValidationError('Inner head group thickness lower bound cannot be greater than it\'s upper bound')
+
+        ### Outside
+        ## Fixed
+        # Chain volume
+        if self.out_chain_volume_upperbound == self.out_chain_volume_lowerbound:
+            raise ValidationError('Outer chain volume upper and lower bound cannot be equal')
+
+        if self.out_chain_volume_upperbound < self.out_chain_volume_lowerbound:
+            raise ValidationError('Outer chain volume lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup volume
+        if self.out_headgroup_volume_upperbound == self.out_headgroup_volume_lowerbound:
+            raise ValidationError('Outer head group volume upper and lower bound cannot be equal')
+
+        if self.out_headgroup_volume_upperbound < self.out_headgroup_volume_lowerbound:
+            raise ValidationError('Outer head group volume lower bound cannot be greater than it\'s upper bound')
+
+        ## Varied
+        # Terminal methyl volume
+        if self.out_terminal_methyl_volume_upperbound == self.out_terminal_methyl_volume_lowerbound:
+            raise ValidationError('Outer terminal methyl volume upper and lower bound cannot be equal')
+
+        if self.out_terminal_methyl_volume_upperbound < self.out_terminal_methyl_volume_lowerbound:
+            raise ValidationError('Outer terminal methyl volume lower bound cannot be greater than it\'s upper bound')
+
+        # Lipid area
+        if self.out_lipid_area_upperbound == self.out_lipid_area_lowerbound:
+            raise ValidationError('Outer lipid area upper and lower bound cannot be equal')
+
+        if self.out_lipid_area_upperbound < self.out_lipid_area_lowerbound:
+            raise ValidationError('Outer lipid area lower bound cannot be greater than it\'s upper bound')
+
+        # Headgroup thickness
+        if self.out_headgroup_thickness_upperbound == self.out_headgroup_thickness_lowerbound:
+            raise ValidationError('Outer head group thickness upper and lower bound cannot be equal')
+
+        if self.out_headgroup_thickness_upperbound < self.out_headgroup_thickness_lowerbound:
+            raise ValidationError('Outer head group thickness lower bound cannot be greater than it\'s upper bound')
+
+        ## Other
+        # SIG
+        if self.sigma_upperbound == self.sigma_lowerbound:
+            raise ValidationError('Sigma upper and lower bound cannot be equal')
+
+        if self.sigma_upperbound < self.sigma_lowerbound:
+            raise ValidationError('Sigma lower bound cannot be greater than it\'s upper bound')
+
+        ## Separated form factor
+        # Average vesicle radius
+        if self.average_vesicle_radius_upperbound == self.average_vesicle_radius_lowerbound:
+            raise ValidationError('Average radius upper and lower bound cannot be equal')
+
+        if self.average_vesicle_radius_upperbound < self.average_vesicle_radius_lowerbound:
+            raise ValidationError('Average radius lower bound cannot be greater than it\'s upper bound')
+
+        # Relative size polydispersity
+        if self.relative_size_upperbound == self.relative_size_lowerbound:
+            raise ValidationError('Relative size upper and lower bound cannot be equal')
+
+        if self.relative_size_upperbound < self.relative_size_lowerbound:
+            raise ValidationError('Relative size lower bound cannot be greater than it\'s upper bound')
+
+
     def __str__(self):
         return '%s-%s' % (self.sample_title, self.name)
 
@@ -428,61 +647,31 @@ class Data_Set(models.Model):
         verbose_name_plural = 'data_sets'
 
     # Methods
+    def clean(self):
+        # q range
+        if self.max_index == self.min_index:
+            raise ValidationError('Maximum and minimum values for \"' + self.data_set_title + '\" cannot be equal')
+
+        if self.max_index < self.min_index:
+            raise ValidationError('Minimum value for \"' + self.data_set_title + '\" cannot be greater than it\'s maximum')
+
+        # Tweaks
+        # SC
+        if self.scale_upperbound == self.scale_lowerbound:
+            raise ValidationError('Scale upper and lower bound for \"' + self.data_set_title + '\" cannot be equal')
+
+        if self.scale_upperbound < self.scale_lowerbound:
+            raise ValidationError('Scale lower bound for \"' + self.data_set_title + '\" cannot be greater than it\'s upper bound')
+
+        # BG
+        if self.background_upperbound == self.background_lowerbound:
+            raise ValidationError('Background upper and lower bound for \"' + self.data_set_title + '\" cannot be equal')
+
+        if self.background_upperbound < self.background_lowerbound:
+            raise ValidationError('Background lower bound for \"' + self.data_set_title + '\" cannot be greater than it\'s upper bound')
+
     def __str__(self):
         return '%s' % (self.data_set_title)
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('viewer.views.details', args=[str(self.id)])
-
-# Data Lipids
-class Data_Lipid(models.Model):
-    # Project
-    data_set_title = models.ForeignKey(Data_Set, related_name='data_lipid', on_delete=models.CASCADE)
-
-    # Lipid
-    data_lipid_name = models.ForeignKey(Project_Lipid, related_name='data_lipid_name', on_delete=models.CASCADE)
-    data_lipid_suffix = models.CharField(max_length=100, blank=True)
-
-    # Meta
-    class Meta:
-        verbose_name = 'data lipid'
-        verbose_name_plural = 'data lipids'
-
-    # Methods
-    def __str__(self):
-        return '%s-%s' % (self.data_lipid_name, self.data_lipid_suffix)
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('viewer.views.details', args=[str(self.id)])
-
-# Data Lipids
-class Data_Lipid_Atom(models.Model):
-    # Choices
-    LOCATION_CHOICES = (
-        ('HG', 'Headgroup'),
-        ('TG', 'Tailgroup')
-    )
-
-    # Lipid
-    data_lipid_name = models.ForeignKey(Data_Lipid, related_name='data_atom_lipid_name', on_delete=models.CASCADE)
-
-    # Atom info
-    data_lipid_atom_name = models.ForeignKey(Atom, related_name='data_lipid_atom_name', on_delete=models.CASCADE)
-    data_lipid_atom_ammount = models.IntegerField(verbose_name='data_lipid_atom_ammount', default=0)
-
-    # Location
-    atom_location = models.CharField(verbose_name='atom_location', choices=LOCATION_CHOICES, max_length=3)
-
-    # Meta
-    class Meta:
-        verbose_name = 'data lipid atom'
-        verbose_name_plural = 'data lipid atoms'
-
-    # Methods
-    def __str__(self):
-        return '%s-%s' % (self.data_lipid_name, self.data_lipid_atom_name)
 
     def get_absolute_url(self):
         from django.urls import reverse
