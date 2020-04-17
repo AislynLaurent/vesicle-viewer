@@ -23,14 +23,28 @@
           </h1>
       </div>
 
+      {% if lipid_form.errors or augment_form.errors %}
+        <div class="error">
+            <h4>Please correct the following errors before proceeding:</h4>
+            <ul>
+                {% for key, value in lipid_form.errors.items %}
+                    <li>{{ value }}</li>
+                {% endfor %}
+            </ul>
+            <ul>
+              {% for key, value in augment_form.errors.items %}
+                  <li>{{ value }}</li>
+              {% endfor %}
+            </ul>
+        </div>
+      {% endif %}
+
       <div class="content-box">
 
         <h2>Lipid Information</h2>
 
         <form id="clear" method="POST">
           {% csrf_token %}
-
-          <p>Error: {{ lipid_form.errors }}</p>
 
           <table class="form_box">
             <tr>

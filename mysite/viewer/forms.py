@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import formset_factory
+from django.core.exceptions import ValidationError
 
 from .models import *
 
@@ -310,6 +311,14 @@ class Data_Range_Form(forms.Form):
         required=False,
         widget=forms.NumberInput(attrs={'class' : 'lower_bound'})
     )
+
+    def clean(self):
+        # q range
+        if self.data['max_value'] == self.data['min_value']:
+            raise ValidationError('Maximum and minimum values for a dataset cannot be equal')
+
+        if self.data['max_value'] < self.data['min_value']:
+            raise ValidationError('Minimum value for a dataset cannot be greater than it\'s maximum')
 
 class Data_Scale_Form(forms.ModelForm):
     class Meta:

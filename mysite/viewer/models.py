@@ -648,13 +648,6 @@ class Data_Set(models.Model):
 
     # Methods
     def clean(self):
-        # q range
-        if self.max_index == self.min_index:
-            raise ValidationError('Maximum and minimum values for \"' + self.data_set_title + '\" cannot be equal')
-
-        if self.max_index < self.min_index:
-            raise ValidationError('Minimum value for \"' + self.data_set_title + '\" cannot be greater than it\'s maximum')
-
         # Tweaks
         # SC
         if self.scale_upperbound == self.scale_lowerbound:

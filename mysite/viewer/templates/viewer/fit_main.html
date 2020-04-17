@@ -60,7 +60,11 @@
     {% if parameter_update_form.errors %}
         <div class="error">
             <h4>Please correct the following errors before proceeding:</h4>
-            <p>{{ parameter_update_form.errors }}</p>
+            <ul>
+                {% for key, value in parameter_update_form.errors.items %}
+                    <li>{{ value }}</li>
+                {% endfor %}
+            </ul>
         </div>
     {% endif %}
 
@@ -593,8 +597,16 @@
                 {% if xray_range.errors or xray_scale.errors %}
                     <div class="error">
                         <h4>Please correct the following errors before proceeding:</h4>
-                        <p>{{ xray_range.errors }}</p>
-                        <p>{{ xray_scale.errors }}</p>
+                        <ul>
+                            {% for key, value in xray_range.errors.items %}
+                                <li>{{ value }}</li>
+                            {% endfor %}
+                        </ul>
+                        <ul>
+                            {% for key, value in xray_scale.errors.items %}
+                                <li>{{ value }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 {% endif %}
 
