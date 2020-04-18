@@ -962,7 +962,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     # X-Ray graphs
     for xray_data in xray_datas:
-        xray_fig = plt.figure(figsize=(6,4.5))
+        xray_fig = plt.figure(figsize=(5.5,4.3))
 
         # Data scatter plot
         plt.errorbar(
@@ -1008,7 +1008,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     # Neutron graphs
     for neutron_data in neutron_datas:
-        neutron_fig = plt.figure(figsize=(6,4.5))
+        neutron_fig = plt.figure(figsize=(5.5,4.3))
         # Data scatter plot
         plt.errorbar(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
