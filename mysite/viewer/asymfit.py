@@ -234,16 +234,26 @@ def calc_asym_model(fit_parameters, q, data, sff):
 # Objective function create a residual for each, then flatten
 def asymmetrical_objective_function(fit_parameters, x, datas, sff):
     # Delcare
-    residuals = []
+    current_residual = []
     combined_residuals = []
 
     # Make an array of residuals
     for data in datas:
-        # Do math
-        residuals = data.intensity_value[data.min_index:data.max_index] - calc_asym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
+        # Get error
+        current_error = []
+        # Check for 0's
+        for value in data.error_value[data.min_index:data.max_index]:
+            if value == 0:
+                value = 1
+            
+            current_error.append(value)
 
+        # Do math
+        current_residual = data.intensity_value[data.min_index:data.max_index] - calc_asym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
+        # Weight for error
+        weighted_residual = np.power(current_residual, 2) / np.power(current_error, 2)
         # Append
-        combined_residuals.extend(residuals)
+        combined_residuals.extend(weighted_residual)
 
     return combined_residuals
 
@@ -319,7 +329,7 @@ def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, t
                 in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bh
                 in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-            elif lipid.sample_lipid_custom_augment != None:
+            elif sample_lipid.sample_lipid_custom_augment != None:
                 # bt
                 in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc
@@ -336,14 +346,14 @@ def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, t
 
         # Outer
         for sample_lipid in out_sample_lipids:
-            if lipid.sample_lipid_augment != None:
+            if sample_lipid.sample_lipid_augment != None:
                 # bt
                 out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc
                 out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bh
                 out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-            elif lipid.sample_lipid_custom_augment != None:
+            elif sample_lipid.sample_lipid_custom_augment != None:
                 # bt
                 out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc

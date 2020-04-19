@@ -233,6 +233,15 @@ class Sample_Lipid(models.Model):
     lipid_location = models.CharField(verbose_name='model', choices=LOCATION_CHOICES, max_length=4)
 
     # Meta
+    def clean(self):
+        # Mol fraction
+        if self.lipid_mol_fraction < 0:
+            raise ValidationError('Mol fraction cannot be less than 0')
+
+        
+        if self.lipid_mol_fraction > 1:
+            raise ValidationError('Mol fraction cannot be greater than 1')
+
     class Meta:
         verbose_name = 'sample lipid'
         verbose_name_plural = 'sample lipids'
