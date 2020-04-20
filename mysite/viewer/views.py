@@ -3,6 +3,7 @@
 from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
 from django.http import HttpResponse
+from django.utils import timezone
 
 # Other libraries
 import csv
@@ -718,7 +719,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     neutron_datas = datas.filter(data_type='NU')
 
     # Decalre
-    now = datetime.now()
+    now = timezone.now()
     fit_result = None
     show_statistics = False
 
@@ -890,9 +891,12 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     # Download data
     if "download" in request.POST:
+        # Filename
+        file_name = str(project.project_title).replace('/','-').replace(':','.')+'_'+str(sample.sample_title).replace('/','-').replace(':','.')+'_'+str(parameter.name).replace('/','-').replace(':','.')+'_download_'+now.strftime("%m-%d-%H.%M")+'.csv'
+
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="vv_fitdata_download.csv"'
+        response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
 
         writer = csv.writer(response)
         writer.writerow(['VesicleViewer Data output', now])
