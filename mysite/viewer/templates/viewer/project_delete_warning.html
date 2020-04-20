@@ -6,6 +6,12 @@
 {% block content %}
 
   <div class="content-box">
+    <h1>
+        <a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a>
+    </h1>
+  </div>
+
+  <div class="content-box">
 
     <h1>Warning!</h1>
 

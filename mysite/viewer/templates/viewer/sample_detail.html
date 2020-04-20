@@ -6,12 +6,113 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a> - {{ sample.sample_title }}</h1>
+        <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a> \ {{ sample.sample_title }}</h1>
     </div>
+
+    <div class="content-box">
+
+        <h2>Sample Composition</h2>
+
+    {% if sample_lipids_both or sample_lipids_in or sample_lipids_out %}
+        <table class="project-lipids indent">
+
+            {% if total_mols != 1 %}
+                <div class="error">
+                    <h4>The total mol fraction of your composition does not equal to 1!</h4>
+                    <p>This may cause errors in your calculations. Make sure to correct this before continuing.</p>
+                </div>
+            {% elif total_mols_in != 1 %}
+                <div class="error">
+                    <h4>The total mol fraction of your inner leaflet does not equal to 1!</h4>
+                    <p>This may cause errors in your calculations. Make sure to correct this before continuing.</p>
+                </div>
+            {% elif total_mols_out != 1 %}
+                <div class="error">
+                    <h4>The total mol fraction of your outer leaflet does not equal to 1!</h4>
+                    <p>This may cause errors in your calculations. Make sure to correct this before continuing.</p>
+                </div>
+            {% endif %}
+
+            <tr>
+                {% if sample_lipids_in %}
+                    <td><h4>Location</h4></td>
+                {% endif %}
+                <td><h4>Lipid Name</h4></td>
+                <td><h4>Mol Fraction</h4></td>
+                <td></td>
+                <td></td>
+            </tr>
+            {% for lipid in sample_lipids_both %}
+                <tr>
+                    <td>
+                        {{ lipid.sample_lipid_name }}
+                        {% if lipid.sample_lipid_augment != null %}
+                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
+                        {% elif lipid.sample_lipid_custom_augment != null %}
+                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
+                        {% endif %}
+                    </td>
+                    <td>{{ lipid.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                </tr>
+            {% endfor %}
+
+            {% if sample_lipids_in %}
+                <tr>
+                    <td>Inner Leaflet</td>
+                </tr>
+            {% endif %}
+
+            {% for lipid in sample_lipids_in %} 
+                <tr>
+                    <td></td>
+                    <td>
+                        {{ lipid.sample_lipid_name }}
+                        {% if lipid.sample_lipid_augment != null %}
+                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
+                        {% elif lipid.sample_lipid_custom_augment != null %}
+                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
+                        {% endif %}
+                    </td>
+                    <td>{{ lipid.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                </tr>
+            {% endfor %}
+
+            {% if sample_lipids_out %}
+                <tr>
+                    <td>Outer Leaflet</td>
+                </tr>
+            {% endif %}
+
+            {% for lipid in sample_lipids_out %} 
+                <tr>
+                    <td></td>
+                    <td>
+                        {{ lipid.sample_lipid_name }}
+                        {% if lipid.sample_lipid_augment != null %}
+                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
+                        {% elif lipid.sample_lipid_custom_augment != null %}
+                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
+                        {% endif %}
+                    </td>
+                    <td>{{ lipid.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                </tr>
+            {% endfor %}
+
+        </table>
+    {% endif %}
+    
+            <h3><a href="{% url 'viewer:sample_lipid_new' project_id=project.id sample_id=sample.id %}">Add a lipid</a></h3>
+        </div>
     
     <div class="content-box">
 
-    <h2>Data Files</h2>
+        <h2>Data Files</h2>
 
     {% if datas %}
 
@@ -45,49 +146,6 @@
             <h3><a href="{% url 'viewer:data_upload' project_id=project.id sample_id=sample.id %}">Upload a file</a></h3>
         </div>
     {% endif %}
-
-    <div class="content-box">
-
-        <h2>Augmented Lipids</h2>
-
-        <p>The augmented versions of the lipids present in each particular dataset. Augmentations may only be applied to neutron data and effect the scattering lengths used in calculations.</p>
-
-        <table class="project-lipids indent">
-
-            <tr>
-                <td><h4>Data Set</h4></td>
-                <td><h4>Lipid Name</h4></td>
-                <td></td>
-                <td></td>
-            </tr>
-            {% for data in datas %}
-                {% if data.data_type == 'NU' %}
-                    <tr>
-                        <td>{{ data.data_set_title }}</td>
-                        <td colspan="6"></td>
-                        <td><a href="{% url 'viewer:data_lipid_new' project_id=project.id sample_id=sample.id data_id=data.id %}">Add Adjustment</a></td>
-                    </tr>
-                    {% for lipid in data_lipids %}
-                        {% if data.data_set_title|stringformat:"s" in lipid.data_set_title|stringformat:"s" %}
-                            <tr>
-                                <td></td>
-                                <td>
-                                    {{ lipid.data_lipid_name.project_lipid_name }}
-                                    {% if lipid.data_lipid_suffix %}
-                                        - {{ lipid.data_lipid_suffix }}
-                                    {% endif %}
-                                </td>
-                                <td><a href="{% url 'viewer:data_lipid_edit' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">View</a></td>
-                                <td><a href="{% url 'viewer:data_lipid_delete_warning' project_id=project.id sample_id=sample.id data_id=data.id lipid_id=lipid.id %}">Delete</a></td>
-                            </tr>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
-            {% endfor %} 
-
-        </table>
-
-    </div>
 
     <div class="content-box">
 

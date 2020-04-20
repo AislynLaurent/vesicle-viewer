@@ -3,9 +3,10 @@ import numpy as np
 import lmfit as lsq
 
 # Models
-from .models import Data_Lipid
-from .models import Data_Lipid_Atom
 from .models import Molecule
+
+# Other
+from .safe_functions import safe_function_dict
 
 # Asymmetrical model
 def asym_model(
@@ -247,9 +248,13 @@ def asymmetrical_objective_function(fit_parameters, x, datas, sff):
     return combined_residuals
 
 # Augments per data-set
-def adjust_b_values(data, in_project_lipids, out_project_lipids, water, d_water, temp):
+def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, temp):
     # Temp
     x = temp
+
+    # Prepare safe functions for eval
+    safe_functions = safe_function_dict()
+    safe_functions['x'] = x
 
     # Declare
     in_terminal_methyl_b = 0
@@ -265,8 +270,19 @@ def adjust_b_values(data, in_project_lipids, out_project_lipids, water, d_water,
 
     # Calculate water volume
     calculated_water_volume = (
-        (eval(d_water.total_volume_equation) * data.d2o_mol_fraction) 
-        + (eval(water.total_volume_equation) * (1 - data.d2o_mol_fraction))
+        (
+            eval(
+                d_water.total_volume_equation,
+                {"__builtins__":None},
+                safe_functions
+            ) * data.d2o_mol_fraction
+        ) + (
+            eval(
+                water.total_volume_equation,
+                {"__builtins__":None},
+                safe_functions
+            ) * (1 - data.d2o_mol_fraction)
+        )
     )
 
     if data.data_type == 'XR':
@@ -274,108 +290,80 @@ def adjust_b_values(data, in_project_lipids, out_project_lipids, water, d_water,
         water_b = water.electrons
 
         ## Inner
-        for project_lipid in in_project_lipids:
+        for sample_lipid in in_sample_lipids:
             # bt
-            in_terminal_methyl_b = in_terminal_methyl_b + (project_lipid.project_lipid_name.tm_electrons * project_lipid.lipid_mol_fraction)
+            in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
             # bc
-            in_chain_b = in_chain_b + (project_lipid.project_lipid_name.tg_electrons * project_lipid.lipid_mol_fraction)
+            in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
             # bh
-            in_headgroup_b = in_headgroup_b + (project_lipid.project_lipid_name.hg_electrons * project_lipid.lipid_mol_fraction)
+            in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
         ## Outer
-        for project_lipid in out_project_lipids:
+        for sample_lipid in out_sample_lipids:
             ## Outer
             # bt
-            out_terminal_methyl_b = out_terminal_methyl_b + (project_lipid.project_lipid_name.tm_electrons * project_lipid.lipid_mol_fraction)
+            out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
             # bc
-            out_chain_b = out_chain_b + (project_lipid.project_lipid_name.tg_electrons * project_lipid.lipid_mol_fraction)
+            out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
             # bh
-            out_headgroup_b = out_headgroup_b + (project_lipid.project_lipid_name.hg_electrons * project_lipid.lipid_mol_fraction)
+            out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
     else:
         # bw
         water_b = (d_water.scattering_length * data.d2o_mol_fraction) + (water.scattering_length * (1 - data.d2o_mol_fraction))
 
         # Inner
-        for project_lipid in in_project_lipids:
-            # bt
-            in_terminal_methyl_b = in_terminal_methyl_b + (project_lipid.project_lipid_name.tm_scattering * project_lipid.lipid_mol_fraction)
-
-            # Get data lipid
-            try:
-                data_lipid = Data_Lipid.objects.get(data_lipid_name=project_lipid)
-            except Data_Lipid.DoesNotExist:
-                data_lipid = None
-
-            if not data_lipid:
+        for sample_lipid in in_sample_lipids:
+            if sample_lipid.sample_lipid_augment != None:
+                # bt
+                in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc
-                in_chain_b = in_chain_b + (project_lipid.project_lipid_name.tg_scattering * project_lipid.lipid_mol_fraction)
+                in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bh
-                in_headgroup_b = in_headgroup_b + (project_lipid.project_lipid_name.hg_scattering * project_lipid.lipid_mol_fraction)
+                in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+            elif lipid.sample_lipid_custom_augment != None:
+                # bt
+                in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bc
+                in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bh
+                in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
             else:
-                # Delcare
-                total_hg_adjustment = 0
-                total_tg_adjustment = 0
-
-                # Get atoms
-                atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid).select_related('data_lipid_atom_name')
-                
-                if atoms:
-                    # Find adjustments
-                    for atom in atoms:
-                        if atom.atom_location == 'HG':
-                            total_hg_adjustment = total_hg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
-                        if atom.atom_location == 'TG':
-                            total_tg_adjustment = total_tg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
+                # bt
+                in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
                 # bc
-                in_chain_b = in_chain_b +  ( (in_chain_b - total_tg_adjustment) * project_lipid.lipid_mol_fraction)
+                in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
                 # bh
-                in_headgroup_b = in_headgroup_b + ( (in_headgroup_b - total_hg_adjustment) * project_lipid.lipid_mol_fraction)
+                in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
 
         # Outer
-        for project_lipid in in_project_lipids:
-            # bt
-            out_terminal_methyl_b = out_terminal_methyl_b + (project_lipid.project_lipid_name.tm_scattering * project_lipid.lipid_mol_fraction)
-
-            # Get data lipid
-            try:
-                data_lipid = Data_Lipid.objects.get(data_lipid_name=project_lipid)
-            except Data_Lipid.DoesNotExist:
-                data_lipid = None
-
-            if not data_lipid:
+        for sample_lipid in out_sample_lipids:
+            if lipid.sample_lipid_augment != None:
+                # bt
+                out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bc
-                out_chain_b = out_chain_b + (project_lipid.project_lipid_name.tg_scattering * project_lipid.lipid_mol_fraction)
+                out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
                 # bh
-                out_headgroup_b = out_headgroup_b + (project_lipid.project_lipid_name.hg_scattering * project_lipid.lipid_mol_fraction)
+                out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+            elif lipid.sample_lipid_custom_augment != None:
+                # bt
+                out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bc
+                out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                # bh
+                out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
             else:
-                # Delcare
-                total_hg_adjustment = 0
-                total_tg_adjustment = 0
-
-                # Get atoms
-                atoms = Data_Lipid_Atom.objects.filter(data_lipid_name=data_lipid).select_related('data_lipid_atom_name')
-                
-                if atoms:
-                    # Find adjustments
-                    for atom in atoms:
-                        if atom.atom_location == 'HG':
-                            total_hg_adjustment = total_hg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
-                        if atom.atom_location == 'TG':
-                            total_tg_adjustment = total_tg_adjustment + (atom.data_lipid_atom_name.scattering_length_adj * atom.data_lipid_atom_ammount)
-
+                # bt
+                out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
                 # bc
-                out_chain_b = out_chain_b +  ( (out_chain_b - total_tg_adjustment) * project_lipid.lipid_mol_fraction)
+                out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
                 # bh
-                out_headgroup_b = out_headgroup_b + ( (out_headgroup_b - total_hg_adjustment) * project_lipid.lipid_mol_fraction)
+                out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
 
     b_values = [in_chain_b, in_headgroup_b, in_terminal_methyl_b, out_chain_b, out_headgroup_b, out_terminal_methyl_b, water_b, calculated_water_volume]
     
     return(b_values)
 
 # Fit function
-def asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, datas, temp):
+def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp):
     ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
@@ -479,7 +467,7 @@ def asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, da
     try:
         for data in datas:
             # Get values for this data
-            b_values = adjust_b_values(data, in_project_lipids, out_project_lipids, water, d_water, temp)
+            b_values = adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, temp)
 
             fit_parameters.add_many(
                 # Inner
@@ -544,7 +532,7 @@ def asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, da
     # Single dataset
     except TypeError:
         # Get values for this data
-        b_values = adjust_b_values(datas, in_project_lipids, out_project_lipids, water, d_water, temp)
+        b_values = adjust_b_values(datas, in_sample_lipids, out_sample_lipids, water, d_water, temp)
 
         fit_parameters.add_many(
             # Inner
@@ -609,9 +597,9 @@ def asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, da
 
     return fit_parameters
 
-def asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, data, temp):
+def asymmetrical_graph(parameter, in_sample_lipids, out_sample_lipids, data, temp):
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, data, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
 
     # Get result
     model_result = calc_asym_model(
@@ -623,9 +611,9 @@ def asymmetrical_graph(parameter, in_project_lipids, out_project_lipids, data, t
 
     return model_result
 
-def asymmetrical_fit(parameter, in_project_lipids, out_project_lipids, datas, temp):
+def asymmetrical_fit(parameter, in_sample_lipids, out_sample_lipids, datas, temp):
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_project_lipids, out_project_lipids, datas, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp)
 
     # Get result
     x = None

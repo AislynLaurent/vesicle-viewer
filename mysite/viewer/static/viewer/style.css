@@ -59,7 +59,7 @@ button:hover {
 
 .form_box {
     background-color: #271F3A;
-    padding: 5px 20px 20px 20px;
+    padding: 5px 10px 10px 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 4px #000;
 }
@@ -86,6 +86,11 @@ td {
 
 #center {
     margin: auto;
+}
+
+#no-margins {
+    margin: 0;
+    padding: 0;
 }
 
 #inline {
@@ -208,6 +213,19 @@ main img {
     margin: 10px 0 10px 0;
 }
 
+.error {
+    background-color: #FF8A00;
+    color: #353C53;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px #222;
+    padding: 5px 5px 5px 20px;
+    margin: 15px 0 15px 0;
+}
+
+.error p {
+    margin: 10px 0 10px 0;
+}
+
 .content-box {
     background-color: #353C53;
     border-radius: 5px;
@@ -230,19 +248,19 @@ main img {
 }
 
 .parameters {
-    margin: 0px 15px 15px 0px;
+    margin: 0px 10px 10px 0px;
     padding: 10px;
 }
 
 .parameters h3 {
     margin: auto;
-    padding: 10px;
+    padding: 5px;
     text-align: center;
 }
 
 .parameters h4 {
     margin: 0;
-    padding: 10px;
+    padding: 5px;
 }
 
 .parameters tr {
@@ -251,18 +269,18 @@ main img {
 }
 
 .parameters td {
-    margin: 0;
     padding: 3px;
 }
 
 .parameters hr {
     display: block;
     margin: 0 auto 0 auto;
-    border: solid 1px #6C788E;
+    border: solid 1px #444B6B;
 }
 
 .value {
     width: 50px;
+    margin: 0 0 0 25px;
 }
 
 .upper_bound {

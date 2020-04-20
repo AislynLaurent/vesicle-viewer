@@ -6,17 +6,37 @@
 {% block content %}
 
   <div class="content-box">
+    <h1>
+        <a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a>
+        {% if sample %}
+            \ <a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a>
+        {% endif %}
+        {% if parameters %}
+            \ {{ parameters.name }}
+        {% endif %}
+        {% if data %}
+            \ {{ data.data_set_title }}
+        {% endif %}
+        {% if project_lipid %}
+            \ {{ project_lipid.project_lipid_name }}
+        {% endif %}
+        {% if sample_lipid %}
+            \ {{ sample_lipid.sample_lipid_name }}
+            {% if sample_lipid.sample_lipid_augment != null %}
+                - {{ sample_lipid.sample_lipid_augment.augmentation_suffix }}
+            {% elif sample_lipid.sample_lipid_custom_augment != null %}
+                - {{ sample_lipid.sample_lipid_custom_augment.augmentation_suffix }}
+            {% endif %}
+        {% endif %}
+    </h1>
+  </div>
+
+  <div class="content-box">
 
     <h1>Warning!</h1>
 
     <p>This action will permanently delete this item, and with it any work you've done on it. <em>Note: the other details of sample <strong>"{{ sample.sample_title }}"</strong> will remain untouched.</em></p>
-    <p>Are you sure you want to proceed?</p>
-
-    <button
-        type="button" 
-        onclick="window.location.href='{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}'" >
-        No, go back
-    </button>
+    <p>Are you sure you want to proceed? <strong>If not, hit the back button.</strong></p>
 
     <p></p>
 

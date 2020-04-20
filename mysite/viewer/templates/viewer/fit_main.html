@@ -8,14 +8,14 @@
     {% if user.is_authenticated %}
 
     <div class="content-box">
-        <h1 id="left"><a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a></h1>
+        
+        <div id="left">
+
+            <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a> \ <a href="{% url 'viewer:sample_detail' project_id=project.id sample_id=sample.id %}">{{ sample.sample_title }}</a> \ {{ parameter.name }}</h1>
+
+        </div>
         
         <div class="fit_buttons" id="right">
-
-            <form id="inline" method="POST">
-                {% csrf_token %}
-                <button class="success" type="submit" name="fit">Fit!</button>
-            </form>
 
             {% if parameter.fit_report %}
                 {% if show_stats %}
@@ -36,6 +36,11 @@
                 </form>
             {% endif %}
 
+            <form id="inline" method="POST">
+                {% csrf_token %}
+                <button class="success" type="submit" name="fit"><h2 id="no-margins">Fit!</h2></button>
+            </form>
+
         </div>
     </div>
 
@@ -52,19 +57,20 @@
         </div>
     {% endif %}
 
-    <div class="content-box parameters" id="left">
+    {% if parameter_update_form.errors %}
+        <div class="error">
+            <h4>Please correct the following errors before proceeding:</h4>
+            <p>{{ parameter_update_form.errors }}</p>
+        </div>
+    {% endif %}
 
-        <h3>{{ parameter.name }}</h3>
+    <div class="content-box parameters" id="left">
 
         <form method="POST" enctype="multipart/form-data">
 
             {% csrf_token %}
 
             <table id="center" class="form_box">
-
-                <tr>
-                    <td>{{ parameter_update_form.errors }}</td>
-                </tr>
 
                 <!-- Include SFF? -->
                 <tr>
@@ -78,16 +84,30 @@
 
                     <!-- LA -->
                     <tr>
-                        <td><h4>LA {{ parameter_update_form.lipid_area_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">LA</h4>
+                            {% if not parameter.lipid_area_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.lipid_area_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.lipid_area_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.lipid_area_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.lipid_area }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.lipid_area_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.lipid_area_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td><hr /></td>
@@ -95,16 +115,30 @@
 
                     <!-- HT -->
                     <tr>
-                        <td><h4>HT {{ parameter_update_form.headgroup_thickness_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">HT</h4>
+                            {% if not parameter.headgroup_thickness_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.headgroup_thickness_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.headgroup_thickness_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.headgroup_thickness_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.headgroup_thickness }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.headgroup_thickness_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.headgroup_thickness_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td><hr /></td>
@@ -112,7 +146,10 @@
 
                     <!-- HV -->
                     <tr>
-                        <td><h4>HV</h4></td>
+                        <td>
+                            <h4 id="inline">HV</h4>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
                     </tr>
                     <tr>
                         <td></td>
@@ -129,16 +166,30 @@
                     
                     <!-- TMV -->
                     <tr>
-                        <td><h4>TMV {{ parameter_update_form.terminal_methyl_volume_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">TMV</h4>
+                            {% if not parameter.terminal_methyl_volume_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.terminal_methyl_volume_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.terminal_methyl_volume_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.terminal_methyl_volume_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.terminal_methyl_volume }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.terminal_methyl_volume_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.terminal_methyl_volume_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td><hr /></td>
@@ -146,7 +197,10 @@
 
                     <!-- CV -->
                     <tr>
-                        <td><h4>CV</h4></td>
+                        <td>
+                            <h4 id="inline">CV</h4>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
                     </tr>
                     <tr>
                         <td></td>
@@ -173,20 +227,48 @@
 
                     <!-- LA -->
                     <tr>
-                        <td><h4>LA {{ parameter_update_form.in_lipid_area_lock }}</h4></td>
-                        <td><h4>{{ parameter_update_form.out_lipid_area_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">LA</h4>
+                            {% if not parameter.in_lipid_area_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.in_lipid_area_lock }}
+                        </td>
+                        <td>
+                        </h4>
+                            {% if not parameter.out_lipid_area_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.out_lipid_area_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_lipid_area_upperbound }}</td>
-                        <td>{{ parameter_update_form.out_lipid_area_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_lipid_area_upperbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_lipid_area_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.in_lipid_area }}</td>
                         <td>{{ parameter_update_form.out_lipid_area }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_lipid_area_lowerbound }}</td>
-                        <td>{{ parameter_update_form.out_lipid_area_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_lipid_area_lowerbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_lipid_area_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2"><hr /></td>
@@ -194,20 +276,47 @@
 
                     <!-- HT -->
                     <tr>
-                        <td><h4>HT {{ parameter_update_form.in_headgroup_thickness_lock }}</h4></td>
-                        <td><h4>{{ parameter_update_form.out_headgroup_thickness_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">HT</h4>
+                            {% if not parameter.in_headgroup_thickness_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.in_headgroup_thickness_lock }}
+                        </td>
+                        <td>
+                            {% if not parameter.out_headgroup_thickness_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.out_headgroup_thickness_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_headgroup_thickness_upperbound }}</td>
-                        <td>{{ parameter_update_form.out_headgroup_thickness_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_headgroup_thickness_upperbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_headgroup_thickness_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.in_headgroup_thickness }}</td>
                         <td>{{ parameter_update_form.out_headgroup_thickness }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_headgroup_thickness_lowerbound }}</td>
-                        <td>{{ parameter_update_form.out_headgroup_thickness_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_headgroup_thickness_lowerbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_headgroup_thickness_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2"><hr /></td>
@@ -215,7 +324,13 @@
 
                     <!-- HV -->
                     <tr>
-                        <td><h4>HV</h4></td>
+                        <td>
+                            <h4 id="inline">HV</h4>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
                     </tr>
                     <tr>
                         <td></td>
@@ -233,20 +348,47 @@
                     
                     <!-- TMV -->
                     <tr>
-                        <td><h4>TMV {{ parameter_update_form.in_terminal_methyl_volume_lock }}</h4></td>
-                        <td><h4>{{ parameter_update_form.out_terminal_methyl_volume_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">TMV</h4>
+                            {% if not parameter.in_terminal_methyl_volume_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.in_terminal_methyl_volume_lock }}
+                        </td>
+                        <td>
+                            {% if not parameter.out_terminal_methyl_volume_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.out_terminal_methyl_volume_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_terminal_methyl_volume_upperbound }}</td>
-                        <td>{{ parameter_update_form.out_terminal_methyl_volume_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_terminal_methyl_volume_upperbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_terminal_methyl_volume_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.in_terminal_methyl_volume }}</td>
                         <td>{{ parameter_update_form.out_terminal_methyl_volume }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.in_terminal_methyl_volume_lowerbound }}</td>
-                        <td>{{ parameter_update_form.out_terminal_methyl_volume_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.in_terminal_methyl_volume_lowerbound }}
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.out_terminal_methyl_volume_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2"><hr /></td>
@@ -254,7 +396,12 @@
 
                     <!-- CV -->
                     <tr>
-                        <td><h4>CV</h4></td>
+                        <td><h4 id="inline">CV</h4>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                        </td>
                     </tr>
                     <tr>
                         <td></td>
@@ -280,16 +427,30 @@
 
                 <!-- SIG -->
                 <tr>
-                    <td><h4>SIG {{ parameter_update_form.sigma_lock }}</h4></td>
+                    <td>
+                        <h4 id="inline">SIG</h4>
+                        {% if not parameter.sigma_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                        {{ parameter_update_form.sigma_lock }}
+                    </td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_update_form.sigma_upperbound }}</td>
+                    <td>
+                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                        {{ parameter_update_form.sigma_upperbound }}
+                    </td>
                 </tr>
                 <tr>
                     <td>{{ parameter_update_form.sigma }}</td>
                 </tr>
                 <tr>
-                    <td>{{ parameter_update_form.sigma_lowerbound }}</td>
+                    <td>
+                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                        {{ parameter_update_form.sigma_lowerbound }}
+                    </td>
                 </tr>
                 <tr>
                     <td colspan="2"><hr /></td>
@@ -299,16 +460,30 @@
 
                     <!-- AVR -->
                     <tr>
-                        <td><h4>SF.R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                        <td>
+                            <h4 id="inline">SF.R</h4>
+                            {% if not parameter.average_vesicle_radius_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.average_vesicle_radius_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.average_vesicle_radius_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.average_vesicle_radius }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.average_vesicle_radius_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.average_vesicle_radius_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2"><hr /></td>
@@ -316,16 +491,29 @@
 
                     <!-- RSP -->
                     <tr>
-                        <td><h4>SF.SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                        <td><h4 id="inline">SF.SIG</h4>
+                            {% if not parameter.relative_size_lock %}
+                                <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                            {% endif %}
+                            {{ parameter_update_form.relative_size_lock }}
+                        </td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.relative_size_upperbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.relative_size_upperbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td>{{ parameter_update_form.relative_size }}</td>
                     </tr>
                     <tr>
-                        <td>{{ parameter_update_form.relative_size_lowerbound }}</td>
+                        <td>
+                            <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                            {{ parameter_update_form.relative_size_lowerbound }}
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="2"><hr /></td>
@@ -401,6 +589,15 @@
                 <h2>X-Ray Data</h2>
             </div>
                 {% for xray_graph, xray_range, xray_scale, xray_data in xray_graphs_and_forms %}
+
+                {% if xray_range.errors or xray_scale.errors %}
+                    <div class="error">
+                        <h4>Please correct the following errors before proceeding:</h4>
+                        <p>{{ xray_range.errors }}</p>
+                        <p>{{ xray_scale.errors }}</p>
+                    </div>
+                {% endif %}
+
                 <div class="content-box">
                     <p></p>
                     <div id="left" class="graph-box">
@@ -412,42 +609,76 @@
                             {% csrf_token %}
                             <table id="left" class="form_box parameters">
                                 <tr>
-                                    <td><h4>Scale {{ xray_scale.scale_lock }}</h4></td>
+                                    <td>
+                                        <h4 id="inline">Scale</h4>
+                                        {% if not xray_data.scale_lock %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% else %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% endif %}
+                                        {{ xray_scale.scale_lock }}
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>{{ xray_scale.scale_upperbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ xray_scale.scale_upperbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>{{ xray_scale.scale }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{ xray_scale.scale_lowerbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ xray_scale.scale_lowerbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td><h4>BG {{ xray_scale.background_lock }}</h4></td>
+                                    <td>
+                                        <h4 id="inline">BG</h4>
+                                        {% if not xray_data.background_lock %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% else %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% endif %}
+                                        {{ xray_scale.background_lock }}
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>{{ xray_scale.background_upperbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ xray_scale.background_upperbound }}
+                                    </td>
                                 </tr>
                                     <td>{{ xray_scale.background }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{ xray_scale.background_lowerbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ xray_scale.background_lowerbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td><h4>Min / Max</h4></td>
+                                    <td><h4>Max / Min</h4></td>
                                 </tr>
                                 <tr>
-                                    <td>{{ xray_range.min_value }}</td>
-                                </tr>
-                                <tr>
-                                    <td>{{ xray_range.max_value }}</td>
+                                    <tr>
+                                        <td>
+                                            <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                            {{ xray_range.max_value }}
+                                        </td>
+                                    </tr>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ xray_range.min_value }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
@@ -479,42 +710,76 @@
                             {% csrf_token %}
                             <table id="left" class="form_box parameters">
                                 <tr>
-                                    <td><h4>Scale {{ neutron_scale.scale_lock }}</h4></td>
+                                    <td>
+                                        <h4 id="inline">Scale</h4>
+                                        {% if not neutron_data.scale_lock %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% else %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% endif %}
+                                        {{ neutron_scale.scale_lock }}
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_scale.scale_upperbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_scale.scale_upperbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>{{ neutron_scale.scale }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_scale.scale_lowerbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_scale.scale_lowerbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td><h4>BG {{ neutron_scale.background_lock }}</h4></td>
+                                    <td>
+                                        <h4 id="inline">BG</h4>
+                                        {% if not neutron_data.background_lock %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% else %}
+                                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="Example lipid composition probability graph">
+                                        {% endif %}
+                                        {{ neutron_scale.background_lock }}</h4>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_scale.background_upperbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_scale.background_upperbound }}
+                                    </td>
                                 </tr>
                                     <td>{{ neutron_scale.background }}</td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_scale.background_lowerbound }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_scale.background_lowerbound }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td><h4>Min / Max</h4></td>
+                                    <td><h4>Max / Min</h4></td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_range.min_value }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_range.max_value }}
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td>{{ neutron_range.max_value }}</td>
+                                    <td>
+                                        <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="Example lipid composition probability graph">
+                                        {{ neutron_range.min_value }}
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><hr /></td>
