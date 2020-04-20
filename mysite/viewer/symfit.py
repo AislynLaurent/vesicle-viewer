@@ -121,16 +121,26 @@ def calc_sym_model(fit_parameters, q, data, sff):
 # Objective function create a residual for each, then flatten
 def symmetrical_objective_function(fit_parameters, x, datas, sff):
     # Delcare
-    residuals = []
+    current_residual = []
     combined_residuals = []
 
     # Make an array of residuals
     for data in datas:
-        # Do math
-        residuals = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
+        # Get error
+        current_error = []
+        # Check for 0's
+        for value in data.error_value[data.min_index:data.max_index]:
+            if value == 0:
+                value = 1
+            
+            current_error.append(value)
 
+        # Do math
+        current_residual = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
+        # Weight for error
+        weighted_residual = np.power(current_residual, 2) / np.power(current_error, 2)
         # Append
-        combined_residuals.extend(residuals)
+        combined_residuals.extend(weighted_residual)
 
     return combined_residuals
 

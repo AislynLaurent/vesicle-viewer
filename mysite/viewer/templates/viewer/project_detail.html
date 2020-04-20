@@ -21,8 +21,15 @@
 
         <h2>Project Details</h2>
 
-        <p><h4 class="project-lipids indent" id="inline">Model: </h4> {{ project.model_type }}</p>
-        <p><h4 class="project-lipids indent" id="inline">Temp: </h4> {{ project.system_tempurature }}&deg</h4></p>
+        <p>
+            <h4 class="project-lipids indent" id="inline">Model: </h4> 
+            {% if project.model_type == 'AS' %}
+                Asymmetrical
+            {% else %}
+                Symmetrical
+            {% endif %}
+        </p>
+        <p><h4 class="project-lipids indent" id="inline">Temp: </h4> {{ project.system_tempurature }} &degC</h4></p>
 
     </div>
 

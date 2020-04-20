@@ -23,6 +23,22 @@
           </h1>
       </div>
 
+      {% if lipid_form.errors or augment_form.errors %}
+        <div class="error">
+            <h4>Please correct the following errors before proceeding:</h4>
+            <ul>
+                {% for key, value in lipid_form.errors.items %}
+                    <li>{{ value }}</li>
+                {% endfor %}
+            </ul>
+            <ul>
+              {% for key, value in augment_form.errors.items %}
+                  <li>{{ value }}</li>
+              {% endfor %}
+            </ul>
+        </div>
+      {% endif %}
+
       <div class="content-box">
 
         <h2>Lipid Information</h2>
@@ -30,12 +46,9 @@
         <form id="clear" method="POST">
           {% csrf_token %}
 
-          <p>Error: {{ lipid_form.errors }}</p>
-
           <table class="form_box">
             <tr>
               <td><h4>Lipid</h4></td>
-              <td></td>
               <td><h4>Mol Fraction</h4></td>
               {% if project.model_type == 'AS' %}
                 <td><h4>Location</h4></td>
@@ -43,8 +56,11 @@
               <td></td>
             </tr>
             <tr>
-              <td>{{ lipid_form.sample_lipid_name }}</td>
-              <td>-</td>
+              {% if augment_form %}
+                <td>{{ lipid.sample_lipid_name }}</td>
+              {% else %}
+                <td>{{ lipid_form.sample_lipid_name }}</td>
+              {% endif %}
               <td>{{ lipid_form.lipid_mol_fraction }}</td>
               {% if project.model_type == 'AS' %}
                 <td>{{ lipid_form.lipid_location }}</td>
