@@ -5,9 +5,6 @@ import lmfit as lsq
 # Models
 from .models import Molecule
 
-# Other
-from .safe_functions import safe_function_dict
-
 # Symmetrical model
 def sym_model(
     q,      # independant
@@ -149,10 +146,6 @@ def adjust_b_values(data, sample_lipids, water, d_water, temp):
     # Temp
     x = temp
 
-    # Prepare safe functions for eval
-    safe_functions = safe_function_dict()
-    safe_functions['x'] = x
-
     # Declare
     terminal_methyl_b = 0
     chain_b = 0
@@ -163,17 +156,9 @@ def adjust_b_values(data, sample_lipids, water, d_water, temp):
     # Calculate water volume
     calculated_water_volume = (
         (
-            eval(
-                d_water.total_volume_equation,
-                    {"__builtins__":None},
-                    safe_functions
-            ) * data.d2o_mol_fraction
+            eval(d_water.total_volume_equation) * data.d2o_mol_fraction
         ) + (
-            eval(
-                water.total_volume_equation,
-                {"__builtins__":None},
-                safe_functions
-            ) * (1 - data.d2o_mol_fraction)
+            eval(water.total_volume_equation) * (1 - data.d2o_mol_fraction)
         )
     )
 
