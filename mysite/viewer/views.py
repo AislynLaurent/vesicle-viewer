@@ -601,7 +601,7 @@ def data_upload(request, project_id, sample_id):
     # Upload file
     if "data_upload" in request.POST:
         print(sample.id)
-        data_upload_form = Data_Upload_Form(request.POST, request.FILES, sample.id)
+        data_upload_form = Data_Upload_Form(sample.id, request.POST, request.FILES)
         print('before valid')
         if data_upload_form.is_valid():
             print('after valid')
@@ -652,7 +652,7 @@ def data_upload(request, project_id, sample_id):
 
             data_upload_form.save()
 
-        return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+            return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
         data_upload_form = Data_Upload_Form(sample.id)
 
@@ -671,13 +671,13 @@ def data_edit(request, project_id, sample_id, data_id):
     data = get_object_or_404(Data_Set, id=data_id)
 
     if request.method == 'POST':
-        form = Data_Form(request.POST, instance=data)
+        form = Data_Form(sample.id, request.POST, instance=data)
         if form.is_valid():
             data = form.save(commit=False)
             data.save()
             return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
-        form = Data_Form(instance=data)
+        form = Data_Form(sample.id, instance=data)
 
     return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'data':data, 'form': form})
 

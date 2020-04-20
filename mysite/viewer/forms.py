@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import formset_factory
 from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import *
 
@@ -287,6 +288,18 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
         }
 
 class Data_Form(forms.ModelForm):
+    sample_id = 0
+
+    def __init__(self, sample_id, *args, **kwargs):
+        super(Data_Form, self).__init__(*args, **kwargs)
+        self.sample_id = sample_id
+
+    def clean(self):
+        datas = Data_Set.objects.filter(sample_title_id=self.sample_id, data_set_title=self.data['data_set_title'])
+        # Unique name per sample
+        if datas:
+            raise ValidationError('A dataset with that name already exists for this sample - please choose another')
+
     class Meta:
         model = Data_Set
         fields = [
@@ -296,25 +309,7 @@ class Data_Form(forms.ModelForm):
         ]
 
 class Data_Upload_Form(Data_Form):
-    sample_id = 0
-
     data_file = forms.FileField()
-
-    # def __init__(self, sample_id, *args, **kwargs):
-    #     super(Data_Upload_Form, self).__init__(*args, **kwargs)
-    #     print('in init')
-    #     sample_id = sample_id
-    #     print('sample')
-    #     print(self.sample_id)
-
-    # def clean(self):
-    #     print(self.sample_id)
-    #     datas = Data_Set.objects.filter(sample_title_id=self.sample_id, data_set_title=self.data['data_set_title'])
-    #     print(datas)
-    #     # Unique name per sample
-    #     if datas:
-    #         print('In')
-    #         raise ValidationError('You already have a dataset with that name - please choose another')
 
     class Meta(Data_Form.Meta):
         fields = Data_Form.Meta.fields + ['data_file',]
@@ -330,8 +325,13 @@ class Data_Range_Form(forms.Form):
     )
 
     def clean(self):
-        # q range
-        if self.data['max_value'] == self.data['min_value']:
+        if self.data['max_value'] !='' and self.data['min_value'] == '':
+            raise ValidationError('Cannot set a maximum value without a minimum')
+
+        if self.data['max_value'] =='' and self.data['min_value'] != '':
+            raise ValidationError('Cannot set a minimum value without a maximum')
+
+        if self.data['max_value'] and self.data['min_value'] != '' and self.data['max_value'] == self.data['min_value']:
             raise ValidationError('Maximum and minimum values for a dataset cannot be equal')
 
         if self.data['max_value'] < self.data['min_value']:
