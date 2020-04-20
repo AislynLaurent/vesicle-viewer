@@ -8,7 +8,7 @@
 
   {% if user.is_authenticated %}
 
-    <div class="announcement">
+    <div class="error">
 
       <p>Be advised that this tool is <strong>NOT</strong> a safe place to store your data! Please be sure to keep all of your original files.</p>
 
@@ -30,14 +30,39 @@
 
     </div>
 
+    {% if data_upload_form.errors %}
+      <div class="error">
+          <h4>Please correct the following errors before proceeding:</h4>
+          <ul>
+              {% for key, value in data_upload_form.errors.items %}
+                  <li>{{ value }}</li>
+              {% endfor %}
+          </ul>
+      </div>
+    {% endif %}
+
     <div class="content-box">
 
-      <form class="form_box" method="POST" enctype="multipart/form-data" >
+      <p></p>
+
+      <form method="POST" enctype="multipart/form-data" >
 
           {% csrf_token %}
-          {{ data_upload_form.as_p }}
-          
-          <button type="submit" name="data_upload" >Upload</button>
+
+          <table class="form_box" >
+            {% for field in data_upload_form %}
+                <tr>
+                    <td>{{ field.label }}</td>
+                    <td>{{ field }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    <button type="submit" name="data_upload" >Upload</button>
+                </td>
+            </tr>
+        </table>
+
       </form>
 
     </div>

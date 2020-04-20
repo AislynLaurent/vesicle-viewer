@@ -38,10 +38,23 @@
 
         <p></p>
 
-        <form class="form_box" method="POST" enctype="multipart/form-data" >
+        <form method="POST" enctype="multipart/form-data" >
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Done</button>
+            
+            <table class="form_box" >
+                {% for field in form %}
+                    <tr>
+                        <td>{{ field.label }}</td>
+                        <td>{{ field }}</td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td>
+                        <button type="submit">Done</button>
+                    </td>
+                </tr>
+            </table>
+            
         </form>
     </div>
 

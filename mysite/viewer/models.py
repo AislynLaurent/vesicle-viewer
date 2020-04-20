@@ -655,6 +655,8 @@ class Data_Set(models.Model):
         verbose_name = 'data_set'
         verbose_name_plural = 'data_sets'
 
+        unique_together = ['sample_title', 'data_set_title']
+
     # Methods
     def clean(self):
         # Tweaks

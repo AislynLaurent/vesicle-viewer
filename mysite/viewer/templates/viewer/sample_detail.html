@@ -153,7 +153,7 @@
 
         {% if project.model_type == "SM" %}
             {% if parameters %}
-                <table class="parameters indent">
+                <table class="parameter indent">
                         <tr>
                             <td><h4>Name</h4></td>
                             <td><h4>Overall Lipid Area</h4></td>
@@ -178,7 +178,7 @@
             <h3><a href="{% url 'viewer:symmetrical_parameters_new' project_id=project.id sample_id=sample.id %}">Generate new parameters</a></h3>
         {% elif project.model_type == "AS" %}
             {% if parameters %}
-                <table class="parameters indent">
+                <table class="parameter indent">
                         <tr>
                             <td><h4>Name</h4></td>
                             <td><h4>In Overall Lipid Area</h4></td>

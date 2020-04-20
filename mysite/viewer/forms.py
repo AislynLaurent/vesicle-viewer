@@ -296,8 +296,25 @@ class Data_Form(forms.ModelForm):
         ]
 
 class Data_Upload_Form(Data_Form):
+    sample_id = 0
 
     data_file = forms.FileField()
+
+    # def __init__(self, sample_id, *args, **kwargs):
+    #     super(Data_Upload_Form, self).__init__(*args, **kwargs)
+    #     print('in init')
+    #     sample_id = sample_id
+    #     print('sample')
+    #     print(self.sample_id)
+
+    # def clean(self):
+    #     print(self.sample_id)
+    #     datas = Data_Set.objects.filter(sample_title_id=self.sample_id, data_set_title=self.data['data_set_title'])
+    #     print(datas)
+    #     # Unique name per sample
+    #     if datas:
+    #         print('In')
+    #         raise ValidationError('You already have a dataset with that name - please choose another')
 
     class Meta(Data_Form.Meta):
         fields = Data_Form.Meta.fields + ['data_file',]

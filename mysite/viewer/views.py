@@ -21,7 +21,6 @@ from .models import *
 from .forms import *
 
 # Other imports
-from .safe_functions import safe_function_dict
 from .symfit import symmetrical_fit
 from .symfit import symmetrical_graph
 from .asymfit import asymmetrical_fit
@@ -260,10 +259,10 @@ def sample_lipid_new(request, project_id, sample_id):
                         'lipid_location':in_lipid_location,
                 })
 
-            if existing_lipid:
-                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
-            elif created_lipid:
-                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
+                if existing_lipid:
+                    return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
+                elif created_lipid:
+                    return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
         else:
             lipid_form = Sym_Sample_Lipid_Form(project.id)
 
@@ -283,10 +282,10 @@ def sample_lipid_new(request, project_id, sample_id):
                         'lipid_mol_fraction':in_lipid_mol_fraction,
                 })
 
-            if existing_lipid:
-                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
-            elif created_lipid:
-                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
+                if existing_lipid:
+                    return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=existing_lipid.id)
+                elif created_lipid:
+                    return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=created_lipid.id)
         else:
             lipid_form = Asym_Sample_Lipid_Form(project.id)
 
@@ -426,10 +425,6 @@ def symmetrical_parameters_new(request, project_id, sample_id):
 
     x = project.system_tempurature
 
-    # Prepare safe functions for eval
-    safe_functions = safe_function_dict()
-    safe_functions['x'] = x
-
     # Calculate combined volume
     for lipid in sample_lipids:
         combined_head_volume = combined_head_volume + (
@@ -437,11 +432,7 @@ def symmetrical_parameters_new(request, project_id, sample_id):
             )
         combined_tail_volume = combined_tail_volume + (
                 (
-                    eval(
-                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
-                        {"__builtins__":None},
-                        safe_functions
-                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
@@ -514,10 +505,6 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
 
     x = project.system_tempurature
 
-    # Prepare safe functions for eval
-    safe_functions = safe_function_dict()
-    safe_functions['x'] = x
-
     # Calculate combined volume
     for lipid in sample_lipids_in:
         in_combined_head_volume = in_combined_head_volume + (
@@ -525,11 +512,7 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
             )
         in_combined_tail_volume = in_combined_tail_volume + (
                 (
-                    eval(
-                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
-                        {"__builtins__":None},
-                        safe_functions
-                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
@@ -540,11 +523,7 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
             )
         out_combined_tail_volume = out_combined_tail_volume + (
                 (
-                    eval(
-                        lipid.sample_lipid_name.project_lipid_name.total_volume_equation,
-                        {"__builtins__":None},
-                        safe_functions
-                    ) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
                 )
                 * lipid.lipid_mol_fraction
             )
@@ -612,14 +591,20 @@ def data_upload(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
+    print(sample.id)
+
     q = []
     i = []
     e = []
 
+    print('before form')
     # Upload file
     if "data_upload" in request.POST:
-        data_upload_form = Data_Upload_Form(request.POST, request.FILES)
+        print(sample.id)
+        data_upload_form = Data_Upload_Form(request.POST, request.FILES, sample.id)
+        print('before valid')
         if data_upload_form.is_valid():
+            print('after valid')
             data_info = data_upload_form.save(commit=False)
             data_info.sample_title = sample
 
@@ -669,7 +654,7 @@ def data_upload(request, project_id, sample_id):
 
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
     else:
-        data_upload_form = Data_Upload_Form()
+        data_upload_form = Data_Upload_Form(sample.id)
 
     return render(
         request, 'viewer/data_upload.html',
