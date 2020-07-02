@@ -397,6 +397,15 @@ class Data_Form(forms.ModelForm):
             'data_type',
         ]
 
+class Data_Edit_Form(forms.ModelForm):
+    class Meta:
+        model = Data_Set
+        fields = [
+            'data_set_title',
+            'd2o_mol_fraction',
+            'data_type',
+        ]
+
 class Data_Upload_Form(Data_Form):
     data_file = forms.FileField()
 

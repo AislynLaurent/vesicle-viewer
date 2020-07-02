@@ -659,7 +659,14 @@ class Data_Set(models.Model):
 
     # Methods
     def clean(self):
-        # Tweaks
+        # D2O
+        if self.d2o_mol_fraction < 0:
+            raise ValidationError('Mol fraction cannot be less than 0')
+
+        if self.d2o_mol_fraction > 1:
+            raise ValidationError('Mol fraction cannot be greater than 1')
+
+        ## Tweaks
         # SC
         if self.scale_upperbound == self.scale_lowerbound:
             raise ValidationError('Scale upper and lower bound for \"' + self.data_set_title + '\" cannot be equal')
