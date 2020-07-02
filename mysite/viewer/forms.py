@@ -5,6 +5,16 @@ from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import *
 
+class Tutorial_Form(forms.ModelForm):
+    class Meta:
+        model = ExtendedUser
+        fields = [
+            'display_tutorial',
+        ]
+        labels = {
+            'display_tutorial': 'Show all tutorials',
+        }
+
 class Project_Form(forms.ModelForm):
     class Meta:
         model = Project

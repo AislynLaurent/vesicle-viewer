@@ -7,6 +7,28 @@
 
     {% if user.is_authenticated %}
 
+        {% if tutorial and x_user.display_tutorial %}
+            <div class="announcement">
+                <h3>Data Analysis</h3>
+                <p>This page is where you can preform your actual data analysis.</p>
+                <ul>
+                    <li><strong>The fit button</strong> saves the current parameter set and generates a new one, based on the model you're using. It then displays a red "line of best fit" to show you how your fit did.</li>
+                    <li><strong>Fit Statistics</strong> will give you more detailed information about the calculations competed during the fitting process.</li>
+                    <li><strong>Downloading your data</strong> will output your fit data values along with the fit statistics.</li>
+                </ul>
+                <p>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="dismiss_this" style="margin-right: 15px;">Temporarily dismiss <strong>just this page's</strong> tutorials</button>
+                    </form>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="dismiss_all">Permanently dismiss <strong>all</strong> tutorials</button>
+                    </form>
+                </p>
+            </div>
+        {% endif %}
+
     <div class="content-box">
         
         <div id="left">
@@ -46,16 +68,10 @@
         </div>
     </div>
 
-    {% if x_user.display_tutorial is True %}
+    {% if tutorial and x_user.display_tutorial %}
         <div class="announcement">
-            <h2>New here?</h2>
-            <p>Here is a short tutorial on how to use this page!</p>
-            <p>
-                <form id="inline" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" name="dismiss">Dismiss all Tutorials</button>
-                </form>
-            </p>
+            <p>Your parameters are shown on the left. Each one can be locked (so that it doesn't vary during the fit), changed, or constrained (by chainging it's upper and lower bounds).</p>
+            <h4>NOTE: You must hit "update" (at the bottom of the parameter section) every time you make a change. If you don't, those changes will not be reflected when you fit.</h4>
         </div>
     {% endif %}
 
@@ -740,6 +756,12 @@
     </div>
 
     <div id="container">
+
+        {% if tutorial and x_user.display_tutorial %}
+            <div class="announcement">
+                <p>Each dataset is graphed and displayed here, separated by type. To the right of each dataset, you can see parameters specific to that set. You can change these values to help improve the preformance of the joint fit on a particular dataset.</p>
+            </div>
+        {% endif %}
 
         {% if show_stats %}
 

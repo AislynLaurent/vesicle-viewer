@@ -8,6 +8,29 @@
 
   {% if user.is_authenticated %}
 
+    {% if tutorial and x_user.display_tutorial %}
+          <div class="announcement">
+              <h2>Lipid Augmentation</h2>
+              <p>Here you can add lipids <strong>specified on the project level</strong> to your <strong>sample</strong>.</p>
+              <ol>
+                <li>Choose a lipid from the drop-down list</li>
+                <li>Specify the mol fraction of that lipid <strong>out of 1</strong></li>
+                <li>Pick a pre-loaded augmentation or specify your own</li>
+              </ol>
+              <h4>NOTE: Adding your own augmentation is an advanced option, and will require you to specify the net change in the scattering length for all sections of that lipid. Custom augmentations cannot be seen by other users.</h4>
+              <p>
+                  <form id="inline" method="POST">
+                      {% csrf_token %}
+                      <button type="submit" name="dismiss_this" style="margin-right: 15px;">Temporarily dismiss <strong>just this</strong> tutorial</button>
+                  </form>
+                  <form id="inline" method="POST">
+                      {% csrf_token %}
+                      <button type="submit" name="dismiss_all">Permanently dismiss <strong>all</strong> tutorials</button>
+                  </form>
+              </p>
+          </div>
+      {% endif %}
+
       <div class="content-box">
           <h1>
               <a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a>
