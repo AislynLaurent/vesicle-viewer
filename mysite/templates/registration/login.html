@@ -16,6 +16,17 @@
 
   {% else %}
 
+  {% if form.errors %}
+        <div class="error">
+            <h4>Please correct the following errors before proceeding:</h4>
+            <ul>
+                {% for key, value in form.errors.items %}
+                    <li>{{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
   <div class="content-box">
 
     <h2>Login</h2>

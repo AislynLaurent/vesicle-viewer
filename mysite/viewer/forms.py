@@ -14,6 +14,16 @@ class Project_Form(forms.ModelForm):
             'system_tempurature',
         ]
 
+class Advanced_Options(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = [
+            'advanced_options',
+        ]
+        labels = {
+            'advanced_options': 'Allow me to vary the headgroup and chain volume',
+        }
+
 class Project_Lipid_Form(forms.ModelForm):
     class Meta:
         model = Project_Lipid
@@ -22,6 +32,18 @@ class Project_Lipid_Form(forms.ModelForm):
         ]
 
 class Sample_Form(forms.ModelForm):
+    project_id = 0
+
+    def __init__(self, project_id, *args, **kwargs):
+        super(Sample_Form, self).__init__(*args, **kwargs)
+        self.project_id = project_id
+
+    def clean(self):
+        samples = Sample.objects.filter(project_title_id=self.project_id, sample_title=self.data['sample_title'])
+        # Unique name per sample
+        if samples:
+            raise ValidationError('A sample with that name already exists for this project - please choose another')
+
     class Meta:
         model = Sample
         fields = [
@@ -106,11 +128,23 @@ class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
             'headgroup_thickness_lowerbound',
             'headgroup_thickness_lock',
 
+            # HV
+            'headgroup_volume',
+            'headgroup_volume_upperbound',
+            'headgroup_volume_lowerbound',
+            'headgroup_volume_lock',
+
             # TMV
             'terminal_methyl_volume',
             'terminal_methyl_volume_upperbound',
             'terminal_methyl_volume_lowerbound',
             'terminal_methyl_volume_lock',
+
+            # CV
+            'chain_volume',
+            'chain_volume_upperbound',
+            'chain_volume_lowerbound',
+            'chain_volume_lock',
 
             # Sigma
             'sigma',
@@ -136,7 +170,8 @@ class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Values
             'lipid_area' : forms.NumberInput(attrs={'class' : 'value'}),
             'headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
-            'terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
+            'headgroup_volume' : forms.NumberInput(attrs={'class' : 'value'}),
+            'terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),            'chain_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'sigma' : forms.NumberInput(attrs={'class' : 'value'}),
             'average_vesicle_radius' : forms.NumberInput(attrs={'class' : 'value'}),
             'relative_size' : forms.NumberInput(attrs={'class' : 'value'}),
@@ -144,7 +179,9 @@ class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Upperbound
             'lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'headgroup_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'chain_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'sigma_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'average_vesicle_radius_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'relative_size_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
@@ -152,7 +189,9 @@ class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Lowerbound
             'lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'headgroup_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'chain_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'sigma_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'average_vesicle_radius_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'relative_size_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
@@ -160,7 +199,9 @@ class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Lock
             'lipid_area_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'headgroup_thickness_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'headgroup_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'terminal_methyl_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'chain_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'sigma_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'average_vesicle_radius_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'relative_size_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
@@ -200,11 +241,23 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             'in_headgroup_thickness_lowerbound',
             'in_headgroup_thickness_lock',
 
+            # HV
+            'in_headgroup_volume',
+            'in_headgroup_volume_upperbound',
+            'in_headgroup_volume_lowerbound',
+            'in_headgroup_volume_lock',
+
             # TMV
             'in_terminal_methyl_volume',
             'in_terminal_methyl_volume_upperbound',
             'in_terminal_methyl_volume_lowerbound',
             'in_terminal_methyl_volume_lock',
+
+            # CV
+            'in_chain_volume',
+            'in_chain_volume_upperbound',
+            'in_chain_volume_lowerbound',
+            'in_chain_volume_lock',
 
             # LA
             'out_lipid_area',
@@ -218,11 +271,23 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             'out_headgroup_thickness_lowerbound',
             'out_headgroup_thickness_lock',
 
+            # HV
+            'out_headgroup_volume',
+            'out_headgroup_volume_upperbound',
+            'out_headgroup_volume_lowerbound',
+            'out_headgroup_volume_lock',
+
             # TMV
             'out_terminal_methyl_volume',
             'out_terminal_methyl_volume_upperbound',
             'out_terminal_methyl_volume_lowerbound',
             'out_terminal_methyl_volume_lock',
+
+            # CV
+            'out_chain_volume',
+            'out_chain_volume_upperbound',
+            'out_chain_volume_lowerbound',
+            'out_chain_volume_lock',
 
             # Sigma
             'sigma',
@@ -248,10 +313,14 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Values
             'in_lipid_area' : forms.NumberInput(attrs={'class' : 'value'}),
             'in_headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
+            'in_headgroup_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'in_terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
+            'in_chain_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'out_lipid_area' : forms.NumberInput(attrs={'class' : 'value'}),
             'out_headgroup_thickness' : forms.NumberInput(attrs={'class' : 'value'}),
+            'out_headgroup_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'out_terminal_methyl_volume' : forms.NumberInput(attrs={'class' : 'value'}),
+            'out_chain_volume' : forms.NumberInput(attrs={'class' : 'value'}),
             'sigma' : forms.NumberInput(attrs={'class' : 'value'}),
             'average_vesicle_radius' : forms.NumberInput(attrs={'class' : 'value'}),
             'relative_size' : forms.NumberInput(attrs={'class' : 'value'}),
@@ -259,10 +328,14 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Upperbound
             'in_lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'in_headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'in_headgroup_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'in_terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'in_chain_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'out_lipid_area_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'out_headgroup_thickness_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'out_headgroup_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'out_terminal_methyl_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
+            'out_chain_volume_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'sigma_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'average_vesicle_radius_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
             'relative_size_upperbound' : forms.NumberInput(attrs={'class' : 'upper_bound'}),
@@ -270,10 +343,14 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Lowerbound
             'in_lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'in_headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'in_headgroup_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'in_terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'in_chain_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'out_lipid_area_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'out_headgroup_thickness_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'out_headgroup_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'out_terminal_methyl_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
+            'out_chain_volume_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'sigma_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'average_vesicle_radius_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
             'relative_size_lowerbound' : forms.NumberInput(attrs={'class' : 'lower_bound'}),
@@ -281,7 +358,9 @@ class Asymmetrical_Parameter_Fit_Form(forms.ModelForm):
             # Lock
             'lipid_area_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'headgroup_thickness_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'headgroup_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'terminal_methyl_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
+            'chain_volume_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'sigma_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'average_vesicle_radius_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),
             'relative_size_lock' : forms.CheckboxInput(attrs={'class' : 'lock'}),

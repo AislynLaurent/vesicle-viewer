@@ -114,28 +114,44 @@
 
         <h2>Data Files</h2>
 
-    {% if datas %}
+    {% if data_xr or data_nu %}
 
         <table class="data indent">
             <tr>
-                <td><h4>Name</h4></td>
                 <td><h4>Data Type</h4></td>
-                <td><h4>D2O Mol Fraction</h4></td>
-                <td><h4>Uploaded</h4></td>
+                <td><h4>Name</h4></td>
+                <td><h4>D<sub>2</sub>O Mol Fraction</h4></td>
+                <td><h4>Date Uploaded</h4></td>
                 <td></td>
                 <td></td>
             </tr>
-            
-            {% for data in datas %}
+
+            <tr>
+                <td>X-Ray</td>
+            </tr>
+            {% for data in data_xr %}
                 <tr>
+                    <td></td>
                     <td>{{ data.data_set_title }}</td>
-                    <td>{{ data.data_type }}</td>
                     <td>{{ data.d2o_mol_fraction }}</td>
                     <td>{{ data.upload_time }}</td>
                     <td><a href="{% url 'viewer:data_edit' project_id=project.id sample_id=sample.id data_id=data.id %}">Edit</a></td>
                     <td><a href="{% url 'viewer:data_delete_warning' project_id=project.id sample_id=sample.id data_id=data.id %}">Delete</a></td>
                 </tr>
+            {% endfor %}
 
+            <tr>
+                <td>Neutron</td>
+            </tr>
+            {% for data in data_nu %}
+                <tr>
+                    <td></td>
+                    <td>{{ data.data_set_title }}</td>
+                    <td>{{ data.d2o_mol_fraction }}</td>
+                    <td>{{ data.upload_time }}</td>
+                    <td><a href="{% url 'viewer:data_edit' project_id=project.id sample_id=sample.id data_id=data.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:data_delete_warning' project_id=project.id sample_id=sample.id data_id=data.id %}">Delete</a></td>
+                </tr>
             {% endfor %}
             
         </table>
@@ -153,12 +169,22 @@
 
         {% if project.model_type == "SM" %}
             {% if parameters %}
+                <p></p>
                 <table class="parameter indent">
                         <tr>
-                            <td><h4>Name</h4></td>
-                            <td><h4>Overall Lipid Area</h4></td>
-                            <td><h4>Headgroup Thickness</h4></td>
-                            <td><h4>Terminal Methly Vol.</h4></td>
+                            <td><h4 id="inline">Name</h4></td>
+                            <td>
+                                <h4 id="inline">A<sub>L</sub> [&#8491;<sup>2</sup>] </h4>
+                                <span tooltip tooltip-top tooltip-content="Area per lipid"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                            <td>
+                                <h4 id="inline">D<sub>H</sub> [&#8491;] </h4>
+                                <span tooltip tooltip-top tooltip-content="Headgroup thickness"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                            <td>
+                                <h4 id="inline">V<sub>T</sub> [&#8491;<sup>3</sup>] </h4>
+                                <span tooltip tooltip-top tooltip-content="Terminal methyl volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
                             <td></td>
                             <td></td>
                         </tr>

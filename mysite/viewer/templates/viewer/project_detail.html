@@ -30,6 +30,7 @@
             {% endif %}
         </p>
         <p><h4 class="project-lipids indent" id="inline">Temp: </h4> {{ project.system_tempurature }} &degC</h4></p>
+        <p class="indent"><a href="{% url 'viewer:project_advanced_options' project_id=project.id %}">Advanced options</a></p>
 
     </div>
 
