@@ -129,6 +129,8 @@ class Project(models.Model):
     model_type = models.CharField(verbose_name='model type', choices=MODEL_CHOICES, max_length=3)
     # Temp
     system_tempurature = models.FloatField(verbose_name='system tempurature', default=0)
+    # Advanced
+    advanced_options = models.BooleanField(verbose_name="allow advanced options", default=False)
 
     # Meta
     class Meta:

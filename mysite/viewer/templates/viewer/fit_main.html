@@ -89,7 +89,7 @@
                     <!-- LA -->
                     <tr>
                         <td>
-                            <h4 id="inline">AL</h4>
+                            <h4 id="inline">A<sub>L</sub></h4>
                             {% if not parameter.lipid_area_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -121,7 +121,7 @@
                     <!-- HT -->
                     <tr>
                         <td>
-                            <h4 id="inline">HT</h4>
+                            <h4 id="inline">D<sub>H</sub></h4>
                             {% if not parameter.headgroup_thickness_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -153,17 +153,44 @@
                     <!-- HV -->
                     <tr>
                         <td>
-                            <h4 id="inline">HV</h4>
-                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                            <h4 id="inline">V<sub>H</sub></h4>
+                            {% if project.advanced_options %}
+                                {% if not parameter.headgroup_thickness_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.headgroup_volume_lock }}
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                            {% endif %}
                             <span tooltip tooltip-right tooltip-content="Headgroup volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
                         </td>
                     </tr>
                     <tr>
                         <td></td>
                     </tr>
-                    <tr>
-                        <td style="text-align: center;">{{ parameter.headgroup_volume }}</td>
-                    </tr>
+                    {% if project.advanced_options %}
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.headgroup_volume_upperbound }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ parameter_update_form.headgroup_volume }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.headgroup_volume_lowerbound }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td style="text-align: center;">{{ parameter.headgroup_volume }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td></td>
                     </tr>
@@ -174,7 +201,7 @@
                     <!-- TMV -->
                     <tr>
                         <td>
-                            <h4 id="inline">TMV</h4>
+                            <h4 id="inline">V<sub>T</sub></h4>
                             {% if not parameter.terminal_methyl_volume_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -206,17 +233,44 @@
                     <!-- CV -->
                     <tr>
                         <td>
-                            <h4 id="inline">CV</h4>
-                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                            <h4 id="inline">V<sub>C</sub></h4>
+                            {% if project.advanced_options %}
+                                {% if not parameter.chain_thickness_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.chain_volume_lock }}
+                            {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                            {% endif %}
                             <span tooltip tooltip-right tooltip-content="Chain volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
                         </td>
                     </tr>
                     <tr>
                         <td></td>
                     </tr>
-                    <tr>
-                        <td  style="text-align: center;">{{ parameter.chain_volume }}</td>
-                    </tr>
+                    {% if project.advanced_options %}
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.chain_volume_upperbound }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ parameter_update_form.chain_volume }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.chain_volume_lowerbound }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td  style="text-align: center;">{{ parameter.chain_volume }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td></td>
                     </tr>
@@ -237,7 +291,7 @@
                     <!-- LA -->
                     <tr>
                         <td>
-                            <h4 id="inline">LA</h4>
+                            <h4 id="inline">A<sub>L</sub></h4>
                             {% if not parameter.in_lipid_area_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -287,7 +341,7 @@
                     <!-- HT -->
                     <tr>
                         <td>
-                            <h4 id="inline">HT</h4>
+                            <h4 id="inline">D<sub>H</sub></h4>
                             {% if not parameter.in_headgroup_thickness_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -336,21 +390,67 @@
                     <!-- HV -->
                     <tr>
                         <td>
-                            <h4 id="inline">HV</h4>
-                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
-                        </td>
-                        <td>
-                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
-                            <span tooltip tooltip-right tooltip-content="Headgroup volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
-                        </td>
+                            <h4 id="inline">V<sub>H</sub></h4>
+                        {% if project.advanced_options %}
+                                {% if not parameter.in_headgroup_volume_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.in_headgroup_volume_lock }}
+                            </td>
+                            <td>
+                                {% if not parameter.out_headgroup_volume_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.out_headgroup_volume_lock }}
+                                <span tooltip tooltip-right tooltip-content="Terminal methyl volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                        {% else %}
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                <span tooltip tooltip-right tooltip-content="Headgroup volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td></td>
                     </tr>
-                    <tr>
-                        <td style="text-align: center;">{{ parameter.in_headgroup_volume }}</td>
-                        <td style="text-align: center;">{{ parameter.out_headgroup_volume }}</td>
-                    </tr>
+                    {% if project.advanced_options %}
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.in_headgroup_volume_upperbound }}
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.out_headgroup_volume_upperbound }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ parameter_update_form.in_headgroup_volume }}</td>
+                            <td>{{ parameter_update_form.out_headgroup_volume }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.in_headgroup_volume_lowerbound }}
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.out_headgroup_volume_lowerbound }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td  style="text-align: center;">{{ parameter.in_headgroup_volume }}</td>
+                            <td style="text-align: center;">{{ parameter.out_headgroup_volume }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td></td>
                     </tr>
@@ -361,7 +461,7 @@
                     <!-- TMV -->
                     <tr>
                         <td>
-                            <h4 id="inline">TMV</h4>
+                            <h4 id="inline">V<sub>T</sub></h4>
                             {% if not parameter.in_terminal_methyl_volume_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -409,21 +509,67 @@
 
                     <!-- CV -->
                     <tr>
-                        <td><h4 id="inline">CV</h4>
+                        <td><h4 id="inline">V<sub>C</sub></h4>
+                        {% if project.advanced_options %}
+                                {% if not parameter.in_chain_volume_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.in_chain_volume_lock }}
+                            </td>
+                            <td>
+                                {% if not parameter.out_chain_volume_lock %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
+                                {% else %}
+                                    <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                {% endif %}
+                                {{ parameter_update_form.out_chain_volume_lock }}
+                                <span tooltip tooltip-right tooltip-content="Terminal methyl volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                        {% else %}
                             <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
-                        </td>
-                        <td>
-                            <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
-                            <span tooltip tooltip-right tooltip-content="Chain volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
-                        </td>
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/lockclosed.png" %}" width="15px" alt="lock icon">
+                                <span tooltip tooltip-right tooltip-content="Chain volume"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+                            </td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td></td>
                     </tr>
-                    <tr>
-                        <td  style="text-align: center;">{{ parameter.in_chain_volume }}</td>
-                        <td style="text-align: center;">{{ parameter.out_chain_volume }}</td>
-                    </tr>
+                    {% if project.advanced_options %}
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.in_chain_volume_upperbound }}
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/up.png" %}" width="20px" alt="up icon">
+                                {{ parameter_update_form.out_chain_volume_upperbound }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ parameter_update_form.in_chain_volume }}</td>
+                            <td>{{ parameter_update_form.out_chain_volume }}</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.in_chain_volume_lowerbound }}
+                            </td>
+                            <td>
+                                <img id="no-margins" src="{% static "viewer/images/down.png" %}" width="20px" alt="down icon">
+                                {{ parameter_update_form.out_chain_volume_lowerbound }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td  style="text-align: center;">{{ parameter.in_chain_volume }}</td>
+                            <td style="text-align: center;">{{ parameter.out_chain_volume }}</td>
+                        </tr>
+                    {% endif %}
                     <tr>
                         <td></td>
                     </tr>
@@ -442,7 +588,7 @@
                 <!-- SIG -->
                 <tr>
                     <td>
-                        <h4 id="inline">SIG</h4>
+                        <h4 id="inline">&sigma;</h4>
                         {% if not parameter.sigma_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -476,7 +622,7 @@
                     <!-- AVR -->
                     <tr>
                         <td>
-                            <h4 id="inline">SF.R</h4>
+                            <h4 id="inline">R<sub>m</sub></h4>
                             {% if not parameter.average_vesicle_radius_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -507,7 +653,7 @@
 
                     <!-- RSP -->
                     <tr>
-                        <td><h4 id="inline">SF.SIG</h4>
+                        <td><h4 id="inline">&sigma;<sub>SF</sub></h4>
                             {% if not parameter.relative_size_lock %}
                                 <img id="no-margins" src="{% static "viewer/images/lockopen.png" %}" width="15px" alt="lock icon">
                             {% else %}
@@ -540,7 +686,7 @@
 
                     <!-- AVR -->
                     <tr class="hidden">
-                        <td><h4>SF.R {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
+                        <td><h4>R<sub>m</sub> {{ parameter_update_form.average_vesicle_radius_lock }}</h4></td>
                     </tr>
                     <tr class="hidden">
                         <td>{{ parameter_update_form.average_vesicle_radius_upperbound }}</td>
@@ -557,7 +703,7 @@
 
                     <!-- RSP -->
                     <tr class="hidden">
-                        <td><h4>SF.SIG {{ parameter_update_form.relative_size_lock }}</h4></td>
+                        <td><h4>&sigma;<sub>SF</sub> {{ parameter_update_form.relative_size_lock }}</h4></td>
                     </tr>
                     <tr class="hidden">
                         <td>{{ parameter_update_form.relative_size_upperbound }}</td>
@@ -575,7 +721,7 @@
                 {% endif %}
 
                 <tr>
-                    <td>
+                    <td style="text-align: center;">
                         <button type="submit" name="parameter_update">Update</button>
                     </td>
                 </tr>
@@ -714,7 +860,7 @@
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td>
+                                    <td style="text-align: center;">
                                         <button type="submit" name="{{xray_data.data_set_title}}" >Update</button>
                                     </td>
                                 </tr>
@@ -837,7 +983,7 @@
                                     <td><hr /></td>
                                 </tr>
                                 <tr>
-                                    <td>
+                                    <td style="text-align: center;">
                                         <button type="submit" name="{{neutron_data.data_set_title}}" >Update</button>
                                     </td>
                                 </tr>

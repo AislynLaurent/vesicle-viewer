@@ -22,6 +22,8 @@ urlpatterns = [
     path('project/list', views.project_list, name='project_list'),
     # Project details
     path('project/<int:project_id>', views.project_detail, name='project_detail'),
+    # Turn on advanced options for this project
+    path('project/<int:project_id>/edit/', views.project_advanced_options, name='project_advanced_options'),
     # Edit a project
     path('project/<int:project_id>/edit/', views.project_edit, name='project_edit'),
     # Warning & delete project

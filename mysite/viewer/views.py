@@ -14,6 +14,7 @@ import numpy as np
 import lmfit as lsq
 from copy import deepcopy
 import re
+import pylatexenc as tex
 
 # Models
 from .models import *
@@ -107,6 +108,22 @@ def project_edit(request, project_id):
 
     return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
+# Allow users to use advanced options (vary volume parameters mostly)
+def project_advanced_options(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    if request.method == 'POST':
+        form = Advanced_Options(request.POST, instance=project)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.owner = request.user
+            post.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Advanced_Options(instance=project)
+
+    return render(request, 'viewer/form.html', {'project':project, 'form': form})
+
 # Delete project
 def project_delete_warning(request, project_id):
     project = get_object_or_404(Project, id=project_id)
@@ -151,21 +168,23 @@ def sample_new(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
     if request.method == 'POST':
-        form = Sample_Form(request.POST)
+        form = Sample_Form(project.id, request.POST)
         if form.is_valid():
             sample = form.save(commit=False)
             sample.project_title = project
             sample.save()
             return redirect('viewer:project_detail', project_id=project.id)
     else:
-        form = Sample_Form()
+        form = Sample_Form(project.id)
     return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
 # Specific sample details
 def sample_detail(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
-    datas = Data_Set.objects.filter(sample_title_id=sample_id)
+
+    data_xr = Data_Set.objects.filter(sample_title_id=sample_id, data_type='XR')
+    data_nu = Data_Set.objects.filter(sample_title_id=sample_id, data_type='NU')
     
     sample_lipids_both = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
     sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
@@ -203,7 +222,8 @@ def sample_detail(request, project_id, sample_id):
             'sample_lipids_both':sample_lipids_both,
             'sample_lipids_in':sample_lipids_in,
             'sample_lipids_out':sample_lipids_out,
-            'datas':datas,
+            'data_xr':data_xr,
+            'data_nu':data_nu,
             'parameters':parameters,
             'total_mols':total_mols,
             'total_mols_in':total_mols_in,
@@ -217,14 +237,14 @@ def sample_edit(request, project_id, sample_id):
     sample = get_object_or_404(Sample, id=sample_id)
 
     if request.method == 'POST':
-        form = Sample_Form(request.POST, instance=sample)
+        form = Sample_Form(project.id, request.POST, instance=sample)
         if form.is_valid():
             post = form.save(commit=False)
             post.owner = request.user
             post.save()
             return redirect('viewer:project_detail', project_id=project.id)
     else:
-        form = Sample_Form(instance=sample)
+        form = Sample_Form(project.id, instance=sample)
 
     return render(request, 'viewer/form.html', {'project':project, 'sample':sample, 'form': form})
 
@@ -728,6 +748,10 @@ def fit_main(request, project_id, sample_id, parameter_id):
     if "dismiss" in request.POST:
         x_user.display_tutorial = False
         x_user.save()
+    # Dismiss all tutorials
+    if "dismiss" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
 
     # Update parameters
     if project.model_type == "SM":
@@ -910,7 +934,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         writer.writerow([])
 
-        writer.writerow(['Q', 'Experimental i', 'Calculated i'])
+        writer.writerow(['Q', 'Experimental i', 'Experimental Error', 'Calculated i'])
 
         for xray_data in xray_datas:
             writer.writerow([xray_data.data_set_title])
@@ -921,7 +945,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
             j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
-                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], calculated_i_values[j]])
+                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], xray_data.error_value[i], calculated_i_values[j]])
                 j = j+1
 
         for neutron_data in neutron_datas:
@@ -933,7 +957,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
             j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):
-                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], calculated_i_values[j]])
+                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], neutron_data.error_value[i], calculated_i_values[j]])
                 j = j+1
 
         return response
