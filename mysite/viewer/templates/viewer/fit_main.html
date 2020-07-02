@@ -36,10 +36,12 @@
                 </form>
             {% endif %}
 
-            <form id="inline" method="POST">
-                {% csrf_token %}
-                <button class="success" type="submit" name="fit"><h2 id="no-margins">Fit!</h2></button>
-            </form>
+            {% if data_exists %}
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button class="success" type="submit" name="fit"><h2 id="no-margins">Fit!</h2></button>
+                </form>
+            {% endif %}
 
         </div>
     </div>
@@ -51,9 +53,16 @@
             <p>
                 <form id="inline" method="POST">
                     {% csrf_token %}
-                    <button type="submit" name="dismiss">Dismiss Tutorials</button>
+                    <button type="submit" name="dismiss">Dismiss all Tutorials</button>
                 </form>
             </p>
+        </div>
+    {% endif %}
+
+    {% if not data_exists %}
+        <div class="error">
+            <h4>No datasets have been loaded... please add at least one before attempting to fit.</h4>
+            <p><a href="{% url 'viewer:data_upload' project_id=project.id sample_id=sample.id %}">Click Here</a> to add a dataset.</p>
         </div>
     {% endif %}
 

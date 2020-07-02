@@ -734,7 +734,10 @@ def fit_main(request, project_id, sample_id, parameter_id):
         
 
     # Data
+    data_exists = False
     datas = Data_Set.objects.filter(sample_title_id=sample_id)
+    if datas:
+        data_exists = True
     xray_datas = datas.filter(data_type='XR')
     neutron_datas = datas.filter(data_type='NU')
 
@@ -1071,6 +1074,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'x_user':x_user,
         'project':project,
         'sample':sample,
+        'data_exists':data_exists,
         'parameter':parameter,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
