@@ -31,8 +31,29 @@ from .asymfit import asymmetrical_graph
 ## STATIC PAGES
 # Home
 def index(request):
-    context = {}
-    return render(request, 'viewer/index.html', context)
+    ## Import
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    
+    tutorial = True
+
+    # Forms
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+
+    return render(
+        request,
+        'viewer/index.html', {
+            'tutorial':tutorial,
+            'x_user':x_user,
+        }
+    )
+
 # About
 def about(request):
     context = {}
@@ -45,6 +66,23 @@ def get_help(request):
 def privacy(request):
     context = {}
     return render(request, 'viewer/privacy.html', context)
+
+# Tutorial Form
+def enable_tutorials(request):
+    ## Import
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+
+    if request.method == 'POST':
+        form = Tutorial_Form(request.POST, instance=x_user)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.owner = request.user
+            post.save()
+            return redirect('viewer:index')
+    else:
+        form = Tutorial_Form(instance=x_user)
+
+    return render(request, 'viewer/form.html', {'form': form})
 
 ## MODEL PAGES
 # Lipid
@@ -73,12 +111,46 @@ def project_new(request):
 
 # List existing projects
 def project_list(request):
+    ## Tutorials
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    tutorial = True
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+    
+    ## List
     symmetrical_projects = Project.objects.filter(owner=request.user, model_type='SM').order_by('project_title')
     asymmetrical_projects = Project.objects.filter(owner=request.user, model_type='AS').order_by('project_title')
-    return render(request, 'viewer/project_list.html', {'symmetrical_projects':symmetrical_projects, 'asymmetrical_projects':asymmetrical_projects})
+
+    return render(
+        request,
+        'viewer/project_list.html', {
+            'tutorial':tutorial,
+            'x_user':x_user,
+            'symmetrical_projects':symmetrical_projects,
+            'asymmetrical_projects':asymmetrical_projects
+        }
+    )
 
 # Specific project details
 def project_detail(request, project_id):
+    ## Tutorials
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    tutorial = True
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+
     project = get_object_or_404(Project, id=project_id)
     samples = Sample.objects.filter(project_title_id=project_id)
     project_lipids = Project_Lipid.objects.filter(project_title_id=project_id)
@@ -86,6 +158,8 @@ def project_detail(request, project_id):
     return render(
         request,
         'viewer/project_detail.html', {
+            'tutorial':tutorial,
+            'x_user':x_user,
             'project':project,
             'project_lipids':project_lipids,
             'samples':samples,
@@ -180,6 +254,18 @@ def sample_new(request, project_id):
 
 # Specific sample details
 def sample_detail(request, project_id, sample_id):
+    ## Tutorials
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    tutorial = True
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
@@ -217,6 +303,8 @@ def sample_detail(request, project_id, sample_id):
     return render(
         request,
         'viewer/sample_detail.html', {
+            'tutorial':tutorial,
+            'x_user':x_user,
             'project':project,
             'sample':sample,
             'sample_lipids_both':sample_lipids_both,
@@ -261,6 +349,18 @@ def sample_delete_warning(request, project_id, sample_id):
 
 # Add lipids to a sample
 def sample_lipid_new(request, project_id, sample_id):
+    ## Tutorials
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    tutorial = True
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
@@ -313,6 +413,8 @@ def sample_lipid_new(request, project_id, sample_id):
     return render(
         request,
         'viewer/sample_lipid_form.html', {
+            'tutorial':tutorial,
+            'x_user':x_user,
             'project':project,
             'sample':sample,
             'lipid_form': lipid_form,
@@ -717,6 +819,18 @@ def data_delete_warning(request, project_id, sample_id, data_id):
 ## Fit
 # Main fit page
 def fit_main(request, project_id, sample_id, parameter_id):
+    ## Tutorials
+    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    tutorial = True
+    # Dismiss the tutorial
+    if "dismiss_this" in request.POST:
+        tutorial = False
+
+    # Dismiss all tutorials
+    if "dismiss_all" in request.POST:
+        x_user.display_tutorial = False
+        x_user.save()
+
     ## Import
     x_user = get_object_or_404(ExtendedUser, user=request.user)
 
@@ -732,9 +846,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
         sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
         parameter = get_object_or_404(Asymmetrical_Parameters, id=parameter_id)
         
-
     # Data
+    data_exists = False
     datas = Data_Set.objects.filter(sample_title_id=sample_id)
+    if datas:
+        data_exists = True
     xray_datas = datas.filter(data_type='XR')
     neutron_datas = datas.filter(data_type='NU')
 
@@ -743,16 +859,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     fit_result = None
     show_statistics = False
 
-    # Forms
-    # Dismiss the tutorial
-    if "dismiss" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
-    # Dismiss all tutorials
-    if "dismiss" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
-
+    ## Forms
     # Update parameters
     if project.model_type == "SM":
         if "parameter_update" in request.POST:
@@ -1068,9 +1175,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
     neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
     return render(request, 'viewer/fit_main.html', {
+        'tutorial':tutorial,
         'x_user':x_user,
         'project':project,
         'sample':sample,
+        'data_exists':data_exists,
         'parameter':parameter,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,

@@ -7,6 +7,23 @@
 
     {% if user.is_authenticated %}
 
+        {% if tutorial and x_user.display_tutorial %}
+            <div class="announcement">
+                <h3>Projects and Models</h3>
+                <p>Here your projects are listed, organized by "model". A <strong>project</strong> stores all the information about a particular project that you're working on, including subprojects called samples where your data is stored. The <strong>model</strong> of a given project specifies which math is used to process the data in that project.</p>
+                <p>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="dismiss_this" style="margin-right: 15px;">Temporarily dismiss <strong>just this</strong> tutorial</button>
+                    </form>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="dismiss_all">Permanently dismiss <strong>all</strong> tutorials</button>
+                    </form>
+                </p>
+            </div>
+        {% endif %}
+
         {% if symmetrical_projects %}
 
             <div class="content-box">

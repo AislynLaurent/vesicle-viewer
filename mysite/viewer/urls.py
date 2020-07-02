@@ -8,6 +8,9 @@ urlpatterns = [
     path('about', views.about, name='about'),
     path('help', views.get_help, name='help'),
     path('privacy', views.privacy, name='privacy'),
+
+    ## Tutorials
+    path('tutorials', views.enable_tutorials, name='enable_tutorials'),
     
     ## Models
     # Lipid

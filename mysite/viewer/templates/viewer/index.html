@@ -5,10 +5,24 @@
 
 {% block content %}
 
-    <div class="announcement">
-        <h2>This site requires the use of cookies.</h2>
-        <p>This project is currently in <strong>alpha version 0.6</strong>, and is therefore not production ready. Some features are currently in development, and may not preform as expected. Thanks for your patience.</p>
-    </div>
+    {% if tutorial and x_user.display_tutorial %}
+        <div class="announcement">
+            <h2>Tutorials</h2>
+            <p>These tutorials are designed to help you understand how to use this tool.</p>
+            <p>This project is currently in <strong>alpha version 0.8</strong>, and is therefore not production ready. Some features are currently in development, and may not preform as expected. Thanks for your patience.</p>
+            <p><strong>This site requires the use of cookies.</strong></p>
+            <p>
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="dismiss_this" style="margin-right: 15px;">Temporarily dismiss <strong>just this</strong> tutorial</button>
+                </form>
+                <form id="inline" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="dismiss_all">Permanently dismiss <strong>all</strong> tutorials</button>
+                </form>
+            </p>
+        </div>
+    {% endif %}
 
     <div class="content-box">
         <h1>Vesicle Viewer - Lipid Bilayer SAS Data Visualization Tool</h1>

@@ -224,6 +224,14 @@ main img {
     margin: 10px 0 10px 0;
 }
 
+.error a {
+    color: #5E7087;
+}
+
+.error a:hover {
+    color: #7D90A6;
+}
+
 .content-box {
     background-color: #353C53;
     border-radius: 5px;
