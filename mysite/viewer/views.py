@@ -1084,8 +1084,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
     ## GRAPHS
     xray_figures = []
     neutron_figures = []
-    xray_probabilities = []
-    neutron_probabilities = []
 
     # X-Ray fit graphs
     for xray_data in xray_datas:
@@ -1178,101 +1176,262 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
-    # X-Ray probability graphs
-    for xray_data in xray_datas:
-        xray_prob_fig = plt.figure(figsize=(5.5,4.3))
+    # Probability graphs
+    prob_fig = plt.figure(figsize=(6,5))
 
-        if project.model_type == "SM":
-            # headgroup
-            plt.plot(
-                xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                head(parameter, xray_data.q_value[xray_data.min_index:xray_data.max_index]),
-                color='c',
-                label='Headgroup',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                chain(parameter, xray_data),
-                color='g',
-                label='Chains',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                terminal(parameter, xray_data),
-                color='m',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            # methylene
-            plt.plot(
-                xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                methylene(parameter, xray_data),
-                color='k',
-                label='Methylene',
-                zorder=3
-            )
-            # water
-            plt.plot(
-                xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                water(parameter, xray_data),
-                color='b',
-                label='Water',
-                zorder=4
-            )
+    # Symmetrical - combined halfs
+    if project.model_type == "SM":
+        x_values = np.arange(-40, 40, 0.2)
+        # headgroup
+        plt.plot(
+            x_values,
+            head(
+                parameter.chain_volume,
+                parameter.headgroup_volume,
+                parameter.lipid_area,
+                parameter.headgroup_thickness,
+                parameter.sigma,
+                x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            label='Headgroup',
+            zorder=0
+        )
+        # chain
+        plt.plot(
+            x_values,
+            chain(
+                parameter.chain_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            label='Chains',
+            zorder=1
+        )
+        # terminal methyl
+        plt.plot(
+            x_values,
+            terminal(
+                parameter.terminal_methyl_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            label='Terminal Methyl',
+            zorder=2
+        )
+        # methylene
+        plt.plot(
+            x_values,
+            methylene(
+                parameter.chain_volume,
+                parameter.terminal_methyl_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            label='Methylene',
+            zorder=3
+        )
+        # water
+        plt.plot(
+            x_values,
+            water(
+                parameter.chain_volume,
+                parameter.headgroup_volume,
+                parameter.lipid_area,
+                parameter.headgroup_thickness,
+                parameter.sigma,
+                x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            label='Water',
+            zorder=4
+        )
 
-        xray_probabilities.append(mpld3.fig_to_html(xray_prob_fig))
+        plt.legend(loc=1)
+        plt.xlabel('Distance from bilayer center [A]')
+        plt.ylabel('Volume probability')
 
-    # Neutron probability graphs
-    for neutron_data in neutron_datas:
-        neutron_prob_fig = plt.figure(figsize=(5.5,4.3))
+    # Asymmetrical - separate halfs
+    if project.model_type == "AS":
+        in_x_values = np.arange(-40, 0.2, 0.2)
+        out_x_values = np.arange(-0.2, 40, 0.2)
+        # in headgroup
+        plt.plot(
+            in_x_values,
+            head(
+                parameter.in_chain_volume,
+                parameter.in_headgroup_volume,
+                parameter.in_lipid_area,
+                parameter.in_headgroup_thickness,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            label='Headgroup',
+            zorder=0
+        )
+        # out headgroup
+        plt.plot(
+            out_x_values,
+            head(
+                parameter.out_chain_volume,
+                parameter.out_headgroup_volume,
+                parameter.out_lipid_area,
+                parameter.out_headgroup_thickness,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            zorder=0
+        )
+        # in chain
+        plt.plot(
+            in_x_values,
+            chain(
+                parameter.in_chain_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            label='Chains',
+            zorder=1
+        )
+        # out chain
+        plt.plot(
+            out_x_values,
+            chain(
+                parameter.out_chain_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            zorder=1
+        )
+        # in terminal methyl
+        plt.plot(
+            in_x_values,
+            terminal(
+                parameter.in_terminal_methyl_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            label='Terminal Methyl',
+            zorder=2
+        )
+        # out terminal methyl
+        plt.plot(
+            out_x_values,
+            terminal(
+                parameter.out_terminal_methyl_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            zorder=2
+        )
+        # in methylene
+        plt.plot(
+            in_x_values,
+            methylene(
+                parameter.in_chain_volume,
+                parameter.in_terminal_methyl_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            label='Methylene',
+            zorder=3
+        )
+        # out methylene
+        plt.plot(
+            out_x_values,
+            methylene(
+                parameter.out_chain_volume,
+                parameter.out_terminal_methyl_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            zorder=3
+        )
+        # in water
+        plt.plot(
+            in_x_values,
+            water(
+                parameter.in_chain_volume,
+                parameter.in_headgroup_volume,
+                parameter.in_lipid_area,
+                parameter.in_headgroup_thickness,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            label='Water',
+            zorder=4
+        )
+        # out water
+        plt.plot(
+            out_x_values,
+            water(
+                parameter.out_chain_volume,
+                parameter.out_headgroup_volume,
+                parameter.out_lipid_area,
+                parameter.out_headgroup_thickness,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            zorder=4
+        )
 
-        if project.model_type == "SM":
-            # headgroup
-            plt.plot(
-                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                head(parameter, neutron_data.q_value[neutron_data.min_index:neutron_data.max_index]),
-                color='c',
-                label='Headgroup',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                chain(parameter, neutron_data),
-                color='g',
-                label='Chains',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                terminal(parameter, neutron_data),
-                color='m',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            # methylene
-            plt.plot(
-                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                methylene(parameter, neutron_data),
-                color='k',
-                label='Methylene',
-                zorder=3
-            )
-            # water
-            plt.plot(
-                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                water(parameter, neutron_data),
-                color='b',
-                label='Water',
-                zorder=4
-            )
+        plt.legend(loc=1)
+        plt.xlabel('Distance from bilayer center [A]')
+        plt.ylabel('Volume probability')
 
-        neutron_probabilities.append(mpld3.fig_to_html(xray_prob_fig))
+    prob_graph = mpld3.fig_to_html(prob_fig)
 
     xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
     neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
@@ -1290,6 +1449,5 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'show_probs':show_probabilities,
         'xray_graphs_and_forms':xray_graphs_and_forms,
         'neutron_graphs_and_forms':neutron_graphs_and_forms,
-        'xray_probabilities':xray_probabilities,
-        'neutron_probabilities':neutron_probabilities,
+        'prob_graph':prob_graph,
     })
