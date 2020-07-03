@@ -27,6 +27,7 @@ from .symfit import symmetrical_fit
 from .symfit import symmetrical_graph
 from .asymfit import asymmetrical_fit
 from .asymfit import asymmetrical_graph
+from .symprobabilities import *
 
 ## STATIC PAGES
 # Home
@@ -831,9 +832,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
         x_user.display_tutorial = False
         x_user.save()
 
-    ## Import
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
-
     # Overall
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
@@ -858,6 +856,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     now = timezone.now()
     fit_result = None
     show_statistics = False
+    show_probabilities = False
 
     ## Forms
     # Update parameters
@@ -1069,18 +1068,24 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         return response
 
-    # Show stats / graph
+    # Show stats / probabilities / graph
     if "statistics" in request.POST:
         show_statistics = True
+        show_probabilities = False
+
+    if "probabilities" in request.POST:
+        show_probabilities = True
+        show_statistics = False
 
     if "graphs" in request.POST:
         show_statistics = False
+        show_probabilities = False
 
     ## GRAPHS
     xray_figures = []
     neutron_figures = []
 
-    # X-Ray graphs
+    # X-Ray fit graphs
     for xray_data in xray_datas:
         xray_fig = plt.figure(figsize=(5.5,4.3))
 
@@ -1126,7 +1131,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         xray_figures.append(mpld3.fig_to_html(xray_fig))
 
-    # Neutron graphs
+    # Neutron fit graphs
     for neutron_data in neutron_datas:
         neutron_fig = plt.figure(figsize=(5.5,4.3))
         # Data scatter plot
@@ -1171,6 +1176,263 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
+    # Probability graphs
+    prob_fig = plt.figure(figsize=(6,5))
+
+    # Symmetrical - combined halfs
+    if project.model_type == "SM":
+        x_values = np.arange(-40, 40, 0.2)
+        # headgroup
+        plt.plot(
+            x_values,
+            head(
+                parameter.chain_volume,
+                parameter.headgroup_volume,
+                parameter.lipid_area,
+                parameter.headgroup_thickness,
+                parameter.sigma,
+                x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            label='Headgroup',
+            zorder=0
+        )
+        # chain
+        plt.plot(
+            x_values,
+            chain(
+                parameter.chain_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            label='Chains',
+            zorder=1
+        )
+        # terminal methyl
+        plt.plot(
+            x_values,
+            terminal(
+                parameter.terminal_methyl_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            label='Terminal Methyl',
+            zorder=2
+        )
+        # methylene
+        plt.plot(
+            x_values,
+            methylene(
+                parameter.chain_volume,
+                parameter.terminal_methyl_volume,
+                parameter.lipid_area,
+                parameter.sigma,
+                x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            label='Methylene',
+            zorder=3
+        )
+        # water
+        plt.plot(
+            x_values,
+            water(
+                parameter.chain_volume,
+                parameter.headgroup_volume,
+                parameter.lipid_area,
+                parameter.headgroup_thickness,
+                parameter.sigma,
+                x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            label='Water',
+            zorder=4
+        )
+
+        plt.legend(loc=1)
+        plt.xlabel('Distance from bilayer center [A]')
+        plt.ylabel('Volume probability')
+
+    # Asymmetrical - separate halfs
+    if project.model_type == "AS":
+        in_x_values = np.arange(-40, 0.2, 0.2)
+        out_x_values = np.arange(-0.2, 40, 0.2)
+        # in headgroup
+        plt.plot(
+            in_x_values,
+            head(
+                parameter.in_chain_volume,
+                parameter.in_headgroup_volume,
+                parameter.in_lipid_area,
+                parameter.in_headgroup_thickness,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            label='Headgroup',
+            zorder=0
+        )
+        # out headgroup
+        plt.plot(
+            out_x_values,
+            head(
+                parameter.out_chain_volume,
+                parameter.out_headgroup_volume,
+                parameter.out_lipid_area,
+                parameter.out_headgroup_thickness,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='c',
+            marker='.',
+            markersize='5',
+            zorder=0
+        )
+        # in chain
+        plt.plot(
+            in_x_values,
+            chain(
+                parameter.in_chain_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            label='Chains',
+            zorder=1
+        )
+        # out chain
+        plt.plot(
+            out_x_values,
+            chain(
+                parameter.out_chain_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='g',
+            marker='v',
+            markersize='5',
+            zorder=1
+        )
+        # in terminal methyl
+        plt.plot(
+            in_x_values,
+            terminal(
+                parameter.in_terminal_methyl_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            label='Terminal Methyl',
+            zorder=2
+        )
+        # out terminal methyl
+        plt.plot(
+            out_x_values,
+            terminal(
+                parameter.out_terminal_methyl_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='m',
+            marker='s',
+            markersize='5',
+            zorder=2
+        )
+        # in methylene
+        plt.plot(
+            in_x_values,
+            methylene(
+                parameter.in_chain_volume,
+                parameter.in_terminal_methyl_volume,
+                parameter.in_lipid_area,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            label='Methylene',
+            zorder=3
+        )
+        # out methylene
+        plt.plot(
+            out_x_values,
+            methylene(
+                parameter.out_chain_volume,
+                parameter.out_terminal_methyl_volume,
+                parameter.out_lipid_area,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='k',
+            marker='p',
+            markersize='5',
+            zorder=3
+        )
+        # in water
+        plt.plot(
+            in_x_values,
+            water(
+                parameter.in_chain_volume,
+                parameter.in_headgroup_volume,
+                parameter.in_lipid_area,
+                parameter.in_headgroup_thickness,
+                parameter.sigma,
+                in_x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            label='Water',
+            zorder=4
+        )
+        # out water
+        plt.plot(
+            out_x_values,
+            water(
+                parameter.out_chain_volume,
+                parameter.out_headgroup_volume,
+                parameter.out_lipid_area,
+                parameter.out_headgroup_thickness,
+                parameter.sigma,
+                out_x_values
+            ),
+            color='b',
+            marker='x',
+            markersize='5',
+            zorder=4
+        )
+
+        plt.legend(loc=1)
+        plt.xlabel('Distance from bilayer center [A]')
+        plt.ylabel('Volume probability')
+
+    prob_graph = mpld3.fig_to_html(prob_fig)
+
     xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
     neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
@@ -1184,6 +1446,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
         'show_stats':show_statistics,
+        'show_probs':show_probabilities,
         'xray_graphs_and_forms':xray_graphs_and_forms,
-        'neutron_graphs_and_forms':neutron_graphs_and_forms
+        'neutron_graphs_and_forms':neutron_graphs_and_forms,
+        'prob_graph':prob_graph,
     })

@@ -48,7 +48,19 @@
                 {% else %}
                     <form id="inline" method="POST">
                         {% csrf_token %}
-                        <button type="submit" name="statistics">Show Fit Statistics</button>
+                        <button type="submit" name="statistics">Show Statistics</button>
+                    </form>
+                {% endif %}
+
+                {% if show_probs %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="graphs">Show Fit</button>
+                    </form>
+                {% else %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="probabilities">Show Probabilities</button>
                     </form>
                 {% endif %}
                 
@@ -775,6 +787,18 @@
                     {% endif %}
 
                 {% endfor %}
+            </div>
+
+        {% elif show_probs %}
+
+            <div class="content-box">
+                <h2>Probability Distribution</h2>
+            </div>
+            <div class="content-box">
+                <p></p>
+                <div id="left" class="graph-box">
+                    {{prob_graph|safe}}
+                </div>
             </div>
 
         {% else %}
