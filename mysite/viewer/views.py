@@ -27,6 +27,7 @@ from .symfit import symmetrical_fit
 from .symfit import symmetrical_graph
 from .asymfit import asymmetrical_fit
 from .asymfit import asymmetrical_graph
+from .symprobabilities import *
 
 ## STATIC PAGES
 # Home
@@ -831,9 +832,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
         x_user.display_tutorial = False
         x_user.save()
 
-    ## Import
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
-
     # Overall
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
@@ -858,6 +856,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     now = timezone.now()
     fit_result = None
     show_statistics = False
+    show_probabilities = False
 
     ## Forms
     # Update parameters
@@ -1069,18 +1068,26 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         return response
 
-    # Show stats / graph
+    # Show stats / probabilities / graph
     if "statistics" in request.POST:
         show_statistics = True
+        show_probabilities = False
+
+    if "probabilities" in request.POST:
+        show_probabilities = True
+        show_statistics = False
 
     if "graphs" in request.POST:
         show_statistics = False
+        show_probabilities = False
 
     ## GRAPHS
     xray_figures = []
     neutron_figures = []
+    xray_probabilities = []
+    neutron_probabilities = []
 
-    # X-Ray graphs
+    # X-Ray fit graphs
     for xray_data in xray_datas:
         xray_fig = plt.figure(figsize=(5.5,4.3))
 
@@ -1126,7 +1133,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         xray_figures.append(mpld3.fig_to_html(xray_fig))
 
-    # Neutron graphs
+    # Neutron fit graphs
     for neutron_data in neutron_datas:
         neutron_fig = plt.figure(figsize=(5.5,4.3))
         # Data scatter plot
@@ -1171,6 +1178,102 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
 
+    # X-Ray probability graphs
+    for xray_data in xray_datas:
+        xray_prob_fig = plt.figure(figsize=(5.5,4.3))
+
+        if project.model_type == "SM":
+            # headgroup
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                head(parameter, xray_data.q_value[xray_data.min_index:xray_data.max_index]),
+                color='c',
+                label='Headgroup',
+                zorder=0
+            )
+            # chain
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                chain(parameter, xray_data),
+                color='g',
+                label='Chains',
+                zorder=1
+            )
+            # terminal methyl
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                terminal(parameter, xray_data),
+                color='m',
+                label='Terminal Methyl',
+                zorder=2
+            )
+            # methylene
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                methylene(parameter, xray_data),
+                color='k',
+                label='Methylene',
+                zorder=3
+            )
+            # water
+            plt.plot(
+                xray_data.q_value[xray_data.min_index:xray_data.max_index],
+                water(parameter, xray_data),
+                color='b',
+                label='Water',
+                zorder=4
+            )
+
+        xray_probabilities.append(mpld3.fig_to_html(xray_prob_fig))
+
+    # Neutron probability graphs
+    for neutron_data in neutron_datas:
+        neutron_prob_fig = plt.figure(figsize=(5.5,4.3))
+
+        if project.model_type == "SM":
+            # headgroup
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                head(parameter, neutron_data.q_value[neutron_data.min_index:neutron_data.max_index]),
+                color='c',
+                label='Headgroup',
+                zorder=0
+            )
+            # chain
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                chain(parameter, neutron_data),
+                color='g',
+                label='Chains',
+                zorder=1
+            )
+            # terminal methyl
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                terminal(parameter, neutron_data),
+                color='m',
+                label='Terminal Methyl',
+                zorder=2
+            )
+            # methylene
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                methylene(parameter, neutron_data),
+                color='k',
+                label='Methylene',
+                zorder=3
+            )
+            # water
+            plt.plot(
+                neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+                water(parameter, neutron_data),
+                color='b',
+                label='Water',
+                zorder=4
+            )
+
+        neutron_probabilities.append(mpld3.fig_to_html(xray_prob_fig))
+
     xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
     neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
@@ -1184,6 +1287,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
         'show_stats':show_statistics,
+        'show_probs':show_probabilities,
         'xray_graphs_and_forms':xray_graphs_and_forms,
-        'neutron_graphs_and_forms':neutron_graphs_and_forms
+        'neutron_graphs_and_forms':neutron_graphs_and_forms,
+        'xray_probabilities':xray_probabilities,
+        'neutron_probabilities':neutron_probabilities,
     })

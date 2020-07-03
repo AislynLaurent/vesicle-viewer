@@ -48,7 +48,19 @@
                 {% else %}
                     <form id="inline" method="POST">
                         {% csrf_token %}
-                        <button type="submit" name="statistics">Show Fit Statistics</button>
+                        <button type="submit" name="statistics">Show Statistics</button>
+                    </form>
+                {% endif %}
+
+                {% if show_probs %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="graphs">Show Fit</button>
+                    </form>
+                {% else %}
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="probabilities">Show Probabilities</button>
                     </form>
                 {% endif %}
                 
@@ -776,6 +788,34 @@
 
                 {% endfor %}
             </div>
+
+        {% elif show_probs %}
+
+            <div class="content-box">
+                <h2>X-Ray Data</h2>
+            </div>
+
+            {% for xray_prob_graph in xray_probabilities %}
+                <div class="content-box">
+                    <p></p>
+                    <div id="left" class="graph-box">
+                        {{xray_prob_graph|safe}}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="content-box">
+                <h2>Neutron Data</h2>
+            </div>
+
+            {% for neutron_prob_graph in neutron_probabilities %}
+                <div class="content-box">
+                    <p></p>
+                    <div id="left" class="graph-box">
+                        {{neutron_prob_graph|safe}}
+                    </div>
+                </div>
+            {% endfor %}
 
         {% else %}
 
