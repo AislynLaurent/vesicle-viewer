@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    {% if user.is_authenticated %}
+        <div class="content-box">
+
+            <p>You're already logged in. If you'd like, you can <a href="{% url 'logout' %}">logout</a> or head to your <a href="{% url 'viewer:project_list' %}">projects</a>.</p>
+
+        </div>
+    {% endif %}
+
+    <div class="content-box">
+        <h2>Registration incomplete...</h2>
+        <p>The activation link you've used is invalid.</p>
+    </div>
+
+{% endblock content %}

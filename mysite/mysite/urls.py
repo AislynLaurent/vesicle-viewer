@@ -19,7 +19,11 @@ from register import views as rv
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('register/', rv.register, name='register'),
-    path('', include('viewer.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/register/', rv.register, name='register'),
+    path(r'^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', rv.activate, name='activate'),
+    path('accounts/register/please_check_email', rv.please_check_email, name='please_check_email'),
+    path('accounts/register/invalid_link', rv.invalid_link, name='invalid_link'),
+    path('accounts/register/thank_you', rv.thank_you, name='thank_you'),
+    path('', include('viewer.urls')),
 ]

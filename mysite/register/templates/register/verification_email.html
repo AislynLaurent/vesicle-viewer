@@ -1,0 +1,5 @@
+Hi {{ user.username }},
+
+Please verify your email to complete registration for your VesicleViewer account:
+
+http://{{ domain }}{% url 'activate' uidb64=uid token=token %}

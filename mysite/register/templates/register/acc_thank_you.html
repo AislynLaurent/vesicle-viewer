@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    <div class="content-box">
+        <h2>Registration complete!</h2>
+        <p>Your account has successfully been created.</p>
+        <p>You've been logged in. If you'd like, you can head to your <a href="{% url 'viewer:project_list' %}">projects</a> or maybe <a href="{% url 'logout' %}">logout</a>.</p>
+    </div>
+
+{% endblock content %}or 

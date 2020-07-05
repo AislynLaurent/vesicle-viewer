@@ -12,8 +12,6 @@
     {% if user.is_authenticated %}
         <div class="content-box">
 
-            <h2>Login</h2>
-
             <p>You're already logged in. If you'd like, you can <a href="{% url 'logout' %}">logout</a> or head to your <a href="{% url 'viewer:project_list' %}">projects</a>.</p>
 
         </div>
