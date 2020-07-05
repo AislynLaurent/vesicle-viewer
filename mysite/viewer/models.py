@@ -14,7 +14,10 @@ class User(AbstractUser):
     pass
 
 class ExtendedUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE) 
+
+    # Institution
+    institution = models.CharField(verbose_name='institution', max_length=500, default='None')
 
     # Tutorials?
     display_tutorial = models.BooleanField(verbose_name='display_tutorial', default=True)

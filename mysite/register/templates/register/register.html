@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock title %}
+
+{% load staticfiles%}
+
+{% block content %}
+
+    <div class="content-box">
+        <h1>Register a new account</h1>
+    </div>
+
+    {% if user.is_authenticated %}
+        <div class="content-box">
+
+            <h2>Login</h2>
+
+            <p>You're already logged in. If you'd like, you can <a href="{% url 'logout' %}">logout</a> or head to your <a href="{% url 'viewer:project_list' %}">projects</a>.</p>
+
+        </div>
+    {% else %}
+
+        {% if form.errors %}
+            <div class="error">
+                <h4>Please correct the following errors before proceeding:</h4>
+                <ul>
+                    {% for key, value in form.errors.items %}
+                        <li>{{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="content-box">
+
+            <p></p>
+
+            <form method="POST" enctype="multipart/form-data" >
+                {% csrf_token %}
+                
+                <table class="form_box">
+
+                    <tr>
+                        <td><h3>Your Info</h3></td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.first_name.label }}</div></td>
+                        <td>{{ form.first_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.last_name.label }}</div></td>
+                        <td>{{ form.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.institution.label }}</div></td>
+                        <td>{{ form.institution }}</td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.email.label }}</div></td>
+                        <td>{{ form.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><h3>Account Info</h3></td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.username.label }}</div></td>
+                        <td>{{ form.username }}</td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.password1.label }}</div></td>
+                        <td>{{ form.password1 }}</td>
+                    </tr>
+                    <tr>
+                        <td><div class="indent">{{ form.password2.label }}</div></td>
+                        <td>{{ form.password2 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="indent">
+                            <em>
+                            <p>Your password should:</p>
+                            <ul>
+                                <li>Be at least 8 characters long</li>
+                                <li>Contain at least one number</li>
+                                <li>Contain at least one spachial character</li>
+                            </ul>
+                            </em>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button type="submit">Done</button>
+                        </td>
+                    </tr>
+
+                </table>
+                
+            </form>
+        </div>
+
+    {% endif %}
+
+{% endblock content %}
