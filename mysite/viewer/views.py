@@ -588,7 +588,7 @@ def symmetrical_parameters_new(request, project_id, sample_id):
     combined_tail_volume = round(combined_tail_volume, 2)
 
     if request.method == 'POST':
-        form = Symmetrical_Parameter_Form(request.POST)
+        form = Symmetrical_Parameter_Form(request.POST) 
         if form.is_valid():
             parameters = form.save(commit=False)
 
