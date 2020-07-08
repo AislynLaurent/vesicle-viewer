@@ -5,10 +5,12 @@
 
 {% block content %}
 
+  <div class="content-box">
+    <h1>Login</h1>
+  </div>
+
   {% if user.is_authenticated %}
   <div class="content-box">
-
-    <h2>Login</h2>
 
     <p>You're already logged in. If you'd like, you can <a href="{% url 'logout' %}">logout</a> or head to your <a href="{% url 'viewer:project_list' %}">projects</a>.</p>
 
@@ -16,7 +18,7 @@
 
   {% else %}
 
-  {% if form.errors %}
+    {% if form.errors %}
         <div class="error">
             <h4>Please correct the following errors before proceeding:</h4>
             <ul>
@@ -29,14 +31,13 @@
 
   <div class="content-box">
 
-    <h2>Login</h2>
-
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
       <button type="submit">Login</button>
     </form>
 
+    <p>Don't have an account? <a href="{% url 'register' %}">Create one</a></p>
     <p><a href="{% url 'password_reset' %}">Forgot password?</a></p>
 
   </div>

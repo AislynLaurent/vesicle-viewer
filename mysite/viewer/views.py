@@ -33,7 +33,11 @@ from .symprobabilities import *
 # Home
 def index(request):
     ## Import
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
     
     tutorial = True
 
@@ -44,14 +48,14 @@ def index(request):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
 
     return render(
         request,
         'viewer/index.html', {
             'tutorial':tutorial,
-            'x_user':x_user,
+            'xuser_tutorial':xuser_tutorial,
         }
     )
 
@@ -113,7 +117,11 @@ def project_new(request):
 # List existing projects
 def project_list(request):
     ## Tutorials
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
     tutorial = True
     # Dismiss the tutorial
     if "dismiss_this" in request.POST:
@@ -121,8 +129,8 @@ def project_list(request):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
     
     ## List
     symmetrical_projects = Project.objects.filter(owner=request.user, model_type='SM').order_by('project_title')
@@ -132,7 +140,7 @@ def project_list(request):
         request,
         'viewer/project_list.html', {
             'tutorial':tutorial,
-            'x_user':x_user,
+            'xuser_tutorial':xuser_tutorial,
             'symmetrical_projects':symmetrical_projects,
             'asymmetrical_projects':asymmetrical_projects
         }
@@ -141,7 +149,12 @@ def project_list(request):
 # Specific project details
 def project_detail(request, project_id):
     ## Tutorials
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
+
     tutorial = True
     # Dismiss the tutorial
     if "dismiss_this" in request.POST:
@@ -149,8 +162,8 @@ def project_detail(request, project_id):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
 
     project = get_object_or_404(Project, id=project_id)
     samples = Sample.objects.filter(project_title_id=project_id)
@@ -160,7 +173,7 @@ def project_detail(request, project_id):
         request,
         'viewer/project_detail.html', {
             'tutorial':tutorial,
-            'x_user':x_user,
+            'xuser_tutorial':xuser_tutorial,
             'project':project,
             'project_lipids':project_lipids,
             'samples':samples,
@@ -256,7 +269,12 @@ def sample_new(request, project_id):
 # Specific sample details
 def sample_detail(request, project_id, sample_id):
     ## Tutorials
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
+
     tutorial = True
     # Dismiss the tutorial
     if "dismiss_this" in request.POST:
@@ -264,8 +282,8 @@ def sample_detail(request, project_id, sample_id):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
 
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
@@ -305,7 +323,7 @@ def sample_detail(request, project_id, sample_id):
         request,
         'viewer/sample_detail.html', {
             'tutorial':tutorial,
-            'x_user':x_user,
+            'xuser_tutorial':xuser_tutorial,
             'project':project,
             'sample':sample,
             'sample_lipids_both':sample_lipids_both,
@@ -351,7 +369,12 @@ def sample_delete_warning(request, project_id, sample_id):
 # Add lipids to a sample
 def sample_lipid_new(request, project_id, sample_id):
     ## Tutorials
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
+
     tutorial = True
     # Dismiss the tutorial
     if "dismiss_this" in request.POST:
@@ -359,8 +382,8 @@ def sample_lipid_new(request, project_id, sample_id):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
 
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
@@ -415,7 +438,7 @@ def sample_lipid_new(request, project_id, sample_id):
         request,
         'viewer/sample_lipid_form.html', {
             'tutorial':tutorial,
-            'x_user':x_user,
+            'xuser_tutorial':xuser_tutorial,
             'project':project,
             'sample':sample,
             'lipid_form': lipid_form,
@@ -565,7 +588,7 @@ def symmetrical_parameters_new(request, project_id, sample_id):
     combined_tail_volume = round(combined_tail_volume, 2)
 
     if request.method == 'POST':
-        form = Symmetrical_Parameter_Form(request.POST)
+        form = Symmetrical_Parameter_Form(request.POST) 
         if form.is_valid():
             parameters = form.save(commit=False)
 
@@ -821,7 +844,12 @@ def data_delete_warning(request, project_id, sample_id, data_id):
 # Main fit page
 def fit_main(request, project_id, sample_id, parameter_id):
     ## Tutorials
-    x_user = get_object_or_404(ExtendedUser, user=request.user)
+    if request.user.is_anonymous:
+        xuser_tutorial = False
+    else:
+        xuser = ExtendedUser.objects.get(user=request.user)
+        xuser_tutorial = xuser.display_tutorial
+
     tutorial = True
     # Dismiss the tutorial
     if "dismiss_this" in request.POST:
@@ -829,8 +857,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     # Dismiss all tutorials
     if "dismiss_all" in request.POST:
-        x_user.display_tutorial = False
-        x_user.save()
+        xuser.display_tutorial = False
+        xuser.save()
 
     # Overall
     project = get_object_or_404(Project, id=project_id)
@@ -1438,7 +1466,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     return render(request, 'viewer/fit_main.html', {
         'tutorial':tutorial,
-        'x_user':x_user,
+        'xuser_tutorial':xuser_tutorial,
         'project':project,
         'sample':sample,
         'data_exists':data_exists,
