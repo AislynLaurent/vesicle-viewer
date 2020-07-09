@@ -26,7 +26,7 @@
         <h1><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{project.project_title}}</a> \ {{ sample.sample_title }}</h1>
     </div>
 
-    {% if tutorial and x_user.display_tutorial %}
+    {% if tutorial and xuser_tutorial %}
         <div class="announcement">
             <p>The <strong>composition</strong> of your sample tells us which of the lipids <strong>specified on the project level</strong> will be used for this analysis, and <strong>what if any augmentations</strong> are required for that particular lipid.</p>
             <p>When you add a lipid, you will  be prompted to select levels of deutiration, or to make your own custom augmentations.</p>
@@ -135,7 +135,7 @@
             <h3><a href="{% url 'viewer:sample_lipid_new' project_id=project.id sample_id=sample.id %}">Add a lipid</a></h3>
         </div>
 
-    {% if tutorial and x_user.display_tutorial %}
+    {% if tutorial and xuser_tutorial %}
         <div class="announcement">
             <p>Upload and label your datasets here. These will be graphed and fit during data analysis.</p>
         </div>
@@ -194,7 +194,7 @@
         </div>
     {% endif %}
 
-    {% if tutorial and x_user.display_tutorial %}
+    {% if tutorial and xuser_tutorial %}
         <div class="announcement">
             <p><strong>Parameters</strong> are the varibles used in the calculations done to analyze your data. When you generate a new set of parameters, you choose to change the values or leave them as suggested.</p>
             <p>When you fit your data, your current set of parameters is preseved, and a new one is saved with the fit values, labeled for the time that it was generated. This is so that you don't lose a current, potentially interesting, fit while you're working.</p>
