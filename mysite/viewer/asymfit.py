@@ -620,3 +620,58 @@ def asymmetrical_fit(parameter, in_sample_lipids, out_sample_lipids, datas, temp
     )
 
     return fit_result
+
+def asymmetrical_sdp(parameter, in_head_prob, in_chain_prob, in_tm_prob, in_water_prob, out_head_prob, out_chain_prob, out_tm_prob, out_water_prob, in_sample_lipids, out_sample_lipids, data, temp):
+    # Declare
+    in_sdp_final = []
+    out_sdp_final = []
+
+    # Get parameters
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
+
+    ## Unpack parameters
+    # Inner
+    Vci = fit_parameters['in_chain_volume'].value
+    Vhi = fit_parameters['in_headgroup_volume'].value
+    Vti = fit_parameters['in_terminal_methyl_volume'].value
+    # Outer
+    Vco = fit_parameters['out_chain_volume'].value
+    Vho = fit_parameters['out_headgroup_volume'].value
+    Vto = fit_parameters['out_terminal_methyl_volume'].value
+    # Water
+    Vw = fit_parameters['combined_water_volume_%i' % data.id].value
+    ## b values
+    # Inner
+    bci = fit_parameters['in_chain_b_%i' % data.id].value
+    bhi = fit_parameters['in_headgroup_b_%i' % data.id].value
+    bti = fit_parameters['in_terminal_methyl_b_%i' % data.id].value
+    # Outter
+    bco = fit_parameters['out_chain_b_%i' % data.id].value
+    bho = fit_parameters['out_headgroup_b_%i' % data.id].value
+    bto = fit_parameters['out_terminal_methyl_b_%i' % data.id].value
+    # Water
+    bw = fit_parameters['water_b_%i' % data.id].value
+
+    ## Scale probabilities
+    # Inner
+    in_scaled_head_prob = (np.asarray(in_head_prob)*(bhi/Vhi))
+    in_scaled_chain_prob = (np.asarray(in_chain_prob)*(bci/Vci))
+    in_scaled_tm_prob = (np.asarray(in_tm_prob)*(bti/Vti))
+    # Outter
+    out_scaled_head_prob = (np.asarray(out_head_prob)*(bho/Vho))
+    out_scaled_chain_prob = (np.asarray(out_chain_prob)*(bco/Vco))
+    out_scaled_tm_prob = (np.asarray(out_tm_prob)*(bto/Vto))
+    # Water
+    in_scaled_water_prob = (np.asarray(in_water_prob)*(bw/Vw))
+    out_scaled_water_prob = (np.asarray(out_water_prob)*(bw/Vw))
+
+    # Add them together
+    for in_h_value, in_c_value, in_tm_value, in_w_value in zip(in_scaled_head_prob, in_scaled_chain_prob, in_scaled_tm_prob, in_scaled_water_prob):
+        in_sdp_final.append(in_h_value+in_c_value+in_tm_value+in_w_value)
+
+    for out_h_value, out_c_value, out_tm_value, out_w_value in zip(out_scaled_head_prob, out_scaled_chain_prob, out_scaled_tm_prob, out_scaled_water_prob):
+        out_sdp_final.append(out_h_value+out_c_value+out_tm_value+out_w_value)
+
+    combined_sdp = [in_sdp_final, out_sdp_final, in_scaled_head_prob, in_scaled_chain_prob, in_scaled_tm_prob, out_scaled_head_prob, out_scaled_chain_prob, out_scaled_tm_prob, in_scaled_water_prob, out_water_prob]
+
+    return(combined_sdp)

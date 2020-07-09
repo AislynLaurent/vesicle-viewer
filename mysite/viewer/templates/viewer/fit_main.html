@@ -57,17 +57,20 @@
                         {% csrf_token %}
                         <button type="submit" name="graphs">Show Fit</button>
                     </form>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="sdp_download">Download SDP Data</button>
+                    </form>
                 {% else %}
                     <form id="inline" method="POST">
                         {% csrf_token %}
                         <button type="submit" name="probabilities">Show Probabilities</button>
                     </form>
+                    <form id="inline" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" name="fit_download">Download Fit Data</button>
+                    </form>
                 {% endif %}
-                
-                <form id="inline" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" name="download">Download Data</button>
-                </form>
             {% endif %}
 
             {% if data_exists %}
@@ -878,6 +881,27 @@
                     {{prob_graph|safe}}
                 </div>
             </div>
+            
+
+            <div class="content-box">
+                <h2>Scattering Denisty Profiles</h2>
+            </div>
+                {% for xray_sdp_graph in xray_sdp_graphs %}
+                    <div class="content-box">
+                        <p></p>
+                        <div id="left" class="graph-box">
+                            {{xray_sdp_graph|safe}}
+                        </div>
+                    </div>
+                {% endfor %}
+                {% for neutron_sdp_graph in neutron_sdp_graphs %}
+                    <div class="content-box">
+                        <p></p>
+                        <div id="left" class="graph-box">
+                            {{neutron_sdp_graph|safe}}
+                        </div>
+                    </div>
+                {% endfor %}
 
         {% else %}
 
