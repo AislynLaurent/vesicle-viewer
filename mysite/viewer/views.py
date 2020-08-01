@@ -105,7 +105,7 @@ def user_lipid_new(request, owner):
         form = User_Lipid_Form(request.POST)
         if form.is_valid():
             lipids = form.save(commit=False)
-            lipids.owner = owner
+            lipids.owner = request.user
             lipids.save()
             return redirect('viewer:project_list')
     else:
