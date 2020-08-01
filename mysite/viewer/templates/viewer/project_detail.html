@@ -67,20 +67,32 @@
 
         <p>The lipids present in this project.</p>
 
-        {% if project_lipids %}
+        {% if lipids_and_volumes %}
             <table class="project-lipids indent">
-
                 <tr>
                     <td><h4>Name</h4></td>
                     <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
-                {% for lipid in project_lipids %}
-                <tr>
-                    <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.project_lipid_name %}">{{ lipid.project_lipid_name }}</a></td>
-                    <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.id %}">Delete</a></td>
-                </tr>
+                {% for lipid in lipids_and_volumes %}
+                    <tr>
+                        {% if lipid.0.project_lipid_name %}
+                            <td><a href="{% url 'viewer:lipid_detail' lipid_name=lipid.0.project_lipid_name.slug %}">{{ lipid.0.project_lipid_name }}</a></td>
+                            <td>{{ lipid.1 }}</td>
+                        {% else %}
+                            <td><a href="{% url 'viewer:user_lipid_detail' owner=user.id lipid_name=lipid.0.project_user_lipid_name.slug %}">{{ lipid.0.project_user_lipid_name }}</a></td>
+                            <td>
+                                {% if lipid.1 != 0 and lipid.1.user_lipid_volume != 0 %}
+                                {{ lipid.1.user_lipid_volume }}&nbsp;&nbsp;&nbsp;&nbsp;<a href="{% url 'viewer:project_user_lipid_volume_edit' project_id=project.id volume_id=lipid.1.id %}">edit</a>
+                                {% else %}
+                                    <a href="{% url 'viewer:project_user_lipid_volume_new' project_id=project.id lipid_id=lipid.0.project_user_lipid_name.id %}">Add Volume</a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        <td><a href="{% url 'viewer:project_lipid_delete_warning' project_id=project.id lipid_id=lipid.0.id %}">Delete</a></td>
+                    </tr>
                 {% endfor %}
-
             </table>
 
             <h3><a href="{% url 'viewer:project_lipid_new' project_id=project.id %}">Add another lipid</a></h3>

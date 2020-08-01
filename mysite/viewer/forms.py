@@ -5,6 +5,23 @@ from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import *
 
+class User_Lipid_Form(forms.ModelForm):
+    class Meta:
+        model = User_Lipid
+        fields = [
+            'user_lipid_name',
+            # Head group
+            'hg_scattering',
+            'hg_electrons',
+            'hg_volume',
+            # Tail group
+            'tg_scattering',
+            'tg_electrons',
+            # Terminal methyl
+            'tm_scattering',
+            'tm_electrons',
+        ]
+
 class Tutorial_Form(forms.ModelForm):
     class Meta:
         model = ExtendedUser
@@ -39,6 +56,22 @@ class Project_Lipid_Form(forms.ModelForm):
         model = Project_Lipid
         fields = [
             'project_lipid_name',
+            'project_user_lipid_name',
+        ]
+        labels = {
+            'project_lipid_name': 'Lipid',
+            'project_user_lipid_name': 'Custom Lipid'
+        }
+
+    def __init__(self, owner, *args, **kwargs):
+        super(Project_Lipid_Form, self).__init__(*args, **kwargs)
+        self.fields['project_user_lipid_name'].queryset = User_Lipid.objects.filter(owner=owner)
+
+class Project_User_Lipid_Volume_Form(forms.ModelForm):
+    class Meta:
+        model = Project_User_Lipid_Volume
+        fields = [
+            'user_lipid_volume',
         ]
 
 class Sample_Form(forms.ModelForm):
@@ -72,19 +105,32 @@ class Sym_Sample_Lipid_Form(forms.ModelForm):
         super(Sym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
         self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
 
-class Asym_Sample_Lipid_Form(forms.ModelForm):
-
+class Asym_Sample_Lipid(forms.ModelForm):
     class Meta:
         model = Sample_Lipid
         fields = [
             'sample_lipid_name',
             'lipid_mol_fraction',
-            'lipid_location',
         ]
+
+# Workaround - limit choices to hide 'both' option
+class Asym_Sample_Lipid_Form(Asym_Sample_Lipid):
+    CHOICES = (
+        ('IN','Inner'),
+        ('OUT','Outer'),
+    )
+
+    location = forms.ChoiceField(choices=CHOICES)
+
+    class Meta(Asym_Sample_Lipid.Meta):
+        fields = Asym_Sample_Lipid.Meta.fields + ['location',]
 
     def __init__(self, project_id, *args, **kwargs):
         super(Asym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
+
         self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
+
+    
 
 class Lipid_Augmentation_Form(forms.ModelForm):
     class Meta:

@@ -4,6 +4,11 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import *
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+# addons
+from autoslug import AutoSlugField
 
 # Add-ons
 from django.contrib.auth.models import AbstractUser
@@ -14,7 +19,7 @@ class User(AbstractUser):
     pass
 
 class ExtendedUser(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE) 
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     # Institution
     institution = models.CharField(verbose_name='institution', max_length=500, default='None')
@@ -49,6 +54,9 @@ class Lipid(models.Model):
 
     # Total volume
     total_volume_equation = models.CharField(verbose_name='total volume equation', max_length=800, default='x')
+    
+    # Slug
+    slug = AutoSlugField(populate_from='lipid_name', always_update=True)
 
     # Meta
     class Meta:
@@ -102,6 +110,9 @@ class Molecule(models.Model):
     # Electrons
     electrons = models.FloatField(verbose_name='electrons', default=0)
 
+    # Slug
+    slug = AutoSlugField(populate_from='compund_name', always_update=True)
+
     # Meta
     class Meta:
         verbose_name = 'molecule'
@@ -116,6 +127,43 @@ class Molecule(models.Model):
         return reverse('viewer.views.details', args=[str(self.compound_name)])
 
 ## User Inputs
+# User Lipids
+class User_Lipid(models.Model):
+    # User
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='user_lipid_owner', default='admin', on_delete=models.CASCADE)
+
+    # Names
+    user_lipid_name = models.CharField(verbose_name='user lipid name', max_length=100)
+
+    # Head group
+    hg_scattering = models.FloatField(verbose_name='user head group scattering length', default=0)
+    hg_electrons = models.FloatField(verbose_name='user head group electrons', default=0)
+    hg_volume = models.FloatField(verbose_name='user head group volume', default=0)
+
+    # Tail group
+    tg_scattering = models.FloatField(verbose_name='user tail group scattering length', default=0)
+    tg_electrons = models.FloatField(verbose_name='user tail group electrons', default=0)
+
+    # Terminal methyl
+    tm_scattering = models.FloatField(verbose_name='user terminal methyl scattering length', default=0)
+    tm_electrons = models.FloatField(verbose_name='user terminal methyl electrons', default=0)
+
+    # Slug
+    slug = AutoSlugField(populate_from='user_lipid_name', always_update=True)
+
+    # Meta
+    class Meta:
+        verbose_name = 'user lipid'
+        verbose_name_plural = 'user lipids'
+
+    # Methods
+    def __str__(self):
+        return '%s' % (self.user_lipid_name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.user_lipid_name)])
+
 # Project
 class Project(models.Model):
     # User
@@ -154,7 +202,8 @@ class Project_Lipid(models.Model):
     project_title = models.ForeignKey(Project, related_name='project_lipid', on_delete=models.CASCADE)
 
     # Lipid
-    project_lipid_name = models.ForeignKey(Lipid, related_name='project_lipid_name', on_delete=models.CASCADE)
+    project_lipid_name = models.ForeignKey(Lipid, related_name='project_lipid_name', blank=True, null=True, on_delete=models.CASCADE)
+    project_user_lipid_name = models.ForeignKey(User_Lipid, related_name='project_user_lipid_name', blank=True, null=True, on_delete=models.CASCADE)
 
     # Meta
     class Meta:
@@ -162,8 +211,43 @@ class Project_Lipid(models.Model):
         verbose_name_plural = 'project lipids'
 
     # Methods
+    def clean(self):
+        # At least one lipid
+        if self.project_lipid_name is None and self.project_user_lipid_name is None:
+            raise ValidationError('Please select a lipid.')
+
+        if self.project_lipid_name is not None and self.project_user_lipid_name is not None:
+            raise ValidationError('Please select only one lipid.')
+    
     def __str__(self):
-        return '%s' % (self.project_lipid_name)
+        if self.project_lipid_name is not None:
+            return '%s' % (self.project_lipid_name)
+        else:
+            return '%s' % (self.project_user_lipid_name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Project User Lipid Volume
+class Project_User_Lipid_Volume(models.Model):
+    # Project
+    project_title = models.ForeignKey(Project, related_name='project_user_lipid', on_delete=models.CASCADE)
+
+    # Lipid
+    project_user_lipid_name = models.ForeignKey(User_Lipid, related_name='project_user_lipid_volume_name', on_delete=models.CASCADE)
+
+    # Volume
+    user_lipid_volume = models.FloatField(verbose_name='user lipid volume', default=0)
+
+    # Meta
+    class Meta:
+        verbose_name = 'user lipid volume'
+        verbose_name_plural = 'user lipid volumes'
+
+    # Methods
+    def __str__(self):
+        return '%s-%s' % (self.project_title, self.project_user_lipid_name)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -189,7 +273,7 @@ class Sample(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.project_title)])
 
-# Lipid Augmentations
+# Custom lipid Augmentations
 class Sample_Lipid_Augmentation(models.Model):
     # suffix
     augmentation_suffix = models.CharField(max_length=100)
@@ -243,7 +327,6 @@ class Sample_Lipid(models.Model):
         if self.lipid_mol_fraction < 0:
             raise ValidationError('Mol fraction cannot be less than 0')
 
-        
         if self.lipid_mol_fraction > 1:
             raise ValidationError('Mol fraction cannot be greater than 1')
 
@@ -356,6 +439,9 @@ class Symmetrical_Parameters(models.Model):
             raise ValidationError('Terminal methyl volume lower bound cannot be greater than it\'s upper bound')
 
         # Lipid area
+        if self.lipid_area <= 0:
+            raise ValidationError('Lipid area cannot be less than or equal to zero')
+
         if self.lipid_area_upperbound == self.lipid_area_lowerbound:
             raise ValidationError('Lipid area upper and lower bound cannot be equal')
 
@@ -399,7 +485,7 @@ class Symmetrical_Parameters(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.id)])
 
-# Symmetrical Parameters
+# Asymmetrical Parameters
 class Asymmetrical_Parameters(models.Model):
     ## Project
     sample_title = models.ForeignKey(Sample, related_name='asym_parameters', on_delete=models.CASCADE)
@@ -531,6 +617,9 @@ class Asymmetrical_Parameters(models.Model):
             raise ValidationError('Inner head group volume lower bound cannot be greater than it\'s upper bound')
 
         # Lipid area
+        if self.in_lipid_area <= 0:
+            raise ValidationError('Lipid area cannot be less than or equal to zero')
+
         if self.in_lipid_area_upperbound == self.in_lipid_area_lowerbound:
             raise ValidationError('Inner lipid area upper and lower bound cannot be equal')
 
@@ -569,6 +658,9 @@ class Asymmetrical_Parameters(models.Model):
             raise ValidationError('Outer terminal methyl volume lower bound cannot be greater than it\'s upper bound')
 
         # Lipid area
+        if self.out_lipid_area <= 0:
+            raise ValidationError('Lipid area cannot be less than or equal to zero')
+
         if self.out_lipid_area_upperbound == self.out_lipid_area_lowerbound:
             raise ValidationError('Outer lipid area upper and lower bound cannot be equal')
 
@@ -623,7 +715,7 @@ class Data_Set(models.Model):
         ('XR', 'X-Ray'),
         ('NU', 'Neutron'),
     )
-    
+
     # File information
     data_set_title = models.CharField(max_length=255, blank=True)
     upload_time = models.DateTimeField(auto_now_add=True)

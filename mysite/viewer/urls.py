@@ -15,6 +15,9 @@ urlpatterns = [
     ## Models
     # Lipid
     path('lipid/<slug:lipid_name>', views.lipid_detail, name='lipid_detail'),
+    path('lipid/<int:owner>/custom/new', views.user_lipid_new, name='user_lipid_new'),
+    path('lipid/<int:owner>/custom/<slug:lipid_name>/edit', views.user_lipid_edit, name='user_lipid_edit'),
+    path('lipid/<int:owner>/custom/<slug:lipid_name>', views.user_lipid_detail, name='user_lipid_detail'),
     # Molecule
     path('molecule/<slug:molecule_name>', views.molecule_detail, name='molecule_detail'),
 
@@ -35,6 +38,10 @@ urlpatterns = [
     ## Project Lipids
     # Add project lipid
     path('project/<int:project_id>/lipid/add/', views.project_lipid_new, name='project_lipid_new'),
+    # Add project custom lipid volume
+    path('project/<int:project_id>/lipid/<int:lipid_id>/add-volume/', views.project_user_lipid_volume_new, name='project_user_lipid_volume_new'),
+    # Edit project custom lipid volume
+    path('project/<int:project_id>/lipid/<int:volume_id>/edit-volume/', views.project_user_lipid_volume_edit, name='project_user_lipid_volume_edit'),
     # # Edit a project lipid
     # path('project/<int:project_id>/lipid/<int:lipid_id>/edit/', views.project_lipid_edit, name='project_lipid_edit'),
     # Warning & delete lipid

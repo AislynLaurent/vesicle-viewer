@@ -6,13 +6,21 @@
 {% block content %}
 
     <div class="content-box">
-        <h1>{{ lipid.lipid_name }}</h1>
+        <h1>
+            {% if lipid.lipid_name %}
+                {{ lipid.lipid_name }}
+            {% else %}
+                {{ lipid.user_lipid_name }}
+            {% endif %}
+        </h1>
     </div>
     <div class="content-box">
-        <h2>Overall</h2>
-        <div class="indent">
-            <p><strong>Volume Equation:</strong> {{ lipid.total_volume_equation }}</p>
-        </div>
+        {% if lipid.total_volume_equation %}
+            <h2>Overall</h2>
+            <div class="indent">
+                <p><strong>Volume Equation:</strong> {{ lipid.total_volume_equation }}</p>
+            </div>
+        {% endif %}
 
         <h2>Headgroup</h2>
         <div class="indent">

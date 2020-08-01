@@ -11,7 +11,9 @@ admin.site.register(Molecule)
 # User
 admin.site.register(User, UserAdmin)
 admin.site.register(ExtendedUser)
-
+# User Lipids
+admin.site.register(User_Lipid)
+admin.site.register(Project_User_Lipid_Volume)
 ## Project
 admin.site.register(Project)
 admin.site.register(Sample)
