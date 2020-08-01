@@ -2167,97 +2167,195 @@ def fit_main(request, project_id, sample_id, parameter_id):
         writer.writerow([])
         writer.writerow(['Scattering Density Profile'])
 
-        if project.model_type == "SM":
+        for xray_data in xray_datas:
             writer.writerow([])
-            writer.writerow(['Combined SDP'])
-            writer.writerow(['z', ''])
-            for z, sdp in zip (x_values, sdp_results[0]):
-                writer.writerow([z, sdp])
+            writer.writerow([xray_data.data_set_title])
+            if project.model_type == "SM":
+                writer.writerow([])
+                writer.writerow(['Combined SDP'])
+                writer.writerow(['z', ''])
+                for z, sdp in zip (x_values, sdp_results[0]):
+                    writer.writerow([z, sdp])
 
-            writer.writerow([])
-            writer.writerow(['Headgroup'])
-            writer.writerow(['z', ''])
-            for z, sdph in zip (x_values, sdp_results[1]):
-                writer.writerow([z, sdph])
+                writer.writerow([])
+                writer.writerow(['Headgroup'])
+                writer.writerow(['z', ''])
+                for z, sdph in zip (x_values, sdp_results[1]):
+                    writer.writerow([z, sdph])
 
-            writer.writerow([])
-            writer.writerow(['Chains'])
-            writer.writerow(['z', ''])
-            for z, sdpc in zip (x_values, sdp_results[2]):
-                writer.writerow([z, sdpc])
+                writer.writerow([])
+                writer.writerow(['Chains'])
+                writer.writerow(['z', ''])
+                for z, sdpc in zip (x_values, sdp_results[2]):
+                    writer.writerow([z, sdpc])
 
-            writer.writerow([])
-            writer.writerow(['Terminal Methyl'])
-            writer.writerow(['z', ''])
-            for z, sdptm in zip (x_values, sdp_results[3]):
-                writer.writerow([z, sdptm])
+                writer.writerow([])
+                writer.writerow(['Terminal Methyl'])
+                writer.writerow(['z', ''])
+                for z, sdptm in zip (x_values, sdp_results[3]):
+                    writer.writerow([z, sdptm])
 
-            writer.writerow([])
-            writer.writerow(['Water'])
-            writer.writerow(['z', ''])
-            for z, sdpw in zip (x_values, sdp_results[4]):
-                writer.writerow([z, sdpw])
+                writer.writerow([])
+                writer.writerow(['Water'])
+                writer.writerow(['z', ''])
+                for z, sdpw in zip (x_values, sdp_results[4]):
+                    writer.writerow([z, sdpw])
 
-        if project.model_type == "AS":
-            writer.writerow([])
-            writer.writerow(['Combined SDP'])
-            writer.writerow(['z', 'Pch(z)'])
-            writer.writerow([])
-            writer.writerow(['INNER'])
-            for z, sdp in zip (in_x_values, sdp_results[0]):
-                writer.writerow([z, sdp])
-            writer.writerow([])
-            writer.writerow(['OUTTER'])
-            for z, sdp in zip (out_x_values, sdp_results[1]):
-                writer.writerow([z, sdp])
+            if project.model_type == "AS":
+                writer.writerow([])
+                writer.writerow(['Combined SDP'])
+                writer.writerow(['z', 'Pch(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdp in zip (in_x_values, sdp_results[0]):
+                    writer.writerow([z, sdp])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdp in zip (out_x_values, sdp_results[1]):
+                    writer.writerow([z, sdp])
 
-            writer.writerow([])
-            writer.writerow(['Headgroup'])
-            writer.writerow(['z', 'Ph(z)'])
-            writer.writerow([])
-            writer.writerow(['INNER'])
-            for z, sdph in zip (in_x_values, sdp_results[2]):
-                writer.writerow([z, sdph])
-            writer.writerow([])
-            writer.writerow(['OUTTER'])
-            for z, sdph in zip (out_x_values, sdp_results[3]):
-                writer.writerow([z, sdph])
+                writer.writerow([])
+                writer.writerow(['Headgroup'])
+                writer.writerow(['z', 'Ph(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdph in zip (in_x_values, sdp_results[2]):
+                    writer.writerow([z, sdph])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdph in zip (out_x_values, sdp_results[3]):
+                    writer.writerow([z, sdph])
 
-            writer.writerow([])
-            writer.writerow(['Chains'])
-            writer.writerow(['z', 'Phc(z)'])
-            writer.writerow([])
-            writer.writerow(['INNER'])
-            for z, sdpc in zip (in_x_values, sdp_results[4]):
-                writer.writerow([z, sdpc])
-            writer.writerow([])
-            writer.writerow(['OUTTER'])
-            for z, sdpc in zip (out_x_values, sdp_results[5]):
-                writer.writerow([z, sdpc])
+                writer.writerow([])
+                writer.writerow(['Chains'])
+                writer.writerow(['z', 'Phc(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdpc in zip (in_x_values, sdp_results[4]):
+                    writer.writerow([z, sdpc])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdpc in zip (out_x_values, sdp_results[5]):
+                    writer.writerow([z, sdpc])
 
-            writer.writerow([])
-            writer.writerow(['Terminal Methyl'])
-            writer.writerow(['z', 'Ptm(z)'])
-            writer.writerow([])
-            writer.writerow(['INNER'])
-            for z, sdptm in zip (in_x_values, sdp_results[6]):
-                writer.writerow([z, sdptm])
-            writer.writerow([])
-            writer.writerow(['OUTTER'])
-            for z, sdptm in zip (out_x_values, sdp_results[7]):
-                writer.writerow([z, sdptm])
+                writer.writerow([])
+                writer.writerow(['Terminal Methyl'])
+                writer.writerow(['z', 'Ptm(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdptm in zip (in_x_values, sdp_results[6]):
+                    writer.writerow([z, sdptm])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdptm in zip (out_x_values, sdp_results[7]):
+                    writer.writerow([z, sdptm])
 
+                writer.writerow([])
+                writer.writerow(['Water'])
+                writer.writerow(['z', 'Pw(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdpw in zip (in_x_values, sdp_results[8]):
+                    writer.writerow([z, sdpw])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdpw in zip (out_x_values, sdp_results[9]):
+                    writer.writerow([z, sdpw])
+
+        for neutron_data in neutron_datas:
             writer.writerow([])
-            writer.writerow(['Water'])
-            writer.writerow(['z', 'Pw(z)'])
-            writer.writerow([])
-            writer.writerow(['INNER'])
-            for z, sdpw in zip (in_x_values, sdp_results[8]):
-                writer.writerow([z, sdpw])
-            writer.writerow([])
-            writer.writerow(['OUTTER'])
-            for z, sdpw in zip (out_x_values, sdp_results[9]):
-                writer.writerow([z, sdpw])
+            writer.writerow([neutron_data.data_set_title])
+            if project.model_type == "SM":
+                writer.writerow([])
+                writer.writerow(['Combined SDP'])
+                writer.writerow(['z', ''])
+                for z, sdp in zip (x_values, sdp_results[0]):
+                    writer.writerow([z, sdp])
+
+                writer.writerow([])
+                writer.writerow(['Headgroup'])
+                writer.writerow(['z', ''])
+                for z, sdph in zip (x_values, sdp_results[1]):
+                    writer.writerow([z, sdph])
+
+                writer.writerow([])
+                writer.writerow(['Chains'])
+                writer.writerow(['z', ''])
+                for z, sdpc in zip (x_values, sdp_results[2]):
+                    writer.writerow([z, sdpc])
+
+                writer.writerow([])
+                writer.writerow(['Terminal Methyl'])
+                writer.writerow(['z', ''])
+                for z, sdptm in zip (x_values, sdp_results[3]):
+                    writer.writerow([z, sdptm])
+
+                writer.writerow([])
+                writer.writerow(['Water'])
+                writer.writerow(['z', ''])
+                for z, sdpw in zip (x_values, sdp_results[4]):
+                    writer.writerow([z, sdpw])
+
+            if project.model_type == "AS":
+                writer.writerow([])
+                writer.writerow(['Combined SDP'])
+                writer.writerow(['z', 'Pch(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdp in zip (in_x_values, sdp_results[0]):
+                    writer.writerow([z, sdp])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdp in zip (out_x_values, sdp_results[1]):
+                    writer.writerow([z, sdp])
+
+                writer.writerow([])
+                writer.writerow(['Headgroup'])
+                writer.writerow(['z', 'Ph(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdph in zip (in_x_values, sdp_results[2]):
+                    writer.writerow([z, sdph])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdph in zip (out_x_values, sdp_results[3]):
+                    writer.writerow([z, sdph])
+
+                writer.writerow([])
+                writer.writerow(['Chains'])
+                writer.writerow(['z', 'Phc(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdpc in zip (in_x_values, sdp_results[4]):
+                    writer.writerow([z, sdpc])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdpc in zip (out_x_values, sdp_results[5]):
+                    writer.writerow([z, sdpc])
+
+                writer.writerow([])
+                writer.writerow(['Terminal Methyl'])
+                writer.writerow(['z', 'Ptm(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdptm in zip (in_x_values, sdp_results[6]):
+                    writer.writerow([z, sdptm])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdptm in zip (out_x_values, sdp_results[7]):
+                    writer.writerow([z, sdptm])
+
+                writer.writerow([])
+                writer.writerow(['Water'])
+                writer.writerow(['z', 'Pw(z)'])
+                writer.writerow([])
+                writer.writerow(['INNER'])
+                for z, sdpw in zip (in_x_values, sdp_results[8]):
+                    writer.writerow([z, sdpw])
+                writer.writerow([])
+                writer.writerow(['OUTTER'])
+                for z, sdpw in zip (out_x_values, sdp_results[9]):
+                    writer.writerow([z, sdpw])
 
         return response
 
