@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.utils import timezone
+from django.utils import text
 
 # Other libraries
 import csv
@@ -90,11 +91,47 @@ def enable_tutorials(request):
 ## MODEL PAGES
 # Lipid
 def lipid_detail(request, lipid_name):
-    lipid = get_object_or_404(Lipid, lipid_name=lipid_name)
+    lipid = get_object_or_404(Lipid, slug=lipid_name)
     return render(request, 'viewer/lipid_detail.html', {'lipid':lipid})
 
+# Custom lipid
+def user_lipid_detail(request, owner, lipid_name):
+    lipid = get_object_or_404(User_Lipid, slug=lipid_name, owner=owner)
+    return render(request, 'viewer/lipid_detail.html', {'lipid':lipid})
+
+# New custom lipid
+def user_lipid_new(request, owner):
+    if request.method == 'POST':
+        form = User_Lipid_Form(request.POST)
+        if form.is_valid():
+            lipids = form.save(commit=False)
+            lipids.owner = owner
+            lipids.save()
+            return redirect('viewer:project_list')
+    else:
+        form = User_Lipid_Form()
+
+    return render(request, 'viewer/form.html', {'form': form})
+
+# Edit user lipid
+def user_lipid_edit(request, owner, lipid_name):
+    lipid = get_object_or_404(User_Lipid, slug=lipid_name, owner=owner)
+
+    if request.method == 'POST':
+        form = User_Lipid_Form(request.POST, instance=lipid)
+        if form.is_valid():
+            lipids = form.save(commit=False)
+            lipids.owner = owner
+            lipids.save()
+            return redirect('viewer:project_list')
+    else:
+        form = User_Lipid_Form(instance=lipid)
+
+    return render(request, 'viewer/form.html', {'form': form})
+
+# Molecule
 def molecule_detail(request, molecule_name):
-    molecule = get_object_or_404(Molecule, compound_name=molecule_name)
+    molecule = get_object_or_404(Molecule, slug=molecule_name)
     return render(request, 'viewer/lipid_detail.html', {'molecule':molecule})
 
 ## DYNAMIC PAGES
@@ -133,6 +170,7 @@ def project_list(request):
     ## List
     symmetrical_projects = Project.objects.filter(owner=request.user, model_type='SM').order_by('project_title')
     asymmetrical_projects = Project.objects.filter(owner=request.user, model_type='AS').order_by('project_title')
+    user_lipids = User_Lipid.objects.filter(owner=request.user).order_by('user_lipid_name')
 
     return render(
         request,
@@ -140,7 +178,8 @@ def project_list(request):
             'tutorial':tutorial,
             'xuser_tutorial':xuser_tutorial,
             'symmetrical_projects':symmetrical_projects,
-            'asymmetrical_projects':asymmetrical_projects
+            'asymmetrical_projects':asymmetrical_projects,
+            'user_lipids':user_lipids,
         }
     )
 
@@ -166,6 +205,31 @@ def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     samples = Sample.objects.filter(project_title_id=project_id)
     project_lipids = Project_Lipid.objects.filter(project_title_id=project_id)
+    project_user_lipid_volumes = Project_User_Lipid_Volume.objects.filter(project_title_id=project_id)
+
+    x = project.system_tempurature
+
+    # Calculate or retrieve the volume and pair it with the lipid for display
+        # Workaround for PostgreSQL type issue
+    lipids_and_volumes = []
+    for lipid in project_lipids:
+        if lipid.project_lipid_name:
+            calc_volume = round(eval(lipid.project_lipid_name.total_volume_equation) - lipid.project_lipid_name.hg_volume, 2)
+            lipids_and_volumes.append([lipid, calc_volume])
+        elif project_user_lipid_volumes:
+            check = False
+            for volume in project_user_lipid_volumes:
+                if volume.project_user_lipid_name == lipid.project_user_lipid_name:
+                    lipids_and_volumes.append([lipid, volume])
+                    check = True
+                    break
+                
+            if not check:
+                lipids_and_volumes.append([lipid, 0])
+        else:
+            lipids_and_volumes.append([lipid, 0])
+
+    print(lipids_and_volumes)
 
     return render(
         request,
@@ -173,7 +237,7 @@ def project_detail(request, project_id):
             'tutorial':tutorial,
             'xuser_tutorial':xuser_tutorial,
             'project':project,
-            'project_lipids':project_lipids,
+            'lipids_and_volumes':lipids_and_volumes,
             'samples':samples,
         }
     )
@@ -224,16 +288,17 @@ def project_delete_warning(request, project_id):
 # Add lipids to a project
 def project_lipid_new(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    owner = request.user
 
     if request.method == 'POST':
-        form = Project_Lipid_Form(request.POST)
+        form = Project_Lipid_Form(owner, request.POST)
         if form.is_valid():
             lipids = form.save(commit=False)
             lipids.project_title = project
             lipids.save()
             return redirect('viewer:project_detail', project_id=project.id)
     else:
-        form = Project_Lipid_Form()
+        form = Project_Lipid_Form(owner)
 
     return render(request, 'viewer/form.html', {'project':project, 'form': form})
 
@@ -247,6 +312,40 @@ def project_lipid_delete_warning(request, project_id, lipid_id):
         return redirect('viewer:project_detail', project_id=project.id)
 
     return render(request, 'viewer/delete_warning.html', {'project':project, 'project_lipid':lipid})
+
+# Project custom lipid volume
+def project_user_lipid_volume_new(request, project_id, lipid_id):
+    project = get_object_or_404(Project, id=project_id)
+    lipid = get_object_or_404(User_Lipid, id=lipid_id)
+    print(lipid)
+
+    if request.method == 'POST':
+        form = Project_User_Lipid_Volume_Form(request.POST)
+        if form.is_valid():
+            user_lipid = form.save(commit=False)
+            user_lipid.project_title = project
+            user_lipid.project_user_lipid_name = lipid
+            user_lipid.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Project_User_Lipid_Volume_Form()
+    return render(request, 'viewer/form.html', {'form': form})
+
+# Edit project custom lipid volume
+def project_user_lipid_volume_edit(request, project_id, volume_id):
+    project = get_object_or_404(Project, id=project_id)
+    lipid_volume = get_object_or_404(Project_User_Lipid_Volume, id=volume_id)
+
+    if request.method == 'POST':
+        form = Project_User_Lipid_Volume_Form(request.POST, instance=lipid_volume)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.owner = request.user
+            post.save()
+            return redirect('viewer:project_detail', project_id=project.id)
+    else:
+        form = Project_User_Lipid_Volume_Form(instance=lipid_volume)
+    return render(request, 'viewer/form.html', {'form': form})
 
 ## Samples
 # Add a new sample
@@ -415,7 +514,7 @@ def sample_lipid_new(request, project_id, sample_id):
             if lipid_form.is_valid():
                 in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
                 in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
-                in_lipid_location = lipid_form.cleaned_data['lipid_location']
+                in_lipid_location = lipid_form.cleaned_data['location']
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
                     sample_lipid_name=in_sample_lipid_name,
@@ -564,6 +663,7 @@ def symmetrical_parameters_new(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
     sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id)
+    volumes = Project_User_Lipid_Volume.objects.filter(project_title_id=project_id)
 
     combined_head_volume = 0
     combined_tail_volume = 0
@@ -572,15 +672,27 @@ def symmetrical_parameters_new(request, project_id, sample_id):
 
     # Calculate combined volume
     for lipid in sample_lipids:
-        combined_head_volume = combined_head_volume + (
-                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
-            )
-        combined_tail_volume = combined_tail_volume + (
-                (
-                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+        if lipid.sample_lipid_name.project_lipid_name:
+            combined_head_volume = combined_head_volume + (
+                    lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
                 )
-                * lipid.lipid_mol_fraction
-            )
+            combined_tail_volume = combined_tail_volume + (
+                    (
+                        eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    )* lipid.lipid_mol_fraction
+                )
+        else:
+            for volume in volumes:
+                if volume.project_user_lipid_name == lipid.sample_lipid_name.project_user_lipid_name:
+                    combined_head_volume = combined_head_volume + (
+                            lipid.sample_lipid_name.project_user_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                        )
+                    combined_tail_volume = combined_tail_volume + (
+                            (
+                                volume.user_lipid_volume - lipid.sample_lipid_name.project_user_lipid_name.hg_volume
+                            ) * lipid.lipid_mol_fraction
+                        )
+                    break
     
     combined_head_volume = round(combined_head_volume, 2)
     combined_tail_volume = round(combined_tail_volume, 2)
@@ -645,6 +757,7 @@ def symmetrical_parameter_delete_warning(request, project_id, sample_id, paramet
 def asymmetrical_parameters_new(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
+    volumes = Project_User_Lipid_Volume.objects.filter(project_title_id=project_id)
 
     sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
     sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
@@ -659,26 +772,52 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
 
     # Calculate combined volume
     for lipid in sample_lipids_in:
-        in_combined_head_volume = in_combined_head_volume + (
-                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
-            )
-        in_combined_tail_volume = in_combined_tail_volume + (
-                (
-                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+        if lipid.sample_lipid_name.project_lipid_name:
+            in_combined_head_volume = in_combined_head_volume + (
+                    lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
                 )
-                * lipid.lipid_mol_fraction
-            )
+            in_combined_tail_volume = in_combined_tail_volume + (
+                    (
+                        eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    )
+                    * lipid.lipid_mol_fraction
+                )
+        else:
+            for volume in volumes:
+                if volume.project_user_lipid_name == lipid.sample_lipid_name.project_user_lipid_name:
+                    in_combined_head_volume = in_combined_head_volume + (
+                            lipid.sample_lipid_name.project_user_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                        )
+                    in_combined_tail_volume = in_combined_tail_volume + (
+                            (
+                                volume.user_lipid_volume - lipid.sample_lipid_name.project_user_lipid_name.hg_volume
+                            ) * lipid.lipid_mol_fraction
+                        )
+                    break
 
     for lipid in sample_lipids_out:
-        out_combined_head_volume = out_combined_head_volume + (
-                lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
-            )
-        out_combined_tail_volume = out_combined_tail_volume + (
-                (
-                    eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+        if lipid.sample_lipid_name.project_lipid_name:
+            out_combined_head_volume = out_combined_head_volume + (
+                    lipid.sample_lipid_name.project_lipid_name.hg_volume * lipid.lipid_mol_fraction
                 )
-                * lipid.lipid_mol_fraction
-            )
+            out_combined_tail_volume = out_combined_tail_volume + (
+                    (
+                        eval(lipid.sample_lipid_name.project_lipid_name.total_volume_equation) - lipid.sample_lipid_name.project_lipid_name.hg_volume
+                    )
+                    * lipid.lipid_mol_fraction
+                )
+        else:
+            for volume in volumes:
+                if volume.project_user_lipid_name == lipid.sample_lipid_name.project_user_lipid_name:
+                    out_combined_head_volume = out_combined_head_volume + (
+                            lipid.sample_lipid_name.project_user_lipid_name.hg_volume * lipid.lipid_mol_fraction
+                        )
+                    out_combined_tail_volume = out_combined_tail_volume + (
+                            (
+                                volume.user_lipid_volume - lipid.sample_lipid_name.project_user_lipid_name.hg_volume
+                            ) * lipid.lipid_mol_fraction
+                        )
+                    break
 
     in_combined_head_volume = round(in_combined_head_volume, 2)
     in_combined_tail_volume = round(in_combined_tail_volume, 2)
@@ -888,7 +1027,16 @@ def fit_main(request, project_id, sample_id, parameter_id):
         sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
         sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
         parameter = get_object_or_404(Asymmetrical_Parameters, id=parameter_id)
-        
+
+    # Check for 0 value parameters
+    zero_parameter = False
+    if project.model_type == "SM":
+        if parameter.chain_volume == 0  or parameter.headgroup_volume == 0 or parameter.terminal_methyl_volume == 0 or parameter.lipid_area == 0 or parameter.sigma == 0:
+            zero_parameter = True
+    if project.model_type == "AS":
+        if parameter.in_chain_volume == 0  or parameter.in_headgroup_volume == 0 or parameter.in_terminal_methyl_volume == 0 or parameter.in_lipid_area == 0 or parameter.out_chain_volume == 0  or parameter.out_headgroup_volume == 0 or parameter.out_terminal_methyl_volume == 0 or parameter.out_lipid_area == 0 or parameter.sigma == 0:
+            zero_parameter = True
+
     # Data
     data_exists = False
     datas = Data_Set.objects.filter(sample_title_id=sample_id)
@@ -1267,60 +1415,64 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 x_values
             )
 
-        # headgroup
-        plt.plot(
-            x_values,
-            head_prob,
-            color='c',
-            marker='.',
-            markersize='5',
-            label='Headgroup',
-            zorder=0
-        )
-        # chain
-        plt.plot(
-            x_values,
-            chain_prob,
-            color='g',
-            marker='v',
-            markersize='5',
-            label='Chains',
-            zorder=1
-        )
-        # terminal methyl
-        plt.plot(
-            x_values,
-            tm_prob,
-            color='m',
-            marker='s',
-            markersize='5',
-            label='Terminal Methyl',
-            zorder=2
-        )
-        # methylene
-        plt.plot(
-            x_values,
-            methylene_prob,
-            color='k',
-            marker='p',
-            markersize='5',
-            label='Methylene',
-            zorder=3
-        )
-        # water
-        plt.plot(
-            x_values,
-            water_prob,
-            color='b',
-            marker='x',
-            markersize='5',
-            label='Water',
-            zorder=4
-        )
+        if zero_parameter:
+            plt.plot()
+            plt.title('! DIVIDE BY ZERO ERROR !')
+        else:
+            # headgroup
+            plt.plot(
+                x_values,
+                head_prob,
+                color='c',
+                marker='.',
+                markersize='5',
+                label='Headgroup',
+                zorder=0
+            )
+            # chain
+            plt.plot(
+                x_values,
+                chain_prob,
+                color='g',
+                marker='v',
+                markersize='5',
+                label='Chains',
+                zorder=1
+            )
+            # terminal methyl
+            plt.plot(
+                x_values,
+                tm_prob,
+                color='m',
+                marker='s',
+                markersize='5',
+                label='Terminal Methyl',
+                zorder=2
+            )
+            # methylene
+            plt.plot(
+                x_values,
+                methylene_prob,
+                color='k',
+                marker='p',
+                markersize='5',
+                label='Methylene',
+                zorder=3
+            )
+            # water
+            plt.plot(
+                x_values,
+                water_prob,
+                color='b',
+                marker='x',
+                markersize='5',
+                label='Water',
+                zorder=4
+            )
 
-        plt.legend(loc=1)
-        plt.xlabel('Distance from bilayer center [A]')
-        plt.ylabel('Volume probability')
+            plt.legend(loc=1)
+            plt.xlabel('Distance from bilayer center [A]')
+            plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
             xray_sdp_fig = plt.figure(figsize=(5.5,4.3))
@@ -1336,61 +1488,65 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
-            plt.plot(
-                x_values,
-                sdp_results[0],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                label='Combined SDP',
-                zorder=5
-            )
-            # headgroup
-            plt.plot(
-                x_values,
-                sdp_results[1],
-                color='c',
-                marker='.',
-                markersize='5',
-                label='Headgroup',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                x_values,
-                sdp_results[2],
-                color='g',
-                marker='v',
-                markersize='5',
-                label='Chains',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                x_values,
-                sdp_results[3],
-                color='m',
-                marker='s',
-                markersize='5',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            # water
-            plt.plot(
-                x_values,
-                sdp_results[4],
-                color='b',
-                marker='x',
-                markersize='5',
-                label='Water',
-                zorder=4
-            )
+            if zero_parameter:
+                plt.plot()
+                plt.title(str(xray_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
+            else:
+                plt.plot(
+                    x_values,
+                    sdp_results[0],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    label='Combined SDP',
+                    zorder=5
+                )
+                # headgroup
+                plt.plot(
+                    x_values,
+                    sdp_results[1],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    label='Headgroup',
+                    zorder=0
+                )
+                # chain
+                plt.plot(
+                    x_values,
+                    sdp_results[2],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    label='Chains',
+                    zorder=1
+                )
+                # terminal methyl
+                plt.plot(
+                    x_values,
+                    sdp_results[3],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    label='Terminal Methyl',
+                    zorder=2
+                )
+                # water
+                plt.plot(
+                    x_values,
+                    sdp_results[4],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    label='Water',
+                    zorder=4
+                )
 
-            plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
-            plt.ylabel('SDP?')
+                plt.legend(loc=1)
+                plt.xlabel('Distance from bilayer center [A]')
+                plt.ylabel('SDP?')
 
-            plt.title(xray_data.data_set_title)
+                plt.title(xray_data.data_set_title)
 
             xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
 
@@ -1408,61 +1564,65 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
-            plt.plot(
-                x_values,
-                sdp_results[0],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                label='Combined SDP',
-                zorder=5
-            )
-            # headgroup
-            plt.plot(
-                x_values,
-                sdp_results[1],
-                color='c',
-                marker='.',
-                markersize='5',
-                label='Headgroup',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                x_values,
-                sdp_results[2],
-                color='g',
-                marker='v',
-                markersize='5',
-                label='Chains',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                x_values,
-                sdp_results[3],
-                color='m',
-                marker='s',
-                markersize='5',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            # water
-            plt.plot(
-                x_values,
-                sdp_results[4],
-                color='b',
-                marker='x',
-                markersize='5',
-                label='Water',
-                zorder=4
-            )
+            if zero_parameter:
+                plt.plot()
+                plt.title(str(neutron_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
+            else:
+                plt.plot(
+                    x_values,
+                    sdp_results[0],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    label='Combined SDP',
+                    zorder=5
+                )
+                # headgroup
+                plt.plot(
+                    x_values,
+                    sdp_results[1],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    label='Headgroup',
+                    zorder=0
+                )
+                # chain
+                plt.plot(
+                    x_values,
+                    sdp_results[2],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    label='Chains',
+                    zorder=1
+                )
+                # terminal methyl
+                plt.plot(
+                    x_values,
+                    sdp_results[3],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    label='Terminal Methyl',
+                    zorder=2
+                )
+                # water
+                plt.plot(
+                    x_values,
+                    sdp_results[4],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    label='Water',
+                    zorder=4
+                )
 
-            plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
-            plt.ylabel('SDP?')
+                plt.legend(loc=1)
+                plt.xlabel('Distance from bilayer center [A]')
+                plt.ylabel('SDP?')
 
-            plt.title(neutron_data.data_set_title)
+                plt.title(neutron_data.data_set_title)
 
             neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
 
@@ -1542,106 +1702,110 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 parameter.sigma,
                 out_x_values
             )
-            
-        # in headgroup
-        plt.plot(
-            in_x_values,
-            in_head_prob,
-            color='c',
-            marker='.',
-            markersize='5',
-            label='Headgroup',
-            zorder=0
-        )
-        # out headgroup
-        plt.plot(
-            out_x_values,
-            out_head_prob,
-            color='c',
-            marker='.',
-            markersize='5',
-            zorder=0
-        )
-        # in chain
-        plt.plot(
-            in_x_values,
-            in_chain_prob,
-            color='g',
-            marker='v',
-            markersize='5',
-            label='Chains',
-            zorder=1
-        )
-        # out chain
-        plt.plot(
-            out_x_values,
-            out_chain_prob,
-            color='g',
-            marker='v',
-            markersize='5',
-            zorder=1
-        )
-        # in terminal methyl
-        plt.plot(
-            in_x_values,
-            in_tm_prob,
-            color='m',
-            marker='s',
-            markersize='5',
-            label='Terminal Methyl',
-            zorder=2
-        )
-        # out terminal methyl
-        plt.plot(
-            out_x_values,
-            out_tm_prob,
-            color='m',
-            marker='s',
-            markersize='5',
-            zorder=2
-        )
-        # in methylene
-        plt.plot(
-            in_x_values,
-            in_methylene_prob,
-            color='k',
-            marker='p',
-            markersize='5',
-            label='Methylene',
-            zorder=3
-        )
-        # out methylene
-        plt.plot(
-            out_x_values,
-            out_methylene_prob,
-            color='k',
-            marker='p',
-            markersize='5',
-            zorder=3
-        )
-        # in water
-        plt.plot(
-            in_x_values,
-            in_water_prob,
-            color='b',
-            marker='x',
-            markersize='5',
-            label='Water',
-            zorder=4
-        )
-        # out water
-        plt.plot(
-            out_x_values,
-            out_water_prob,
-            color='b',
-            marker='x',
-            markersize='5',
-            zorder=4
-        )
 
-        plt.legend(loc=1)
-        plt.xlabel('Distance from bilayer center [A]')
-        plt.ylabel('Volume probability')
+        if zero_parameter:
+            plt.plot()
+            plt.title('! DIVIDE BY ZERO ERROR !')
+        else:
+            # in headgroup
+            plt.plot(
+                in_x_values,
+                in_head_prob,
+                color='c',
+                marker='.',
+                markersize='5',
+                label='Headgroup',
+                zorder=0
+            )
+            # out headgroup
+            plt.plot(
+                out_x_values,
+                out_head_prob,
+                color='c',
+                marker='.',
+                markersize='5',
+                zorder=0
+            )
+            # in chain
+            plt.plot(
+                in_x_values,
+                in_chain_prob,
+                color='g',
+                marker='v',
+                markersize='5',
+                label='Chains',
+                zorder=1
+            )
+            # out chain
+            plt.plot(
+                out_x_values,
+                out_chain_prob,
+                color='g',
+                marker='v',
+                markersize='5',
+                zorder=1
+            )
+            # in terminal methyl
+            plt.plot(
+                in_x_values,
+                in_tm_prob,
+                color='m',
+                marker='s',
+                markersize='5',
+                label='Terminal Methyl',
+                zorder=2
+            )
+            # out terminal methyl
+            plt.plot(
+                out_x_values,
+                out_tm_prob,
+                color='m',
+                marker='s',
+                markersize='5',
+                zorder=2
+            )
+            # in methylene
+            plt.plot(
+                in_x_values,
+                in_methylene_prob,
+                color='k',
+                marker='p',
+                markersize='5',
+                label='Methylene',
+                zorder=3
+            )
+            # out methylene
+            plt.plot(
+                out_x_values,
+                out_methylene_prob,
+                color='k',
+                marker='p',
+                markersize='5',
+                zorder=3
+            )
+            # in water
+            plt.plot(
+                in_x_values,
+                in_water_prob,
+                color='b',
+                marker='x',
+                markersize='5',
+                label='Water',
+                zorder=4
+            )
+            # out water
+            plt.plot(
+                out_x_values,
+                out_water_prob,
+                color='b',
+                marker='x',
+                markersize='5',
+                zorder=4
+            )
+
+            plt.legend(loc=1)
+            plt.xlabel('Distance from bilayer center [A]')
+            plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
             xray_sdp_fig = plt.figure(figsize=(5.5,4.3))
@@ -1662,101 +1826,105 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
-            plt.plot(
-                in_x_values,
-                sdp_results[0],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                label='Combined SDP',
-                zorder=5
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[1],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                zorder=5
-            )
-            # headgroup
-            plt.plot(
-                in_x_values,
-                sdp_results[2],
-                color='c',
-                marker='.',
-                markersize='5',
-                label='Headgroup',
-                zorder=0
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[3],
-                color='c',
-                marker='.',
-                markersize='5',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                in_x_values,
-                sdp_results[4],
-                color='g',
-                marker='v',
-                markersize='5',
-                label='Chains',
-                zorder=1
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[5],
-                color='g',
-                marker='v',
-                markersize='5',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                in_x_values,
-                sdp_results[6],
-                color='m',
-                marker='s',
-                markersize='5',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[7],
-                color='m',
-                marker='s',
-                markersize='5',
-                zorder=2
-            )
-            # water
-            plt.plot(
-                in_x_values,
-                sdp_results[8],
-                color='b',
-                marker='x',
-                markersize='5',
-                label='Water',
-                zorder=4
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[9],
-                color='b',
-                marker='x',
-                markersize='5',
-                zorder=4
-            )
+            if zero_parameter:
+                plt.plot()
+                plt.title(str(xray_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
+            else:
+                plt.plot(
+                    in_x_values,
+                    sdp_results[0],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    label='Combined SDP',
+                    zorder=5
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[1],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    zorder=5
+                )
+                # headgroup
+                plt.plot(
+                    in_x_values,
+                    sdp_results[2],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    label='Headgroup',
+                    zorder=0
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[3],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    zorder=0
+                )
+                # chain
+                plt.plot(
+                    in_x_values,
+                    sdp_results[4],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    label='Chains',
+                    zorder=1
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[5],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    zorder=1
+                )
+                # terminal methyl
+                plt.plot(
+                    in_x_values,
+                    sdp_results[6],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    label='Terminal Methyl',
+                    zorder=2
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[7],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    zorder=2
+                )
+                # water
+                plt.plot(
+                    in_x_values,
+                    sdp_results[8],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    label='Water',
+                    zorder=4
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[9],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    zorder=4
+                )
 
-            plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
-            plt.ylabel('SDP?')
+                plt.legend(loc=1)
+                plt.xlabel('Distance from bilayer center [A]')
+                plt.ylabel('SDP?')
 
-            plt.title(xray_data.data_set_title)
+                plt.title(xray_data.data_set_title)
 
             xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
 
@@ -1779,101 +1947,105 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
-            plt.plot(
-                in_x_values,
-                sdp_results[0],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                label='Combined SDP',
-                zorder=5
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[1],
-                linewidth=4,
-                color='k',
-                markersize='5',
-                zorder=5
-            )
-            # headgroup
-            plt.plot(
-                in_x_values,
-                sdp_results[2],
-                color='c',
-                marker='.',
-                markersize='5',
-                label='Headgroup',
-                zorder=0
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[3],
-                color='c',
-                marker='.',
-                markersize='5',
-                zorder=0
-            )
-            # chain
-            plt.plot(
-                in_x_values,
-                sdp_results[4],
-                color='g',
-                marker='v',
-                markersize='5',
-                label='Chains',
-                zorder=1
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[5],
-                color='g',
-                marker='v',
-                markersize='5',
-                zorder=1
-            )
-            # terminal methyl
-            plt.plot(
-                in_x_values,
-                sdp_results[6],
-                color='m',
-                marker='s',
-                markersize='5',
-                label='Terminal Methyl',
-                zorder=2
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[7],
-                color='m',
-                marker='s',
-                markersize='5',
-                zorder=2
-            )
-            # water
-            plt.plot(
-                in_x_values,
-                sdp_results[8],
-                color='b',
-                marker='x',
-                markersize='5',
-                label='Water',
-                zorder=4
-            )
-            plt.plot(
-                out_x_values,
-                sdp_results[9],
-                color='b',
-                marker='x',
-                markersize='5',
-                zorder=4
-            )
+            if zero_parameter:
+                plt.plot()
+                plt.title(str(neutron_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
+            else:
+                plt.plot(
+                    in_x_values,
+                    sdp_results[0],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    label='Combined SDP',
+                    zorder=5
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[1],
+                    linewidth=4,
+                    color='k',
+                    markersize='5',
+                    zorder=5
+                )
+                # headgroup
+                plt.plot(
+                    in_x_values,
+                    sdp_results[2],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    label='Headgroup',
+                    zorder=0
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[3],
+                    color='c',
+                    marker='.',
+                    markersize='5',
+                    zorder=0
+                )
+                # chain
+                plt.plot(
+                    in_x_values,
+                    sdp_results[4],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    label='Chains',
+                    zorder=1
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[5],
+                    color='g',
+                    marker='v',
+                    markersize='5',
+                    zorder=1
+                )
+                # terminal methyl
+                plt.plot(
+                    in_x_values,
+                    sdp_results[6],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    label='Terminal Methyl',
+                    zorder=2
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[7],
+                    color='m',
+                    marker='s',
+                    markersize='5',
+                    zorder=2
+                )
+                # water
+                plt.plot(
+                    in_x_values,
+                    sdp_results[8],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    label='Water',
+                    zorder=4
+                )
+                plt.plot(
+                    out_x_values,
+                    sdp_results[9],
+                    color='b',
+                    marker='x',
+                    markersize='5',
+                    zorder=4
+                )
 
-            plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
-            plt.ylabel('SDP?')
+                plt.legend(loc=1)
+                plt.xlabel('Distance from bilayer center [A]')
+                plt.ylabel('SDP?')
 
-            plt.title(neutron_data.data_set_title)
+                plt.title(neutron_data.data_set_title)
 
             neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
 
@@ -2099,6 +2271,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'sample':sample,
         'data_exists':data_exists,
         'parameter':parameter,
+        'zero_parameter':zero_parameter,
         'parameter_update_form':parameter_update_form,
         'fit_result':fit_result,
         'show_stats':show_statistics,

@@ -286,72 +286,119 @@ def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, t
 
         ## Inner
         for sample_lipid in in_sample_lipids:
-            # bt
-            in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
-            # bc
-            in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
-            # bh
-            in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
+            if sample_lipid.sample_lipid_name.project_lipid_name:
+                # bt
+                in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
+                # bc
+                in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
+                # bh
+                in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
+            else:
+                # bt
+                in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
+                # bc
+                in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
+                # bh
+                in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
         ## Outer
         for sample_lipid in out_sample_lipids:
-            ## Outer
-            # bt
-            out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
-            # bc
-            out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
-            # bh
-            out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
+            if sample_lipid.sample_lipid_name.project_lipid_name:
+                # bt
+                out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
+                # bc
+                out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
+                # bh
+                out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
+            else:
+                # bt
+                out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tm_electrons * sample_lipid.lipid_mol_fraction)
+                # bc
+                out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tg_electrons * sample_lipid.lipid_mol_fraction)
+                # bh
+                out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.hg_electrons * sample_lipid.lipid_mol_fraction)
     else:
         # bw
         water_b = (d_water.scattering_length * data.d2o_mol_fraction) + (water.scattering_length * (1 - data.d2o_mol_fraction))
 
         # Inner
         for sample_lipid in in_sample_lipids:
-            if sample_lipid.sample_lipid_augment != None:
-                # bt
-                in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bc
-                in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bh
-                in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-            elif sample_lipid.sample_lipid_custom_augment != None:
-                # bt
-                in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bc
-                in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bh
-                in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+            if sample_lipid.sample_lipid_name.project_lipid_name:
+                if sample_lipid.sample_lipid_augment != None:
+                    # bt
+                    in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                elif sample_lipid.sample_lipid_custom_augment != None:
+                    # bt
+                    in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                else:
+                    # bt
+                    in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
             else:
-                # bt
-                in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
-                # bc
-                in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
-                # bh
-                in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
+                if sample_lipid.sample_lipid_custom_augment != None:
+                    # bt
+                    in_terminal_methyl_b = in_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    in_chain_b = in_chain_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    in_headgroup_b = in_headgroup_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                else:
+                    # bt
+                    in_terminal_methyl_b = in_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    in_chain_b = in_chain_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    in_headgroup_b = in_headgroup_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
 
         # Outer
         for sample_lipid in out_sample_lipids:
-            if sample_lipid.sample_lipid_augment != None:
-                # bt
-                out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bc
-                out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bh
-                out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-            elif sample_lipid.sample_lipid_custom_augment != None:
-                # bt
-                out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bc
-                out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
-                # bh
-                out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+            if sample_lipid.sample_lipid_name.project_lipid_name:
+                if sample_lipid.sample_lipid_augment != None:
+                    # bt
+                    out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                elif sample_lipid.sample_lipid_custom_augment != None:
+                    # bt
+                    out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                else:
+                    # bt
+                    out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
             else:
-                # bt
-                out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
-                # bc
-                out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
-                # bh
-                out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
+                if sample_lipid.sample_lipid_custom_augment != None:
+                    # bt
+                    out_terminal_methyl_b = out_terminal_methyl_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.tm_scattering + sample_lipid.sample_lipid_custom_augment.tmg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    out_chain_b = out_chain_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.tg_scattering + sample_lipid.sample_lipid_custom_augment.tg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    out_headgroup_b = out_headgroup_b + ((sample_lipid.sample_lipid_name.project_user_lipid_name.hg_scattering + sample_lipid.sample_lipid_custom_augment.hg_scattering_net_change) * sample_lipid.lipid_mol_fraction)
+                else:
+                    # bt
+                    out_terminal_methyl_b = out_terminal_methyl_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tm_scattering * sample_lipid.lipid_mol_fraction)
+                    # bc
+                    out_chain_b = out_chain_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.tg_scattering * sample_lipid.lipid_mol_fraction)
+                    # bh
+                    out_headgroup_b = out_headgroup_b + (sample_lipid.sample_lipid_name.project_user_lipid_name.hg_scattering * sample_lipid.lipid_mol_fraction)
 
     b_values = [in_chain_b, in_headgroup_b, in_terminal_methyl_b, out_chain_b, out_headgroup_b, out_terminal_methyl_b, water_b, calculated_water_volume]
     
@@ -651,6 +698,10 @@ def asymmetrical_sdp(parameter, in_head_prob, in_chain_prob, in_tm_prob, in_wate
     bto = fit_parameters['out_terminal_methyl_b_%i' % data.id].value
     # Water
     bw = fit_parameters['water_b_%i' % data.id].value
+
+    if Vhi == 0 or Vci == 0 or Vti == 0 or Vho == 0 or Vco == 0 or Vto == 0 or Vw == 0:
+        combined_sdp = 0
+        return(combined_sdp)
 
     ## Scale probabilities
     # Inner

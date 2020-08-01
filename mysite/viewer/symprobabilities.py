@@ -13,6 +13,9 @@ def head(
     ## Delcare
     headgroup_probabilities = []
 
+    if Al == 0 or sig == 0:
+        return headgroup_probabilities
+
     for z in data:
         calculated_value = (
             (Vh/(2*Al*Dh)) * (
@@ -42,6 +45,9 @@ def chain(
     ## Delcare
     chain_probabilities = []
 
+    if Al == 0 or sig == 0:
+        return chain_probabilities
+
     for z in data:
         calculated_value = (
             (1/2) * (
@@ -66,6 +72,9 @@ def terminal(
 ):
     ## Delcare
     tm_probabilities = []
+
+    if Al == 0 or sig == 0:
+        return tm_probabilities
 
     for z in data:
         calculated_value = (
@@ -92,6 +101,9 @@ def methylene(
 ):
     ## Delcare
     methylene_probabilities = []
+
+    if Al == 0 or sig == 0:
+        return methylene_probabilities
 
     for z in data:
         calculated_value = (
@@ -126,6 +138,9 @@ def water(
 ):
     ## Delcare
     water_probabilities = []
+
+    if Al == 0 or sig == 0:
+        return water_probabilities
 
     for z in data:
         calculated_value = (

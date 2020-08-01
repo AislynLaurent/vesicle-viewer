@@ -11,6 +11,8 @@
             <div class="announcement">
                 <h3>Projects and Models</h3>
                 <p>Here your projects are listed, organized by "model". A <strong>project</strong> stores all the information about a particular project that you're working on, including subprojects called samples where your data is stored. The <strong>model</strong> of a given project specifies which math is used to process the data in that project.</p>
+                <h3>Custom Lipids</h3>
+                <p>You also have the option here to enter your own custom lipids to use in any of your projects. You'll need some specific information in order to do that.</p>
                 <p>
                     <form id="inline" method="POST">
                         {% csrf_token %}
@@ -24,47 +26,80 @@
             </div>
         {% endif %}
 
-        {% if symmetrical_projects %}
+        <div id="left" style="width:60%; margin-top: -15px;">
+
+            {% if symmetrical_projects %}
+
+                <div class="content-box">
+                        <h1>Symmetrical Projects</h1>
+
+                    {% for project in symmetrical_projects %}
+
+                        <div class="project">
+                            <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
+                        </div>
+
+                    {% endfor %}
+                    
+                </div>
+
+            {% endif %}
+            {% if asymmetrical_projects %}
+
+                <div class="content-box">
+                        <h1>Asymmetrical Projects</h1>
+
+                    {% for project in asymmetrical_projects %}
+
+                        <div class="project">
+                            <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
+                        </div>
+
+                    {% endfor %}
+                    
+                </div>
+
+            {% endif %}
 
             <div class="content-box">
-                    <h1>Symmetrical Projects</h1>
-
-                {% for project in symmetrical_projects %}
-
-                    <div class="project">
-                        <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
-                    </div>
-
-                {% endfor %}
-                
+                <h1>New Project</h1>
+                <button
+                    type="button"
+                    onclick="window.location.href='{% url 'viewer:project_new' %}'" >
+                    Click here to start a new project
+                </button>
             </div>
+        
+        </div>
+        <div id="right" style="width:39%; margin-top: -15px;">
 
-        {% endif %}
-        {% if asymmetrical_projects %}
+            {% if user_lipids %}
+
+                <div class="content-box">
+                    <h1>Custom Lipids</h1>
+                        
+                    <table>
+                        {% for lipid in user_lipids %}
+                        <tr>
+                            <td><h3><a href="{% url 'viewer:user_lipid_detail' owner=user.id lipid_name=lipid.slug %}">{{ lipid.user_lipid_name }}</a></h3></td>
+                            <td><p><a href="{% url 'viewer:user_lipid_edit' owner=user.id lipid_name=lipid.slug %}">edit</a></p></td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+
+            {% endif %}
 
             <div class="content-box">
-                    <h1>Asymmetrical Projects</h1>
-
-                {% for project in asymmetrical_projects %}
-
-                    <div class="project">
-                        <h3><a href="{% url 'viewer:project_detail' project_id=project.id %}">{{ project.project_title }}</a></h3>
-                    </div>
-
-                {% endfor %}
-                
+                <h1>New Custom Lipid</h1>
+                <button
+                    type="button"
+                    onclick="window.location.href='{% url 'viewer:user_lipid_new' owner=user.id %}'" >
+                    Click here to start a new project
+                </button>
             </div>
-
-        {% endif %}
-
-    <div class="content-box">
-        <h1>New Project</h1>
-        <button
-            type="button"
-            onclick="window.location.href='{% url 'viewer:project_new' %}'" >
-            Click here to start a new project
-        </button>
-    </div>
+        
+        </div>
 
     {% else %}
 

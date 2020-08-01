@@ -109,6 +109,14 @@
         </div>
     {% endif %}
 
+    {% if zero_parameter %}
+        <div class="error">
+            <h4>One or more of your parameters is zero:</h4>
+            <p>An error has occured, and one or more critical parameters (Vh, Vc, Vt or Sigma) is zero. This prevents the SDP graphs from being properly generated.</p>
+            <p>Please check your results.</p>
+        </div>
+    {% endif %}
+
     <div class="content-box parameters" id="left">
 
         <form method="POST" enctype="multipart/form-data">
