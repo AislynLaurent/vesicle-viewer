@@ -5,6 +5,9 @@ import lmfit as lsq
 # Models
 from .models import Molecule
 
+# Other imports
+from .symprobabilities import *
+
 # Symmetrical model
 def sym_model(
     q,      # independant
@@ -23,7 +26,7 @@ def sym_model(
     bg      # bg
 ):
     return (
-        q**(-2) * scale*(
+        (q**(-2) * scale*(
             (
                 ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
                 * np.abs(
@@ -33,7 +36,7 @@ def sym_model(
                     + Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
                 )
             ) **2
-        ) + bg
+        ) + bg)
     )
 
 # Symmetrical model and separated form factor
@@ -108,11 +111,26 @@ def calc_sym_model(fit_parameters, q, data, sff):
     scale = fit_parameters['scale_%i' % data.id].value
     bg = fit_parameters['background_%i' % data.id].value
 
+    water_prob = water(Vc, Vh, Al, Dh, sig, q_array)
+
+    # Check if the water prob is negative - if it is, impose a penalty
+    neg_water = False
+    for value in water_prob:
+        if value < 0:
+            neg_water = True
+            break
+
     # Return the calculated model
     if sff:
-        return sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
+        calc_result = sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
     else:
-        return sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
+        calc_result = sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
+
+    # Make whole result negative if water prob is neg
+    if neg_water:
+        return (-calc_result)
+    else:
+        return (calc_result)
 
 
 # Objective function create a residual for each, then flatten
@@ -228,7 +246,7 @@ def adjust_b_values(data, sample_lipids, water, d_water, temp):
     
     return(b_values)
 
-# Fit function
+# Parameters
 def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
     ## DELCARE
     # Other molecules
@@ -393,12 +411,13 @@ def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
 
     # Constraints
 
-    fit_parameters.add('penalty', value=1, vary=True, min=0)
+    # fit_parameters.add('penalty', value=1, vary=True, min=0)
         
-    fit_parameters.add('water_prob', expr='penalty + (headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume+area_per_lipid*(headgroup_thickness-1)) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*(headgroup_thickness+1)) / (sqrt(2)*area_per_lipid*sigma))) + ((1/2) - headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume-area_per_lipid*1) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*1)/(sqrt(2)*area_per_lipid*sigma)))')
+    # fit_parameters.add('water_prob', expr='penalty + (headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume+area_per_lipid*(headgroup_thickness-1)) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*(headgroup_thickness+1)) / (sqrt(2)*area_per_lipid*sigma))) + ((1/2) - headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume-area_per_lipid*1) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*1)/(sqrt(2)*area_per_lipid*sigma)))')
 
     return fit_parameters
 
+# Fit / graphs / etc
 def symmetrical_graph(parameter, sample_lipids, data, temp):
     # Get parameters
     fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
