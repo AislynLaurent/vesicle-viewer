@@ -111,9 +111,10 @@ def calc_sym_model(fit_parameters, q, data, sff):
     scale = fit_parameters['scale_%i' % data.id].value
     bg = fit_parameters['background_%i' % data.id].value
 
-    water_prob = water(Vc, Vh, Al, Dh, sig, q_array)
-
     # Check if the water prob is negative - if it is, impose a penalty
+    x_values = np.arange(-40, 40, 0.2)
+    water_prob = water(Vc, Vh, Al, Dh, sig, x_values)
+
     neg_water = False
     for value in water_prob:
         if value < 0:

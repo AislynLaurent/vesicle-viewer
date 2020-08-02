@@ -221,11 +221,29 @@ def calc_asym_model(fit_parameters, q, data, sff):
     scale = fit_parameters['scale_%i' % data.id].value
     bg = fit_parameters['background_%i' % data.id].value
 
+    # Check if the water prob is negative - if it is, impose a penalty
+    in_x_values = np.arange(-40, 0.2, 0.2)
+    out_x_values = np.arange(-0.2, 40, 0.2)
+    in_water_prob = water(Vci, Vhi, Ali, Dhi, sig, in_x_values)
+    out_water_prob = water(Vco, Vho, Alo, Dho, sig, out_x_values)
+
+    neg_water = False
+    for in_value, out_value in zip(in_water_prob, out_water_prob):
+        if in_value < 0 or out_value < 0:
+            neg_water = True
+            break
+
     # Return the calculated model
     if sff:
-        return asym_model_separated(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, r, rs, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
+        calc_result = asym_model_separated(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, r, rs, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
     else:
-        return asym_model(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
+        calc_result = asym_model(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
+
+    # Make whole result negative if water prob is neg
+    if neg_water:
+        return (-calc_result)
+    else:
+        return (calc_result)
 
 
 # Objective function create a residual for each, then flatten
