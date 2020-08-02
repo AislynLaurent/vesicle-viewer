@@ -5,6 +5,9 @@ import lmfit as lsq
 # Models
 from .models import Molecule
 
+# Other imports
+from .symprobabilities import *
+
 # Asymmetrical model
 def asym_model(
     q,          # independant
