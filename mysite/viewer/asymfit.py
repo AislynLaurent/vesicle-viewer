@@ -224,29 +224,13 @@ def calc_asym_model(fit_parameters, q, data, sff):
     scale = fit_parameters['scale_%i' % data.id].value
     bg = fit_parameters['background_%i' % data.id].value
 
-    # Check if the water prob is negative - if it is, impose a penalty
-    in_x_values = np.arange(-40, 0.2, 0.2)
-    out_x_values = np.arange(-0.2, 40, 0.2)
-    in_water_prob = water(Vci, Vhi, Ali, Dhi, sig, in_x_values)
-    out_water_prob = water(Vco, Vho, Alo, Dho, sig, out_x_values)
-
-    neg_water = False
-    for in_value, out_value in zip(in_water_prob, out_water_prob):
-        if in_value < 0 or out_value < 0:
-            neg_water = True
-            break
-
     # Return the calculated model
     if sff:
         calc_result = asym_model_separated(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, r, rs, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
     else:
         calc_result = asym_model(q_array, Vci, Vhi, Vti, Ali, Dhi, Vco, Vho, Vto, Alo, Dho, Vw, sig, bci, bhi, bti, bco, bho, bto, bw, scale, bg)
 
-    # Make whole result negative if water prob is neg
-    if neg_water:
-        return (-calc_result)
-    else:
-        return (calc_result)
+    return calc_result
 
 
 # Objective function create a residual for each, then flatten
@@ -254,6 +238,45 @@ def asymmetrical_objective_function(fit_parameters, x, datas, sff):
     # Delcare
     current_residual = []
     combined_residuals = []
+    scaled_water = []
+
+    # Check if the water prob is negative - if it is, impose a penalty
+
+    ### Unpack parameters
+    ## Inner
+    Vci = fit_parameters['in_chain_volume'].value
+    Vhi = fit_parameters['in_headgroup_volume'].value
+    Vti = fit_parameters['in_terminal_methyl_volume'].value
+    # Unknown
+    Ali = fit_parameters['in_area_per_lipid'].value
+    Dhi = fit_parameters['in_headgroup_thickness'].value
+    ## Outer
+    Vco = fit_parameters['out_chain_volume'].value
+    Vho = fit_parameters['out_headgroup_volume'].value
+    Vto = fit_parameters['out_terminal_methyl_volume'].value
+    # Unknown
+    Alo = fit_parameters['out_area_per_lipid'].value
+    Dho = fit_parameters['out_headgroup_thickness'].value
+    ## Shared
+    # Smearing factor
+    sig = fit_parameters['sigma'].value
+
+    in_x_values = np.arange(-40, 0.2, 0.2)
+    out_x_values = np.arange(-0.2, 40, 0.2)
+    in_water_prob = water(Vci, Vhi, Ali, Dhi, sig, in_x_values)
+    out_water_prob = water(Vco, Vho, Alo, Dho, sig, out_x_values)
+
+    # If the probability is above 0 - do nothing. If it's less than 0, scale the value (penalty)
+    for value in in_water_prob:
+        if value >= 0:
+            scaled_water.append(0)
+        else:
+            scaled_water.append((value**2)*(10**5))
+    for value in out_water_prob:
+        if value >= 0:
+            scaled_water.append(0)
+        else:
+            scaled_water.append((value**2)*(10**5))
 
     # Make an array of residuals
     for data in datas:
@@ -272,6 +295,8 @@ def asymmetrical_objective_function(fit_parameters, x, datas, sff):
         weighted_residual = np.power(current_residual, 2) / np.power(current_error, 2)
         # Append
         combined_residuals.extend(weighted_residual)
+
+    combined_residuals.extend(scaled_water)
 
     return combined_residuals
 
@@ -425,7 +450,7 @@ def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, t
     
     return(b_values)
 
-# Fit function
+# Parameters
 def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp):
     ## DELCARE
     # Other molecules
@@ -660,6 +685,7 @@ def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data
 
     return fit_parameters
 
+# Graphs / fit / probabilities / etc
 def asymmetrical_graph(parameter, in_sample_lipids, out_sample_lipids, data, temp):
     # Get parameters
     fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)

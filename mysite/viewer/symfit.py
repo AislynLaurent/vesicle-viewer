@@ -111,16 +111,6 @@ def calc_sym_model(fit_parameters, q, data, sff):
     scale = fit_parameters['scale_%i' % data.id].value
     bg = fit_parameters['background_%i' % data.id].value
 
-    # Check if the water prob is negative - if it is, impose a penalty
-    x_values = np.arange(-40, 40, 0.2)
-    water_prob = water(Vc, Vh, Al, Dh, sig, x_values)
-
-    neg_water = False
-    for value in water_prob:
-        if value < 0:
-            neg_water = True
-            break
-
     # Return the calculated model
     if sff:
         calc_result = sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
@@ -128,10 +118,7 @@ def calc_sym_model(fit_parameters, q, data, sff):
         calc_result = sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
 
     # Make whole result negative if water prob is neg
-    if neg_water:
-        return (-calc_result)
-    else:
-        return (calc_result)
+    return calc_result
 
 
 # Objective function create a residual for each, then flatten
@@ -139,12 +126,36 @@ def symmetrical_objective_function(fit_parameters, x, datas, sff):
     # Delcare
     current_residual = []
     combined_residuals = []
+    scaled_water = []
+
+    # Check if the water prob is negative - if it is, impose a penalty
+
+    ## Unpack parameters
+    # Shared
+    Vc = fit_parameters['chain_volume'].value
+    Vh = fit_parameters['headgroup_volume'].value
+    Vt = fit_parameters['terminal_methyl_volume'].value
+    # Unknown
+    Al = fit_parameters['area_per_lipid'].value
+    Dh = fit_parameters['headgroup_thickness'].value
+    # Smearing factor
+    sig = fit_parameters['sigma'].value
+
+    x_values = np.arange(-40, 40, 0.2)
+    water_prob = water(Vc, Vh, Al, Dh, sig, x_values)
+
+    # If the probability is above 0 - do nothing. If it's less than 0, scale the value (penalty)
+    for value in water_prob:
+        if value >= 0:
+            scaled_water.append(0)
+        else:
+            scaled_water.append((value**2)*(10**5))
 
     # Make an array of residuals
     for data in datas:
         # Get error
         current_error = []
-        # Check for 0's
+        # Check for 0's - make them 1 so they have no effect
         for value in data.error_value[data.min_index:data.max_index]:
             if value == 0:
                 value = 1
@@ -157,6 +168,8 @@ def symmetrical_objective_function(fit_parameters, x, datas, sff):
         weighted_residual = np.power(current_residual, 2) / np.power(current_error, 2)
         # Append
         combined_residuals.extend(weighted_residual)
+
+    combined_residuals.extend(scaled_water)
 
     return combined_residuals
 
@@ -409,12 +422,6 @@ def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
                 datas.background_upperbound
             )
         )
-
-    # Constraints
-
-    # fit_parameters.add('penalty', value=1, vary=True, min=0)
-        
-    # fit_parameters.add('water_prob', expr='penalty + (headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume+area_per_lipid*(headgroup_thickness-1)) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*(headgroup_thickness+1)) / (sqrt(2)*area_per_lipid*sigma))) + ((1/2) - headgroup_volume / (2*area_per_lipid*headgroup_thickness)) * (erfc((chain_volume-area_per_lipid*1) / (sqrt(2)*area_per_lipid*sigma)) + erfc((chain_volume+area_per_lipid*1)/(sqrt(2)*area_per_lipid*sigma)))')
 
     return fit_parameters
 
