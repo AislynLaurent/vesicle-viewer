@@ -271,12 +271,12 @@ def asymmetrical_objective_function(fit_parameters, x, datas, sff):
         if value >= 0:
             scaled_water.append(0)
         else:
-            scaled_water.append((value**2)*(10**5))
+            scaled_water.append((value**2)*(10**7))
     for value in out_water_prob:
         if value >= 0:
             scaled_water.append(0)
         else:
-            scaled_water.append((value**2)*(10**5))
+            scaled_water.append((value**2)*(10**7))
 
     # Make an array of residuals
     for data in datas:
