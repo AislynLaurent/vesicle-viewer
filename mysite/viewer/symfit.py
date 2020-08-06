@@ -149,7 +149,7 @@ def symmetrical_objective_function(fit_parameters, x, datas, sff):
         if value >= 0:
             scaled_water.append(0)
         else:
-            scaled_water.append((value**2)*(10**6))
+            scaled_water.append((value**2)*(10**7))
 
     # Make an array of residuals
     for data in datas:
