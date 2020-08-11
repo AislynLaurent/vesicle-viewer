@@ -1480,7 +1480,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             sdp_results = symmetrical_sdp(
                     parameter,
                     head_prob,
-                    chain_prob,
+                    methylene_prob,
                     tm_prob,
                     water_prob,
                     sample_lipids,
@@ -1511,14 +1511,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     label='Headgroup',
                     zorder=0
                 )
-                # chain
+                # methyl
                 plt.plot(
                     x_values,
                     sdp_results[2],
                     color='g',
                     marker='v',
                     markersize='5',
-                    label='Chains',
+                    label='Methylene',
                     zorder=1
                 )
                 # terminal methyl
@@ -1556,7 +1556,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             sdp_results = symmetrical_sdp(
                     parameter,
                     head_prob,
-                    chain_prob,
+                    methylene_prob,
                     tm_prob,
                     water_prob,
                     sample_lipids,
@@ -1587,14 +1587,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     label='Headgroup',
                     zorder=0
                 )
-                # chain
+                # methyl
                 plt.plot(
                     x_values,
                     sdp_results[2],
                     color='g',
                     marker='v',
                     markersize='5',
-                    label='Chains',
+                    label='Methylene',
                     zorder=1
                 )
                 # terminal methyl
@@ -1813,11 +1813,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
             sdp_results = asymmetrical_sdp(
                     parameter,
                     in_head_prob,
-                    in_chain_prob,
+                    in_methylene_prob,
                     in_tm_prob,
                     in_water_prob,
                     out_head_prob,
-                    out_chain_prob,
+                    out_methylene_prob,
                     out_tm_prob,
                     out_water_prob,
                     sample_lipids_in,
@@ -1865,14 +1865,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     markersize='5',
                     zorder=0
                 )
-                # chain
+                # methyl
                 plt.plot(
                     in_x_values,
                     sdp_results[4],
                     color='g',
                     marker='v',
                     markersize='5',
-                    label='Chains',
+                    label='Methylene',
                     zorder=1
                 )
                 plt.plot(
@@ -1934,11 +1934,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
             sdp_results = asymmetrical_sdp(
                     parameter,
                     in_head_prob,
-                    in_chain_prob,
+                    in_methylene_prob,
                     in_tm_prob,
                     in_water_prob,
                     out_head_prob,
-                    out_chain_prob,
+                    out_methylene_prob,
                     out_tm_prob,
                     out_water_prob,
                     sample_lipids_in,
@@ -1986,14 +1986,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     markersize='5',
                     zorder=0
                 )
-                # chain
+                # methyl
                 plt.plot(
                     in_x_values,
                     sdp_results[4],
                     color='g',
                     marker='v',
                     markersize='5',
-                    label='Chains',
+                    label='Methylene',
                     zorder=1
                 )
                 plt.plot(

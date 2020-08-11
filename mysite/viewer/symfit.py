@@ -455,7 +455,7 @@ def symmetrical_fit(parameter, sample_lipids, datas, temp):
 
     return fit_result
 
-def symmetrical_sdp(parameter, head_prob, chain_prob, tm_prob, water_prob, sample_lipids, data, temp):
+def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, sample_lipids, data, temp):
     # Declare
     sdp_final = []
 
@@ -480,14 +480,14 @@ def symmetrical_sdp(parameter, head_prob, chain_prob, tm_prob, water_prob, sampl
 
     # Scale probabilities
     scaled_head_prob = (np.asarray(head_prob)*(bh/Vh))
-    scaled_chain_prob = (np.asarray(chain_prob)*(bc/Vc))
+    scaled_methyl_prob = (np.asarray(methyl_prob)*(bc/Vc))
     scaled_tm_prob = (np.asarray(tm_prob)*(bt/Vt))
     scaled_water_prob = (np.asarray(water_prob)*(bw/Vw))
 
     # Add them together
-    for h_value, c_value, tm_value, w_value in zip(scaled_head_prob, scaled_chain_prob, scaled_tm_prob, scaled_water_prob):
-        sdp_final.append(h_value+c_value+tm_value+w_value)
+    for h_value, m_value, tm_value, w_value in zip(scaled_head_prob, scaled_methyl_prob, scaled_tm_prob, scaled_water_prob):
+        sdp_final.append(h_value+m_value+tm_value+w_value)
 
-    combined_sdp = [sdp_final, scaled_head_prob, scaled_chain_prob, scaled_tm_prob, scaled_water_prob]
+    combined_sdp = [sdp_final, scaled_head_prob, scaled_methyl_prob, scaled_tm_prob, scaled_water_prob]
 
     return(combined_sdp)
