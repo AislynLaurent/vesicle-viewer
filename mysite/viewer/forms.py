@@ -40,6 +40,9 @@ class Project_Form(forms.ModelForm):
             'model_type',
             'system_tempurature',
         ]
+        labels = {
+            'system_tempurature': 'System tempurature (in \N{DEGREE SIGN}C)',
+        }
 
 class Advanced_Options(forms.ModelForm):
     class Meta:
