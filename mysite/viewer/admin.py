@@ -23,5 +23,6 @@ admin.site.register(Asymmetrical_Parameters)
 admin.site.register(Project_Lipid)
 admin.site.register(Sample_Lipid)
 admin.site.register(Sample_Lipid_Augmentation)
+admin.site.register(Data_Sample_Lipid_Augment)
 # Data
 admin.site.register(Data_Set)

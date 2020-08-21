@@ -66,7 +66,7 @@
 
         <h2>Lipid Information</h2>
 
-        <form id="clear" method="POST">
+        <form id="clear" method="POST" enctype="multipart/form-data">
           {% csrf_token %}
 
           <table class="form_box">
@@ -101,17 +101,63 @@
 
           <h2>Augmentations</h2>
 
-          <form method="POST">
-            {% csrf_token %}
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
 
-            <table class="form_box">
-              <tr>
-                <td>{{ augment_form.sample_lipid_augment }}</td>
-                <td><button type="submit" name="augment" >Save</button></td>
-              </tr>
-            </table>
-            
-          </form>
+              <table class="form_box">
+                <tr>
+                  <td><h4>Augmentation</h4></td>
+                  {% if custom_augment %}
+                    <td><h4>Custom Augentation</h4></td>
+                  {% endif %}
+                  <td><h4>Data-Set</h4></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>{{ augment_form.sample_lipid_augment }}</td>
+                  {% if custom_augment %}
+                    <td>{{ augment_form.sample_lipid_custom_augment }}</td>
+                  {% endif %}
+                  <td>{{ augment_form.data_set_title }}</td>
+                  <td><button type="submit" name="augment" >Save</button></td>
+                </tr>
+              
+            </form>
+
+          {% for form, data_set in augment_form_data_set %}
+
+          {% if form.errors %}
+            <div class="error">
+                <h4>Please correct the following errors before proceeding:</h4>
+                <ul>
+                    {% for key, value in form.errors.items %}
+                        <li>{{ value }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+          {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+
+                <tr>
+                  <td>{{ form.sample_lipid_augment }}</td>
+                  {% if custom_augment %}
+                    <td>{{ form.sample_lipid_custom_augment }}</td>
+                  {% endif %}
+                  <td>{{ form.data_set_title }}</td>
+                  <td><button type="submit" name="augment{{ data_set.id }}" >Save</button></td>
+            </form>
+                  <td>
+                    <form method="POST" enctype="multipart/form-data">
+                      {% csrf_token %}
+                      <button type="submit" name="delete{{ data_set.id }}" >Remove</button>
+                    </form>
+                  </td>
+                </tr>
+          {% endfor %}
+          
+        </table>
 
           <p></p>
 
@@ -121,7 +167,7 @@
             <p><em>Make sure to save before you finish.</em></p>
           </div>
 
-          <form method="POST">
+          <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <button type="submit" name="done" >Done</button>
           </form>
