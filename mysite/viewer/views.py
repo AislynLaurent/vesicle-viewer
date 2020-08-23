@@ -587,16 +587,16 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
         if "augment" in request.POST:
             augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST)
             if augment_form.is_valid():
-                update_lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
-                update_lipid.save()
+                lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
+                lipid.save()
         else:
             augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name)
     else:
         if "augment" in request.POST:
             augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST, instance=lipid)
             if augment_form.is_valid():
-                update_lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
-                update_lipid.save()
+                lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
+                lipid.save()
         else:
             augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, instance=lipid)
 
@@ -2184,7 +2184,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     writer.writerow([z, sdph])
 
                 writer.writerow([])
-                writer.writerow(['Chains'])
+                writer.writerow(['Methylene'])
                 writer.writerow(['z', ''])
                 for z, sdpc in zip (x_values, sdp_results[2]):
                     writer.writerow([z, sdpc])
@@ -2227,7 +2227,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     writer.writerow([z, sdph])
 
                 writer.writerow([])
-                writer.writerow(['Chains'])
+                writer.writerow(['Methylene'])
                 writer.writerow(['z', 'Phc(z)'])
                 writer.writerow([])
                 writer.writerow(['INNER'])
@@ -2279,7 +2279,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     writer.writerow([z, sdph])
 
                 writer.writerow([])
-                writer.writerow(['Chains'])
+                writer.writerow(['Methylene'])
                 writer.writerow(['z', ''])
                 for z, sdpc in zip (x_values, sdp_results[2]):
                     writer.writerow([z, sdpc])
@@ -2322,7 +2322,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     writer.writerow([z, sdph])
 
                 writer.writerow([])
-                writer.writerow(['Chains'])
+                writer.writerow(['Methylene'])
                 writer.writerow(['z', 'Phc(z)'])
                 writer.writerow([])
                 writer.writerow(['INNER'])
