@@ -66,21 +66,31 @@
                 <td><h4>Mol Fraction</h4></td>
                 <td></td>
                 <td></td>
-                <td></td>
             </tr>
-            {% for lipid in sample_lipids_both %}
+            {% for combo in lipids_augments_both %}
+                <tr>
+                    <td>{{ combo.0.sample_lipid_name }}</td>
+                </tr>
                 <tr>
                     <td>
-                        {{ lipid.sample_lipid_name }}
-                        {% if lipid.sample_lipid_augment != null %}
-                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
-                        {% elif lipid.sample_lipid_custom_augment != null %}
-                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
-                        {% endif %}
+                        <table>
+                            {% for augment in combo.1 %}
+                                <tr>
+                                    <td>
+                                    {% if augment.sample_lipid_augment != null %}
+                                        - {{ augment.sample_lipid_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% elif augment.sample_lipid_custom_augment != null %}
+                                        - {{ augment.sample_lipid_custom_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr></tr>
+                        </table>
                     </td>
-                    <td>{{ lipid.lipid_mol_fraction }}</td>
-                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
-                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                    <td>{{ combo.0.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Delete</a></td>
                 </tr>
             {% endfor %}
 
@@ -90,20 +100,32 @@
                 </tr>
             {% endif %}
 
-            {% for lipid in sample_lipids_in %} 
+            {% for combo in lipids_augments_in %}
+                <tr>
+                    <td></td>
+                    <td>{{ combo.0.sample_lipid_name }}</td>
+                </tr>
                 <tr>
                     <td></td>
                     <td>
-                        {{ lipid.sample_lipid_name }}
-                        {% if lipid.sample_lipid_augment != null %}
-                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
-                        {% elif lipid.sample_lipid_custom_augment != null %}
-                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
-                        {% endif %}
+                        <table>
+                            {% for augment in combo.1 %}
+                                <tr>
+                                    <td>
+                                    {% if augment.sample_lipid_augment != null %}
+                                        - {{ augment.sample_lipid_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% elif augment.sample_lipid_custom_augment != null %}
+                                        - {{ augment.sample_lipid_custom_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr></tr>
+                        </table>
                     </td>
-                    <td>{{ lipid.lipid_mol_fraction }}</td>
-                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
-                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                    <td>{{ combo.0.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Delete</a></td>
                 </tr>
             {% endfor %}
 
@@ -113,20 +135,32 @@
                 </tr>
             {% endif %}
 
-            {% for lipid in sample_lipids_out %} 
+            {% for combo in lipids_augments_out %} 
+                <tr>
+                    <td></td>
+                    <td>{{ combo.0.sample_lipid_name }}</td>
+                </tr>
                 <tr>
                     <td></td>
                     <td>
-                        {{ lipid.sample_lipid_name }}
-                        {% if lipid.sample_lipid_augment != null %}
-                            - {{ lipid.sample_lipid_augment.augmentation_suffix }}
-                        {% elif lipid.sample_lipid_custom_augment != null %}
-                            - {{ lipid.sample_lipid_custom_augment.augmentation_suffix }}
-                        {% endif %}
+                        <table>
+                            {% for augment in combo.1 %}
+                                <tr>
+                                    <td>
+                                    {% if augment.sample_lipid_augment != null %}
+                                        - {{ augment.sample_lipid_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% elif augment.sample_lipid_custom_augment != null %}
+                                        - {{ augment.sample_lipid_custom_augment.augmentation_suffix }} [ {{ augment.data_set_title }} ]
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr></tr>
+                        </table>
                     </td>
-                    <td>{{ lipid.lipid_mol_fraction }}</td>
-                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Edit</a></td>
-                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=lipid.id %}">Delete</a></td>
+                    <td>{{ combo.0.lipid_mol_fraction }}</td>
+                    <td><a href="{% url 'viewer:sample_lipid_edit' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Edit</a></td>
+                    <td><a href="{% url 'viewer:sample_lipid_delete_warning' project_id=project.id sample_id=sample.id lipid_id=combo.0.id %}">Delete</a></td>
                 </tr>
             {% endfor %}
 

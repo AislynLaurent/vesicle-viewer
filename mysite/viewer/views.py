@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils import text
+from django.contrib import messages 
 
 # Other libraries
 import csv
@@ -229,8 +230,6 @@ def project_detail(request, project_id):
         else:
             lipids_and_volumes.append([lipid, 0])
 
-    print(lipids_and_volumes)
-
     return render(
         request,
         'viewer/project_detail.html', {
@@ -317,7 +316,6 @@ def project_lipid_delete_warning(request, project_id, lipid_id):
 def project_user_lipid_volume_new(request, project_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
     lipid = get_object_or_404(User_Lipid, id=lipid_id)
-    print(lipid)
 
     if request.method == 'POST':
         form = Project_User_Lipid_Volume_Form(request.POST)
@@ -388,9 +386,26 @@ def sample_detail(request, project_id, sample_id):
     data_xr = Data_Set.objects.filter(sample_title_id=sample_id, data_type='XR')
     data_nu = Data_Set.objects.filter(sample_title_id=sample_id, data_type='NU')
     
+    lipids_augments_both = []
+    lipids_augments_in = []
+    lipids_augments_out = []
+
     sample_lipids_both = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
     sample_lipids_in = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='IN')
     sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
+
+    for lipid in sample_lipids_both:
+        augments = Data_Sample_Lipid_Augment.objects.filter(sample_lipid_name=lipid)
+        combo = [lipid, augments]
+        lipids_augments_both.append(combo)
+    for lipid in sample_lipids_in:
+        augments = Data_Sample_Lipid_Augment.objects.filter(sample_lipid_name=lipid)
+        combo = [lipid, augments]
+        lipids_augments_in.append(combo)
+    for lipid in sample_lipids_out:
+        augments = Data_Sample_Lipid_Augment.objects.filter(sample_lipid_name=lipid)
+        combo = [lipid, augments]
+        lipids_augments_out.append(combo)
 
     total_mols = 0
     total_mols_in = 0
@@ -426,6 +441,9 @@ def sample_detail(request, project_id, sample_id):
             'sample_lipids_both':sample_lipids_both,
             'sample_lipids_in':sample_lipids_in,
             'sample_lipids_out':sample_lipids_out,
+            'lipids_augments_both': lipids_augments_both,
+            'lipids_augments_in': lipids_augments_in,
+            'lipids_augments_out': lipids_augments_out,
             'data_xr':data_xr,
             'data_nu':data_nu,
             'parameters':parameters,
@@ -546,6 +564,10 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
     lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
+    custom_augment = Sample_Lipid_Augmentation.objects.filter(sample_lipid_name=lipid)
+    data_augments = Data_Sample_Lipid_Augment.objects.filter(sample_lipid_name=lipid)
+
+    data_augment_forms = []
     
     if project.model_type == "SM":
         if "lipid_info" in request.POST:
@@ -583,22 +605,53 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
         else:
             lipid_form = Asym_Sample_Lipid_Form(project.id, instance=lipid)
 
-    if lipid.sample_lipid_augment == None:
-        if "augment" in request.POST:
-            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST)
-            if augment_form.is_valid():
-                lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
-                lipid.save()
-        else:
-            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name)
+    if "augment" in request.POST:
+        augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, sample.id, request.POST)
+        if augment_form.is_valid():
+            sample_lipid_augment_in = augment_form.cleaned_data['sample_lipid_augment']
+            sample_lipid_custom_augment_in = augment_form.cleaned_data['sample_lipid_custom_augment']
+            data_set_title_in = augment_form.cleaned_data['data_set_title']
+
+            existing_augment, created_augment = Data_Sample_Lipid_Augment.objects.update_or_create(
+                sample_lipid_name=lipid,
+                data_set_title=data_set_title_in,
+                defaults={
+                    'sample_lipid_augment':sample_lipid_augment_in,
+                    'sample_lipid_custom_augment':sample_lipid_custom_augment_in,
+            })
+
+            return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=lipid.id)
     else:
-        if "augment" in request.POST:
-            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, request.POST, instance=lipid)
-            if augment_form.is_valid():
-                lipid.sample_lipid_augment = augment_form.cleaned_data['sample_lipid_augment']
-                lipid.save()
-        else:
-            augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, instance=lipid)
+        augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, sample.id)
+    
+    if data_augments:
+        for data_augment in data_augments:
+            if 'augment'+str(data_augment.id) in request.POST:
+                update_augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, sample.id, request.POST, instance=data_augment)
+                if update_augment_form.is_valid():
+                    sample_lipid_augment_in = update_augment_form.cleaned_data['sample_lipid_augment']
+                    sample_lipid_custom_augment_in = update_augment_form.cleaned_data['sample_lipid_custom_augment']
+                    data_set_title_in = update_augment_form.cleaned_data['data_set_title']
+
+                    existing_augment, created_augment = Data_Sample_Lipid_Augment.objects.update_or_create(
+                        sample_lipid_name=lipid,
+                        data_set_title=data_set_title_in,
+                        defaults={
+                            'sample_lipid_augment':sample_lipid_augment_in,
+                            'sample_lipid_custom_augment':sample_lipid_custom_augment_in,
+                    })
+
+                    return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=lipid.id)
+            else:
+                update_augment_form = Lipid_Augmentation_Form(lipid.sample_lipid_name, sample.id, instance=data_augment)
+                
+            data_augment_forms.append(update_augment_form)
+
+            if 'delete'+str(data_augment.id) in request.POST:
+                data_augment.delete()
+                return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=lipid.id)
+
+    augment_form_data_set = zip(data_augment_forms, data_augments)
 
     if "done" in request.POST:
         return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
@@ -609,37 +662,44 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
             'project':project,
             'sample':sample,
             'lipid': lipid,
+            'custom_augment': custom_augment,
             'lipid_form': lipid_form,
             'augment_form': augment_form,
+            'augment_form_data_set': augment_form_data_set,
         })
 
-# Edit an existing sample
+# Add a custom augment
 def sample_custom_lipid_edit(request, project_id, sample_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
     lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
-    
-    lipid_augment = lipid.sample_lipid_custom_augment
+    custom_augment = Sample_Lipid_Augmentation.objects.get(sample_lipid_name=lipid)
 
-    if lipid_augment:
-        if request.method == 'POST':
-            form = Custom_Lipid_Augmentation_Form(request.POST, instance=lipid_augment)
-            if form.is_valid():
-                custom_lipid = form.save(commit=False)
-                custom_lipid.save()
-                lipid.sample_lipid_custom_augment = custom_lipid
-                return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+    if request.method == 'POST':
+        if custom_augment:
+            form = Custom_Lipid_Augmentation_Form(request.POST, instance=custom_augment)
         else:
-            form = Custom_Lipid_Augmentation_Form(instance=lipid_augment)
-    else:
-        if request.method == 'POST':
             form = Custom_Lipid_Augmentation_Form(request.POST)
-            if form.is_valid():
-                custom_lipid = form.save(commit=False)
-                custom_lipid.save()
-                lipid.sample_lipid_custom_augment = custom_lipid
-                lipid.save()
-                return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
+        if form.is_valid():
+
+            aug_suffix = form.cleaned_data['augmentation_suffix']
+            hg_change = form.cleaned_data['hg_scattering_net_change']
+            tg_change = form.cleaned_data['tg_scattering_net_change']
+            tm_change = form.cleaned_data['tm_scattering_net_change']
+
+            existing_augment, created_augment = Sample_Lipid_Augmentation.objects.update_or_create(
+                sample_lipid_name=lipid,
+                defaults={
+                    'augmentation_suffix':aug_suffix,
+                    'hg_scattering_net_change':hg_change,
+                    'tg_scattering_net_change':tg_change,
+                    'tm_scattering_net_change':tm_change,
+            })
+
+            return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=lipid.id)
+    else:
+        if custom_augment:
+            form = Custom_Lipid_Augmentation_Form(instance=custom_augment)
         else:
             form = Custom_Lipid_Augmentation_Form()
 
@@ -999,7 +1059,7 @@ def data_delete_warning(request, project_id, sample_id, data_id):
 ## Fit
 # Main fit page
 def fit_main(request, project_id, sample_id, parameter_id):
-    ## Tutorials
+## Tutorials
     if request.user.is_anonymous:
         xuser_tutorial = False
     else:
@@ -1016,7 +1076,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         xuser.display_tutorial = False
         xuser.save()
 
-    # Overall
+# Overall
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
@@ -1028,7 +1088,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         sample_lipids_out = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='OUT')
         parameter = get_object_or_404(Asymmetrical_Parameters, id=parameter_id)
 
-    # Check for 0 value parameters
+# Check for 0 value parameters
     zero_parameter = False
     if project.model_type == "SM":
         if parameter.chain_volume == 0  or parameter.headgroup_volume == 0 or parameter.terminal_methyl_volume == 0 or parameter.lipid_area == 0 or parameter.sigma == 0:
@@ -1037,7 +1097,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         if parameter.in_chain_volume == 0  or parameter.in_headgroup_volume == 0 or parameter.in_terminal_methyl_volume == 0 or parameter.in_lipid_area == 0 or parameter.out_chain_volume == 0  or parameter.out_headgroup_volume == 0 or parameter.out_terminal_methyl_volume == 0 or parameter.out_lipid_area == 0 or parameter.sigma == 0:
             zero_parameter = True
 
-    # Data
+# Data
     data_exists = False
     datas = Data_Set.objects.filter(sample_title_id=sample_id)
     if datas:
@@ -1045,14 +1105,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
     xray_datas = datas.filter(data_type='XR')
     neutron_datas = datas.filter(data_type='NU')
 
-    # Decalre
+# Decalre
     now = timezone.now()
     fit_result = None
     show_statistics = False
     show_probabilities = False
 
-    ## Forms
-    # Update parameters
+## Forms
+# Update parameters
     if project.model_type == "SM":
         if "parameter_update" in request.POST:
             parameter_update_form = Symmetrical_Parameter_Fit_Form(request.POST, instance=parameter)
@@ -1070,12 +1130,13 @@ def fit_main(request, project_id, sample_id, parameter_id):
         else:
             parameter_update_form = Asymmetrical_Parameter_Fit_Form(instance=parameter)
 
-    # Ranges
+# Ranges
     xray_ranges = []
     xray_scales = []
 
     # Update q range for all x-ray datasets
     for xray_data in xray_datas:
+        
         if xray_data.data_set_title in request.POST:
             xray_range_form = Data_Range_Form(request.POST)
             xray_scale_form = Data_Scale_Form(request.POST, instance=xray_data)
@@ -1085,7 +1146,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 min_value = xray_range_form.cleaned_data['min_value']
 
                 try:
-                    # Find the indexes for the closes value in q_value
+                    # Find the indexes for the closest value in q_value
                     max_index = min(enumerate(xray_data.q_value), key=lambda x: abs(max_value - x[1]))
                     min_index = min(enumerate(xray_data.q_value), key=lambda x: abs(min_value - x[1]))
 
@@ -1103,11 +1164,10 @@ def fit_main(request, project_id, sample_id, parameter_id):
         xray_ranges.append(xray_range_form)
         xray_scales.append(xray_scale_form)
 
-    # Ranges
     neutron_ranges = []
     neutron_scales = []
 
-    # Update q range for all x-ray datasets
+    # Update q range for all neutron datasets
     for neutron_data in neutron_datas:
         if neutron_data.data_set_title in request.POST:
             neutron_range_form = Data_Range_Form(request.POST)
@@ -1136,7 +1196,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         neutron_ranges.append(neutron_range_form)
         neutron_scales.append(neutron_scale_form)
 
-    # Do the fit
+# Do the fit
     if project.model_type == "SM":
         if "fit" in request.POST:
             # Do fit
@@ -1212,7 +1272,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     # caluclated values
     calculated_i_values = []
 
-    # Fit data download
+# Fit data download
     if "fit_download" in request.POST:
         # Filename
         file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_FIT_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
@@ -1274,7 +1334,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         show_statistics = False
         show_probabilities = False
 
-    ## GRAPHS
+## GRAPHS
     xray_figures = []
     neutron_figures = []
 
@@ -1323,6 +1383,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
         xray_figures.append(mpld3.fig_to_html(xray_fig))
+        plt.cla()
 
     # Neutron fit graphs
     for neutron_data in neutron_datas:
@@ -1368,6 +1429,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
+        plt.cla()
 
     # Probability graphs
     prob_fig = plt.figure(figsize=(6,5))
@@ -1549,6 +1611,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 plt.title(xray_data.data_set_title)
 
             xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
+            plt.cla()
 
         for neutron_data in neutron_datas:
             neutron_sdp_fig = plt.figure(figsize=(5.5,4.3))
@@ -1625,6 +1688,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 plt.title(neutron_data.data_set_title)
 
             neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
+            plt.cla()
 
     # Asymmetrical - separate halfs
     if project.model_type == "AS":
@@ -1927,6 +1991,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 plt.title(xray_data.data_set_title)
 
             xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
+            plt.cla()
 
         for neutron_data in neutron_datas:
             neutron_sdp_fig = plt.figure(figsize=(5.5,4.3))
@@ -2048,6 +2113,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 plt.title(neutron_data.data_set_title)
 
             neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
+            plt.cla()
 
     prob_graph = mpld3.fig_to_html(prob_fig)
 
@@ -2055,8 +2121,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
     if "sdp_download" in request.POST:
         # Filename
         file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_SDP_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
-
-        print(file_name)
 
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type='text/csv')
@@ -2362,6 +2426,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
     xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
     neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
 
+    plt.close('all')
+
+## Done
     return render(request, 'viewer/fit_main.html', {
         'tutorial':tutorial,
         'xuser_tutorial':xuser_tutorial,

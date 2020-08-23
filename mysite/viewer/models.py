@@ -93,7 +93,7 @@ class Lipid_Augmentation(models.Model):
 
     # Methods
     def __str__(self):
-        return '%s-%s' % (self.original_lipid_name, self.augmentation_suffix)
+        return '-%s' % (self.augmentation_suffix)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -273,33 +273,6 @@ class Sample(models.Model):
         from django.urls import reverse
         return reverse('viewer.views.details', args=[str(self.project_title)])
 
-# Custom lipid Augmentations
-class Sample_Lipid_Augmentation(models.Model):
-    # suffix
-    augmentation_suffix = models.CharField(max_length=100)
-
-    # Headgroup
-    hg_scattering_net_change = models.FloatField(verbose_name='head group scattering length net change', default=0)
-
-    # Tailgroup
-    tg_scattering_net_change = models.FloatField(verbose_name='tail group scattering length net change', default=0)
-
-    # Terminal methyl
-    tmg_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
-
-    # Meta
-    class Meta:
-        verbose_name = 'sample lipid augmentation'
-        verbose_name_plural = 'sample lipid augmentations'
-
-    # Methods
-    def __str__(self):
-        return '%s' % (self.augmentation_suffix)
-
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('viewer.views.details', args=[str(self.id)])
-
 # Sample Lipids
 class Sample_Lipid(models.Model):
     # Choices
@@ -309,13 +282,11 @@ class Sample_Lipid(models.Model):
         ('BOTH', 'Both'),
     )
 
-    # Project
+    # Sample
     sample_title = models.ForeignKey(Sample, related_name='sample_lipid', on_delete=models.CASCADE)
     # Lipid
     sample_lipid_name = models.ForeignKey(Project_Lipid, related_name='sample_lipid_name', on_delete=models.CASCADE)
-    # Lipid augmentation
-    sample_lipid_augment = models.ForeignKey(Lipid_Augmentation, related_name='sample_lipid_augment', blank=True, null=True, on_delete=models.CASCADE)
-    sample_lipid_custom_augment = models.ForeignKey(Sample_Lipid_Augmentation, related_name='sample_lipid_custom_augment', blank=True, null=True, on_delete=models.CASCADE)
+    
     # Percentage
     lipid_mol_fraction = models.FloatField(verbose_name='sample_lipid_mol_fraction', default=0)
     # Leaflet
@@ -337,6 +308,36 @@ class Sample_Lipid(models.Model):
     # Methods
     def __str__(self):
         return '%s' % (self.sample_lipid_name)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Custom lipid Augmentations
+class Sample_Lipid_Augmentation(models.Model):
+    # Lipid
+    sample_lipid_name = models.ForeignKey(Sample_Lipid, related_name='augment_sample_lipid_name', on_delete=models.CASCADE)
+
+    # suffix
+    augmentation_suffix = models.CharField(max_length=100)
+
+    # Headgroup
+    hg_scattering_net_change = models.FloatField(verbose_name='head group scattering length net change', default=0)
+
+    # Tailgroup
+    tg_scattering_net_change = models.FloatField(verbose_name='tail group scattering length net change', default=0)
+
+    # Terminal methyl
+    tm_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
+
+    # Meta
+    class Meta:
+        verbose_name = 'sample lipid augmentation'
+        verbose_name_plural = 'sample lipid augmentations'
+
+    # Methods
+    def __str__(self):
+        return '-%s' % (self.augmentation_suffix)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -778,6 +779,38 @@ class Data_Set(models.Model):
 
     def __str__(self):
         return '%s' % (self.data_set_title)
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('viewer.views.details', args=[str(self.id)])
+
+# Data augmentation - internal contrast
+class Data_Sample_Lipid_Augment(models.Model):
+    # Lipid
+    sample_lipid_name = models.ForeignKey(Sample_Lipid, related_name='data_sample_lipid_name', on_delete=models.CASCADE)
+    #Dataset
+    data_set_title = models.ForeignKey(Data_Set, related_name='data_set_augment_title', on_delete=models.CASCADE)
+
+    # Lipid augmentation
+    sample_lipid_augment = models.ForeignKey(Lipid_Augmentation, related_name='sample_lipid_augment', blank=True, null=True, on_delete=models.CASCADE)
+    sample_lipid_custom_augment = models.ForeignKey(Sample_Lipid_Augmentation, related_name='data_sample_lipid_custom_augment', blank=True, null=True, on_delete=models.CASCADE)
+
+    # Meta
+    class Meta:
+        verbose_name = 'data lipid augment'
+        verbose_name_plural = 'data lipid augments'
+
+    # Methods
+    def clean(self):
+        # At least one augment
+        if self.sample_lipid_augment is None and self.sample_lipid_custom_augment is None:
+            raise ValidationError('Please select an augment.')
+        # Only one augment
+        if self.sample_lipid_augment is not None and self.sample_lipid_custom_augment is not None:
+            raise ValidationError('Please select only one augmentation.')
+    
+    def __str__(self):
+        return '%s-%s' % (self.sample_lipid_name, self.data_set_title)
 
     def get_absolute_url(self):
         from django.urls import reverse

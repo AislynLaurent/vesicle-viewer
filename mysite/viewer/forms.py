@@ -133,18 +133,22 @@ class Asym_Sample_Lipid_Form(Asym_Sample_Lipid):
 
         self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
 
-    
-
 class Lipid_Augmentation_Form(forms.ModelForm):
     class Meta:
-        model = Sample_Lipid
+        model = Data_Sample_Lipid_Augment
         fields = [
             'sample_lipid_augment',
+            'sample_lipid_custom_augment',
+            'data_set_title',
         ]
 
-    def __init__(self, lipid_name, *args, **kwargs):
+    def __init__(self, lipid_name, sample_id, *args, **kwargs):
         super(Lipid_Augmentation_Form, self).__init__(*args, **kwargs)
+        self.sample_id = sample_id
+        self.lipid_name = lipid_name
         self.fields['sample_lipid_augment'].queryset = Lipid_Augmentation.objects.filter(original_lipid_name__lipid_name=lipid_name)
+        self.fields['sample_lipid_custom_augment'].queryset = Sample_Lipid_Augmentation.objects.filter(sample_lipid_name__sample_lipid_name=lipid_name)
+        self.fields['data_set_title'].queryset = Data_Set.objects.filter(sample_title_id=sample_id)
 
 class Custom_Lipid_Augmentation_Form(forms.ModelForm):
     class Meta:
@@ -153,7 +157,7 @@ class Custom_Lipid_Augmentation_Form(forms.ModelForm):
             'augmentation_suffix',
             'hg_scattering_net_change',
             'tg_scattering_net_change',
-            'tmg_scattering_net_change',
+            'tm_scattering_net_change',
         ]
 
 class Symmetrical_Parameter_Form(forms.ModelForm):
