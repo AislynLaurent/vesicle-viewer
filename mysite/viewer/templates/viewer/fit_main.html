@@ -868,10 +868,31 @@
         {% if show_stats %}
 
             <div class="content-box">
+                <h2>Additional Calculated Parameters:</h2>
+                <table>
+                    <tr>
+                        <td><h3>Name</h3></td>
+                        <td><h3>Value</h3></td>
+                    </tr>
+                    <tr>
+                        <td><h4>Db</h4></td>
+                        <td><p>{{ additional_parameters.0 }}</p></td>
+                    </tr>
+                    <tr>
+                        <td><h4>Dc</h4></td>
+                        <td><p>{{ additional_parameters.1 }}</p></td>
+                    </tr>
+                    <tr>
+                        <td><h4>Dhh</h4></td>
+                        <td><p>{{ additional_parameters.2 }}</p></td>
+                    </tr>
+                </table>
+
+                <h2>Fit Statistics:</h2>
                 {% for i in parameter.fit_report %}
 
                     {% if i == "[[Fit Statistics]]" or i == "[[Variables]]" or i == "[[Correlations]] (unreported correlations are < 0.100)" %}
-                        <h3>{{ i }}</h2>
+                        <h3>{{ i }}</h3>
                     {% else %}
                         <p class="indent">{{ i }}</p>
                     {% endif %}
