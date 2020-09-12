@@ -8,6 +8,7 @@ from .models import Data_Sample_Lipid_Augment
 
 # Other imports
 from .symprobabilities import *
+from scipy import signal as sig
 
 # Symmetrical model
 def sym_model(
@@ -503,3 +504,35 @@ def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, samp
     combined_sdp = [sdp_final, scaled_head_prob, scaled_methyl_prob, scaled_tm_prob, scaled_water_prob]
 
     return(combined_sdp)
+
+def calc_additional_parameters(parameter, sample_lipids, data, temp, electron_density):
+    # Declare
+    additional_parameters = []
+
+    # Get parameters
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
+
+    # Calculated
+    Al = fit_parameters['area_per_lipid'].value
+    # Shared
+    Vh = fit_parameters['headgroup_volume'].value
+    Vc = fit_parameters['chain_volume'].value
+    Vt = fit_parameters['terminal_methyl_volume'].value
+
+    if Al == 0:
+        Db = 0
+        Dc = 0
+    else:
+        Db = (2 * (Vc + Vh)) / Al
+        Dc = ((2 * Vc) / Al) / 2
+
+    # Find peaks
+    peak_indexes = sig.argrelextrema(electron_density, np.greater)[0]
+    # Calculate distance
+    Dhh = [peak_indexes[i] - peak_indexes[i-1] for i in np.arange(1, len(peak_indexes))]
+
+    additional_parameters.append(Db)
+    additional_parameters.append(Dc)
+    additional_parameters.append(Dhh[0])
+
+    return(additional_parameters)

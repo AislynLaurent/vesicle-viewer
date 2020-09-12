@@ -9,7 +9,11 @@ from django.contrib import messages
 
 # Other libraries
 import csv
+
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+
 import mpld3
 from datetime import datetime
 import numpy as np
@@ -954,20 +958,14 @@ def data_upload(request, project_id, sample_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
-    print(sample.id)
-
     q = []
     i = []
     e = []
 
-    print('before form')
     # Upload file
     if "data_upload" in request.POST:
-        print(sample.id)
         data_upload_form = Data_Upload_Form(sample.id, request.POST, request.FILES)
-        print('before valid')
         if data_upload_form.is_valid():
-            print('after valid')
             data_info = data_upload_form.save(commit=False)
             data_info.sample_title = sample
 
@@ -976,8 +974,7 @@ def data_upload(request, project_id, sample_id):
             # Incorrect file type?
             if not ( data_file.name.endswith('.txt') or data_file.name.endswith('.dat') ):
                 print("incorrect type")
-                # messages.error(request,'File is not CSV type')
-                # return HttpResponseRedirect(reverse("myapp:upload_csv"))
+                messages.error(request, 'File is not CSV type')
 
             # File too big?
             if data_file.multiple_chunks():
@@ -1334,11 +1331,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
         show_statistics = False
         show_probabilities = False
 
-## GRAPHS
+    ## GRAPHS
     xray_figures = []
     neutron_figures = []
 
-    # X-Ray fit graphs
+# X-Ray fit graphs
     for xray_data in xray_datas:
         xray_fig = plt.figure(figsize=(5.5,4.3))
 
@@ -1385,7 +1382,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
         xray_figures.append(mpld3.fig_to_html(xray_fig))
         plt.cla()
 
-    # Neutron fit graphs
+# Neutron fit graphs
     for neutron_data in neutron_datas:
         neutron_fig = plt.figure(figsize=(5.5,4.3))
         # Data scatter plot
@@ -1431,10 +1428,12 @@ def fit_main(request, project_id, sample_id, parameter_id):
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))
         plt.cla()
 
-    # Probability graphs
+# Probability graphs
     prob_fig = plt.figure(figsize=(6,5))
     xray_sdp_graphs = []
+    xray_sdp_data = {}
     neutron_sdp_graphs = []
+    neutron_sdp_data = {}
 
     # Symmetrical - combined halfs
     if project.model_type == "SM":
@@ -1550,6 +1549,16 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
+            additional_parameters = calc_additional_parameters(
+                    parameter,
+                    sample_lipids,
+                    xray_data,
+                    project.system_tempurature,
+                    np.asarray(sdp_results[0])
+                )
+
+            xray_sdp_data[xray_data] = sdp_results
+
             if zero_parameter:
                 plt.plot()
                 plt.title(str(xray_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
@@ -1626,6 +1635,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     neutron_data,
                     project.system_tempurature
                 )
+
+            neutron_sdp_data[neutron_data] = sdp_results
 
             if zero_parameter:
                 plt.plot()
@@ -1890,6 +1901,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
+            xray_sdp_data[xray_data] = sdp_results
+
             if zero_parameter:
                 plt.plot()
                 plt.title(str(xray_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
@@ -2012,6 +2025,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
+            neutron_sdp_data[neutron_data] = sdp_results
+
             if zero_parameter:
                 plt.plot()
                 plt.title(str(neutron_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
@@ -2117,7 +2132,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
 
     prob_graph = mpld3.fig_to_html(prob_fig)
 
-    # SDP data download
+# SDP data download
     if "sdp_download" in request.POST:
         # Filename
         file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_SDP_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
@@ -2232,6 +2247,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
         writer.writerow(['Scattering Density Profile'])
 
         for xray_data in xray_datas:
+            sdp_results = xray_sdp_data[xray_data]
+
             writer.writerow([])
             writer.writerow([xray_data.data_set_title])
             if project.model_type == "SM":
@@ -2327,6 +2344,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     writer.writerow([z, sdpw])
 
         for neutron_data in neutron_datas:
+            sdp_results = neutron_sdp_data[neutron_data]
+
             writer.writerow([])
             writer.writerow([neutron_data.data_set_title])
             if project.model_type == "SM":
@@ -2446,4 +2465,5 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'prob_graph':prob_graph,
         'xray_sdp_graphs':xray_sdp_graphs,
         'neutron_sdp_graphs':neutron_sdp_graphs,
+        'additional_parameters':additional_parameters
     })
