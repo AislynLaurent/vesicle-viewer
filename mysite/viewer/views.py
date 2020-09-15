@@ -1269,54 +1269,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     # caluclated values
     calculated_i_values = []
 
-# Fit data download
-    if "fit_download" in request.POST:
-        # Filename
-        file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_FIT_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
 
-        # Create the HttpResponse object with the appropriate CSV header.
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
-
-        writer = csv.writer(response)
-        writer.writerow(['VesicleViewer Fit output', now])
-        writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
-        writer.writerow([project.project_title, sample.sample_title, parameter.name])
-        writer.writerow([])
-
-        writer.writerow({'Fit Statistics'})
-        for line in parameter.fit_report:
-            writer.writerow([line])
-
-        writer.writerow([])
-
-        writer.writerow(['Q', 'Experimental i', 'Experimental Error', 'Calculated i'])
-
-        for xray_data in xray_datas:
-            writer.writerow([xray_data.data_set_title])
-            if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature)
-            elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature)
-
-            j = 0
-            for i in range(xray_data.min_index, xray_data.max_index):
-                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], xray_data.error_value[i], calculated_i_values[j]])
-                j = j+1
-
-        for neutron_data in neutron_datas:
-            writer.writerow([neutron_data.data_set_title])
-            if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature)
-            elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature)
-
-            j = 0
-            for i in range(neutron_data.min_index, neutron_data.max_index):
-                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], neutron_data.error_value[i], calculated_i_values[j]])
-                j = j+1
-
-        return response
 
     # Show stats / probabilities / graph
     if "statistics" in request.POST:
@@ -1549,12 +1502,13 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
-            additional_parameters = calc_additional_parameters(
+            additional_parameters = sym_additional_parameters(
                     parameter,
                     sample_lipids,
                     xray_data,
                     project.system_tempurature,
-                    np.asarray(sdp_results[0])
+                    np.asarray(x_values),
+                    np.asarray(head_prob)
                 )
 
             xray_sdp_data[xray_data] = sdp_results
@@ -1900,6 +1854,16 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     xray_data,
                     project.system_tempurature
                 )
+            
+            additional_parameters = asym_additional_parameters(
+                    parameter,
+                    sample_lipids_in,
+                    sample_lipids_out, 
+                    xray_data,
+                    project.system_tempurature,
+                    np.asarray(sdp_results[0]),
+                    np.asarray(sdp_results[1]),
+                )
 
             xray_sdp_data[xray_data] = sdp_results
 
@@ -2131,6 +2095,63 @@ def fit_main(request, project_id, sample_id, parameter_id):
             plt.cla()
 
     prob_graph = mpld3.fig_to_html(prob_fig)
+
+# Fit data download
+    if "fit_download" in request.POST:
+        # Filename
+        file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_FIT_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
+
+        # Create the HttpResponse object with the appropriate CSV header.
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
+
+        writer = csv.writer(response)
+        writer.writerow(['VesicleViewer Fit output', now])
+        writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
+        writer.writerow([project.project_title, sample.sample_title, parameter.name])
+        writer.writerow([])
+
+        writer.writerow(['Calculated Parameters'])
+        writer.writerow(['Db', additional_parameters[0]])
+        writer.writerow(['2Dc', additional_parameters[1]])
+        writer.writerow(['Dhh', additional_parameters[2]])
+        writer.writerow(['Dh', parameter.headgroup_thickness])
+        writer.writerow(['Al', parameter.lipid_area])
+        writer.writerow([])
+
+        writer.writerow({'Fit Statistics'})
+        for line in parameter.fit_report:
+            writer.writerow([line])
+
+        writer.writerow([])
+
+        writer.writerow(['Q', 'Experimental i', 'Experimental Error', 'Calculated i'])
+
+        for xray_data in xray_datas:
+            writer.writerow([xray_data.data_set_title])
+            if project.model_type == "SM":
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature)
+            elif project.model_type == "AS":
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature)
+
+            j = 0
+            for i in range(xray_data.min_index, xray_data.max_index):
+                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], xray_data.error_value[i], calculated_i_values[j]])
+                j = j+1
+
+        for neutron_data in neutron_datas:
+            writer.writerow([neutron_data.data_set_title])
+            if project.model_type == "SM":
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature)
+            elif project.model_type == "AS":
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature)
+
+            j = 0
+            for i in range(neutron_data.min_index, neutron_data.max_index):
+                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], neutron_data.error_value[i], calculated_i_values[j]])
+                j = j+1
+
+        return response
 
 # SDP data download
     if "sdp_download" in request.POST:

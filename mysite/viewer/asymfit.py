@@ -8,6 +8,7 @@ from .models import Data_Sample_Lipid_Augment
 
 # Other imports
 from .symprobabilities import *
+from scipy import signal as sig
 
 # Asymmetrical model
 def asym_model(
@@ -792,3 +793,52 @@ def asymmetrical_sdp(parameter, in_head_prob, in_methyl_prob, in_tm_prob, in_wat
     combined_sdp = [in_sdp_final, out_sdp_final, in_scaled_head_prob, in_scaled_methyl_prob, in_scaled_tm_prob, out_scaled_head_prob, out_scaled_methyl_prob, out_scaled_tm_prob, in_scaled_water_prob, out_water_prob]
 
     return(combined_sdp)
+
+def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, data, temp, in_electron_density, out_electron_density):
+    # Declare
+    additional_parameters = []
+
+    # Get parameters
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
+
+    ## Inner
+    # Calculated
+    Ali = fit_parameters['in_area_per_lipid'].value
+    # Shared
+    Vhi = fit_parameters['in_headgroup_volume'].value
+    Vci = fit_parameters['in_chain_volume'].value
+    Vti = fit_parameters['in_terminal_methyl_volume'].value
+    ## Outter
+    # Calculated
+    Alo = fit_parameters['out_area_per_lipid'].value
+    # Shared
+    Vho = fit_parameters['out_headgroup_volume'].value
+    Vco = fit_parameters['out_chain_volume'].value
+    Vto = fit_parameters['out_terminal_methyl_volume'].value
+
+    if Ali == 0 or Alo == 0:
+        Dbi = 0
+        Dci = 0
+        Dbo = 0
+        Dco = 0
+    else:
+        Dbi = (2 * (Vci + Vhi)) / Ali
+        Dci = ((2 * Vci) / Ali) / 2
+        Dbo = (2 * (Vco + Vho)) / Alo
+        Dco = ((2 * Vco) / Alo) / 2
+
+    # Find peaks
+    in_peak_index = sig.argrelextrema(in_electron_density, np.greater)[0]
+    out_peak_index = sig.argrelextrema(out_electron_density, np.greater)[0]
+    print(in_peak_index)
+    print(out_peak_index)
+    # Calculate distance
+    # Dhh = [peak_indexes[i] - peak_indexes[i-1] for i in np.arange(1, len(peak_indexes))]
+
+    additional_parameters.append(Dbi)
+    additional_parameters.append(Dci)
+    additional_parameters.append(Dbo)
+    additional_parameters.append(Dco)
+    # additional_parameters.append(Dhh[0])
+
+    return(additional_parameters)
