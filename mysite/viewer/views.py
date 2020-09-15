@@ -1861,8 +1861,10 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     sample_lipids_out, 
                     xray_data,
                     project.system_tempurature,
-                    np.asarray(sdp_results[0]),
-                    np.asarray(sdp_results[1]),
+                    np.asarray(in_head_prob),
+                    np.asarray(out_head_prob),
+                    in_x_values,
+                    out_x_values
                 )
 
             xray_sdp_data[xray_data] = sdp_results
@@ -2111,13 +2113,35 @@ def fit_main(request, project_id, sample_id, parameter_id):
         writer.writerow([project.project_title, sample.sample_title, parameter.name])
         writer.writerow([])
 
-        writer.writerow(['Calculated Parameters'])
-        writer.writerow(['Db', additional_parameters[0]])
-        writer.writerow(['2Dc', additional_parameters[1]])
-        writer.writerow(['Dhh', additional_parameters[2]])
-        writer.writerow(['Dh', parameter.headgroup_thickness])
-        writer.writerow(['Al', parameter.lipid_area])
-        writer.writerow([])
+        if project.model_type == "SM":
+            writer.writerow(['Calculated Parameters'])
+            writer.writerow(['Db', additional_parameters[0]])
+            writer.writerow(['2Dc', additional_parameters[1]])
+            writer.writerow(['Dhh', additional_parameters[2]])
+            writer.writerow(['Dh', parameter.headgroup_thickness])
+            writer.writerow(['Al', parameter.lipid_area])
+            writer.writerow([])
+        elif project.model_type == "AS":
+            writer.writerow(['Calculated Parameters'])
+            writer.writerow([])
+
+            writer.writerow(['Inner'])
+            writer.writerow(['Db', additional_parameters[0]])
+            writer.writerow(['2Dc', additional_parameters[1]])
+            writer.writerow(['Dh', parameter.in_headgroup_thickness])
+            writer.writerow(['Al', parameter.in_lipid_area])
+            writer.writerow([])
+
+            writer.writerow(['Outter'])
+            writer.writerow(['Db', additional_parameters[2]])
+            writer.writerow(['2Dc', additional_parameters[3]])
+            writer.writerow(['Dh', parameter.out_headgroup_thickness])
+            writer.writerow(['Al', parameter.out_lipid_area])
+            writer.writerow([])
+
+            writer.writerow(['Shared'])
+            writer.writerow(['Dhh', additional_parameters[4]])
+            writer.writerow([])
 
         writer.writerow({'Fit Statistics'})
         for line in parameter.fit_report:

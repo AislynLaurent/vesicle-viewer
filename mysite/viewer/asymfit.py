@@ -794,7 +794,7 @@ def asymmetrical_sdp(parameter, in_head_prob, in_methyl_prob, in_tm_prob, in_wat
 
     return(combined_sdp)
 
-def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, data, temp, in_electron_density, out_electron_density):
+def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, data, temp, in_head_prob, out_head_prob, in_x_values, out_x_values):
     # Declare
     additional_parameters = []
 
@@ -828,17 +828,23 @@ def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, d
         Dco = ((2 * Vco) / Alo) / 2
 
     # Find peaks
-    in_peak_index = sig.argrelextrema(in_electron_density, np.greater)[0]
-    out_peak_index = sig.argrelextrema(out_electron_density, np.greater)[0]
-    print(in_peak_index)
-    print(out_peak_index)
+    in_peak_index = sig.argrelextrema(in_head_prob, np.greater)[0]
+    out_peak_index = sig.argrelextrema(out_head_prob, np.greater)[0]
     # Calculate distance
-    # Dhh = [peak_indexes[i] - peak_indexes[i-1] for i in np.arange(1, len(peak_indexes))]
+    in_distance = (np.sqrt( (in_x_values[in_peak_index] - 0)**2 + (in_head_prob[in_peak_index] - in_head_prob[-1])**2 ))
+    out_distance = (np.sqrt( (0 - out_x_values[out_peak_index])**2 + (out_head_prob[0] - out_head_prob[out_peak_index])**2 ))
+    print(in_distance)
+    print(out_distance)
+    print(in_distance + out_distance)
 
-    additional_parameters.append(Dbi)
-    additional_parameters.append(Dci)
-    additional_parameters.append(Dbo)
-    additional_parameters.append(Dco)
-    # additional_parameters.append(Dhh[0])
+    Dhh = in_distance[0] + out_distance[0]
+
+    additional_parameters.append(round(Dbi, 2))
+    additional_parameters.append(round(Dci, 2))
+    additional_parameters.append(round(Dbo, 2))
+    additional_parameters.append(round(Dco, 2))
+    additional_parameters.append(round(Dhh, 2))
+
+    print(additional_parameters)
 
     return(additional_parameters)
