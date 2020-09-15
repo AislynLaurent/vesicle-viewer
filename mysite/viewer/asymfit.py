@@ -833,18 +833,12 @@ def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, d
     # Calculate distance
     in_distance = (np.sqrt( (in_x_values[in_peak_index] - 0)**2 + (in_head_prob[in_peak_index] - in_head_prob[-1])**2 ))
     out_distance = (np.sqrt( (0 - out_x_values[out_peak_index])**2 + (out_head_prob[0] - out_head_prob[out_peak_index])**2 ))
-    print(in_distance)
-    print(out_distance)
-    print(in_distance + out_distance)
-
-    Dhh = in_distance[0] + out_distance[0]
 
     additional_parameters.append(round(Dbi, 2))
     additional_parameters.append(round(Dci, 2))
     additional_parameters.append(round(Dbo, 2))
     additional_parameters.append(round(Dco, 2))
-    additional_parameters.append(round(Dhh, 2))
-
-    print(additional_parameters)
+    additional_parameters.append(round(abs(in_distance[0]), 2))
+    additional_parameters.append(round(abs(out_distance[0]), 2))
 
     return(additional_parameters)

@@ -2128,6 +2128,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             writer.writerow(['Inner'])
             writer.writerow(['Db', additional_parameters[0]])
             writer.writerow(['2Dc', additional_parameters[1]])
+            writer.writerow(['Dhh', additional_parameters[4]])
             writer.writerow(['Dh', parameter.in_headgroup_thickness])
             writer.writerow(['Al', parameter.in_lipid_area])
             writer.writerow([])
@@ -2135,12 +2136,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
             writer.writerow(['Outter'])
             writer.writerow(['Db', additional_parameters[2]])
             writer.writerow(['2Dc', additional_parameters[3]])
+            writer.writerow(['Dhh', additional_parameters[5]])
             writer.writerow(['Dh', parameter.out_headgroup_thickness])
             writer.writerow(['Al', parameter.out_lipid_area])
-            writer.writerow([])
-
-            writer.writerow(['Shared'])
-            writer.writerow(['Dhh', additional_parameters[4]])
             writer.writerow([])
 
         writer.writerow({'Fit Statistics'})
