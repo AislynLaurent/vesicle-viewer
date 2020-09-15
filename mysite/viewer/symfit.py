@@ -505,7 +505,7 @@ def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, samp
 
     return(combined_sdp)
 
-def calc_additional_parameters(parameter, sample_lipids, data, temp, electron_density):
+def sym_additional_parameters(parameter, sample_lipids, data, temp, x_values, head_prob):
     # Declare
     additional_parameters = []
 
@@ -524,15 +524,15 @@ def calc_additional_parameters(parameter, sample_lipids, data, temp, electron_de
         Dc = 0
     else:
         Db = (2 * (Vc + Vh)) / Al
-        Dc = ((2 * Vc) / Al) / 2
+        Dc = (2 * Vc) / Al
 
     # Find peaks
-    peak_indexes = sig.argrelextrema(electron_density, np.greater)[0]
+    peak_indexes = sig.argrelextrema(head_prob, np.greater)[0]
     # Calculate distance
-    Dhh = [peak_indexes[i] - peak_indexes[i-1] for i in np.arange(1, len(peak_indexes))]
+    Dhh = (np.sqrt( (x_values[peak_indexes[1]] - x_values[peak_indexes[0]])**2 + (head_prob[peak_indexes[1]] - head_prob[peak_indexes[0]])**2 ))
 
-    additional_parameters.append(Db)
-    additional_parameters.append(Dc)
-    additional_parameters.append(Dhh[0])
+    additional_parameters.append(round(Db, 2))
+    additional_parameters.append(round(Dc, 2))
+    additional_parameters.append(round(Dhh, 2))
 
     return(additional_parameters)
