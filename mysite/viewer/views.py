@@ -971,22 +971,11 @@ def data_upload(request, project_id, sample_id):
 
             data_file = request.FILES["data_file"]
 
-            # Incorrect file type?
-            if not ( data_file.name.endswith('.txt') or data_file.name.endswith('.dat') ):
-                print("incorrect type")
-                messages.error(request, 'File is not CSV type')
-
-            # File too big?
-            if data_file.multiple_chunks():
-                print("too big")
-                # messages.error(request,"Uploaded file is too big (%.2f MB)." % (data_file.size/(1000*1000),))
-                # return redirect('viewer:project_detail', project_id=project.id)
-
             file_data = data_file.read().decode("utf-8")
 
             lines = file_data.split("\n")
 
-            #loop over the lines and save them in db. If error , store as string and then display
+            #loop over the lines and save them in db. If error, store as string and then display
             for line in lines:
                 line = line.strip()
                 
