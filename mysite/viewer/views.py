@@ -20,7 +20,6 @@ import numpy as np
 import lmfit as lsq
 from copy import deepcopy
 import re
-import pylatexenc as tex
 
 # Models
 from .models import *
@@ -1474,7 +1473,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             )
 
             plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
+            plt.xlabel('Distance from bilayer center [Å]')
             plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
@@ -1557,8 +1556,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('ED (e Å-3 )')
 
                 plt.title(xray_data.data_set_title)
 
@@ -1636,8 +1635,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('NSLD (Å-3 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 
@@ -1822,7 +1821,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             )
 
             plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
+            plt.xlabel('Distance from bilayer center [Å]')
             plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
@@ -1953,8 +1952,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('ED (e Å-3 )')
 
                 plt.title(xray_data.data_set_title)
 
@@ -2077,8 +2076,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('NSLD (Å-3 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 
