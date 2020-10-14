@@ -20,7 +20,6 @@ import numpy as np
 import lmfit as lsq
 from copy import deepcopy
 import re
-import pylatexenc as tex
 
 # Models
 from .models import *
@@ -971,22 +970,11 @@ def data_upload(request, project_id, sample_id):
 
             data_file = request.FILES["data_file"]
 
-            # Incorrect file type?
-            if not ( data_file.name.endswith('.txt') or data_file.name.endswith('.dat') ):
-                print("incorrect type")
-                messages.error(request, 'File is not CSV type')
-
-            # File too big?
-            if data_file.multiple_chunks():
-                print("too big")
-                # messages.error(request,"Uploaded file is too big (%.2f MB)." % (data_file.size/(1000*1000),))
-                # return redirect('viewer:project_detail', project_id=project.id)
-
             file_data = data_file.read().decode("utf-8")
 
             lines = file_data.split("\n")
 
-            #loop over the lines and save them in db. If error , store as string and then display
+            #loop over the lines and save them in db. If error, store as string and then display
             for line in lines:
                 line = line.strip()
                 
@@ -1485,7 +1473,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             )
 
             plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
+            plt.xlabel('Distance from bilayer center [Å]')
             plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
@@ -1568,8 +1556,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('ED (e Å-3 )')
 
                 plt.title(xray_data.data_set_title)
 
@@ -1647,8 +1635,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('NSLD (Å-3 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 
@@ -1833,7 +1821,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             )
 
             plt.legend(loc=1)
-            plt.xlabel('Distance from bilayer center [A]')
+            plt.xlabel('Distance from bilayer center [Å]')
             plt.ylabel('Volume probability')
 
         for xray_data in xray_datas:
@@ -1964,8 +1952,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('ED (e Å-3 )')
 
                 plt.title(xray_data.data_set_title)
 
@@ -2088,8 +2076,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                 )
 
                 plt.legend(loc=1)
-                plt.xlabel('Distance from bilayer center [A]')
-                plt.ylabel('SDP?')
+                plt.xlabel('Distance from bilayer center [Å]')
+                plt.ylabel('NSLD (Å-3 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 

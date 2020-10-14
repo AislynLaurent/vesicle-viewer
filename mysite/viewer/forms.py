@@ -1,9 +1,14 @@
+## IMPORT
+# Django
 from django import forms
 from django.forms import formset_factory
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
-
+# # Other
+# from upload_validator import FileTypeValidator
+# Models
 from .models import *
+from .validators import *
 
 class User_Lipid_Form(forms.ModelForm):
     class Meta:
@@ -460,7 +465,9 @@ class Data_Edit_Form(forms.ModelForm):
         ]
 
 class Data_Upload_Form(Data_Form):
-    data_file = forms.FileField()
+
+    validate_file = FileValidator(max_size=1024 * 100, content_types=('text/plain',))
+    data_file = forms.FileField(validators=[validate_file])
 
     class Meta(Data_Form.Meta):
         fields = Data_Form.Meta.fields + ['data_file',]
