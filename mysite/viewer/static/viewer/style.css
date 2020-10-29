@@ -240,6 +240,10 @@ main img {
     overflow: hidden;
 }
 
+#text-container {
+    width: 60%;
+}
+
 /* Fit Stuff */
 
 .graph-box {

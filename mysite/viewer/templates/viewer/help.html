@@ -5,11 +5,27 @@
 
 {% block content %}
 
+  <div class="content-box"><h1>Get Help</h1></div>
+
   <div class="content-box">
 
-    <h2>Get Help!</h2>
+    <h2>Turn on tutorial messages:</h2>
 
-    <p>At some point this page will send you to create a ticket.</p>
+    <div class="indent">
+
+      {% if user.is_authenticated %}
+        <p>Permanently enable or disable <a href="{% url 'viewer:enable_tutorials' %}">tutorials</a>.</p>
+      {% else %}
+        <p><a href="{% url 'login' %}">Sign in</a> to access tutorials.</p>
+      {% endif %}
+
+    </div>
+
+    <h2>Other Resources:</h2>
+
+    <ul>
+      <li>YouTube video walkthrough</li>
+    </ul>
 
   </div>
 

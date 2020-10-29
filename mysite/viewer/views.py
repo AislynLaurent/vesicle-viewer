@@ -771,13 +771,13 @@ def symmetrical_parameters_new(request, project_id, sample_id):
             # Math'ed values
             # Head
             parameters.headgroup_volume = combined_head_volume
-            parameters.headgroup_volume_upperbound = (combined_head_volume*1.20)
-            parameters.headgroup_volume_lowerbound = -(combined_head_volume*1.20)
+            parameters.headgroup_volume_upperbound = (abs(combined_head_volume)*1.20)
+            parameters.headgroup_volume_lowerbound = -(abs(combined_head_volume)*1.20)
 
             # Chain
             parameters.chain_volume = combined_tail_volume
-            parameters.chain_volume_upperbound = (combined_tail_volume*1.10)
-            parameters.chain_volume_lowerbound = -(combined_tail_volume*1.10)
+            parameters.chain_volume_upperbound = (abs(combined_tail_volume)*1.10)
+            parameters.chain_volume_lowerbound = -(abs(combined_tail_volume)*1.10)
 
             parameters.save()
             return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
@@ -899,21 +899,21 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
             # Math'ed values
             # Head
             parameters.in_headgroup_volume = in_combined_head_volume
-            parameters.in_headgroup_volume_upperbound = (in_combined_head_volume*1.20)
-            parameters.in_headgroup_volume_lowerbound = -(in_combined_head_volume*1.20)
+            parameters.in_headgroup_volume_upperbound = (abs(in_combined_head_volume)*1.20)
+            parameters.in_headgroup_volume_lowerbound = -(abs(in_combined_head_volume)*1.20)
 
             parameters.out_headgroup_volume = out_combined_head_volume
-            parameters.out_headgroup_volume_upperbound = (out_combined_head_volume*1.20)
-            parameters.out_headgroup_volume_lowerbound = -(out_combined_head_volume*1.20)
+            parameters.out_headgroup_volume_upperbound = (abs(out_combined_head_volume)*1.20)
+            parameters.out_headgroup_volume_lowerbound = -(abs(out_combined_head_volume)*1.20)
 
             # Chain
             parameters.in_chain_volume = in_combined_tail_volume
-            parameters.in_chain_volume_upperbound = (in_combined_tail_volume*1.10)
-            parameters.in_chain_volume_lowerbound = -(in_combined_tail_volume*1.10)
+            parameters.in_chain_volume_upperbound = (abs(in_combined_tail_volume)*1.10)
+            parameters.in_chain_volume_lowerbound = -(abs(in_combined_tail_volume)*1.10)
 
             parameters.out_chain_volume = out_combined_tail_volume
-            parameters.out_chain_volume_upperbound = (out_combined_tail_volume*1.10)
-            parameters.out_chain_volume_lowerbound = -(out_combined_tail_volume*1.10)
+            parameters.out_chain_volume_upperbound = (abs(out_combined_tail_volume)*1.10)
+            parameters.out_chain_volume_lowerbound = -(abs(out_combined_tail_volume)*1.10)
 
             parameters.save()
             return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
@@ -1126,6 +1126,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
             xray_range_form = Data_Range_Form(request.POST)
             xray_scale_form = Data_Scale_Form(request.POST, instance=xray_data)
             if xray_range_form.is_valid() and xray_scale_form.is_valid():
+                # Get scale values
+                scale_value = xray_scale_form.cleaned_data['scale']
+
+                if xray_data.scale_upperbound <= scale_value:
+                    xray_data.scale_upperbound = (abs(scale_value)*1.5)
+                elif xray_data.scale_lowerbound >= scale_value:
+                    xray_data.scale_lowerbound = -(abs(scale_value)*1.5)
+                
                 # Get range values
                 max_value = xray_range_form.cleaned_data['max_value']
                 min_value = xray_range_form.cleaned_data['min_value']
@@ -1142,6 +1150,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     xray_data.save()
                 except TypeError:
                     xray_data.save()
+
+                return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=parameter.id)
+
         else:
             xray_range_form = Data_Range_Form()
             xray_scale_form = Data_Scale_Form(instance=xray_data)
@@ -1158,6 +1169,14 @@ def fit_main(request, project_id, sample_id, parameter_id):
             neutron_range_form = Data_Range_Form(request.POST)
             neutron_scale_form = Data_Scale_Form(request.POST, instance=neutron_data)
             if neutron_range_form.is_valid() and neutron_scale_form.is_valid():
+                # Get scale values
+                scale_value = neutron_scale_form.cleaned_data['scale']
+
+                if neutron_data.scale_upperbound <= scale_value:
+                    neutron_data.scale_upperbound = (abs(scale_value)*1.5)
+                elif neutron_data.scale_lowerbound >= scale_value:
+                    neutron_data.scale_lowerbound = -(abs(scale_value)*1.5)
+
                 # Get range values
                 max_value = neutron_range_form.cleaned_data['max_value']
                 min_value = neutron_range_form.cleaned_data['min_value']
@@ -1174,6 +1193,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     neutron_data.save()
                 except TypeError:
                     neutron_data.save()
+
+                return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=parameter.id)
+
         else:
             neutron_range_form = Data_Range_Form()
             neutron_scale_form = Data_Scale_Form(instance=neutron_data)
@@ -1280,19 +1302,22 @@ def fit_main(request, project_id, sample_id, parameter_id):
     for xray_data in xray_datas:
         xray_fig = plt.figure(figsize=(5.5,4.3))
 
+        x = np.asarray(xray_data.q_value[xray_data.min_index:xray_data.max_index])
+        y = np.asarray(xray_data.intensity_value[xray_data.min_index:xray_data.max_index])
+        error = np.asarray(xray_data.error_value[xray_data.min_index:xray_data.max_index])
+
         # Data scatter plot
         plt.errorbar(
-            xray_data.q_value[xray_data.min_index:xray_data.max_index], 
-            xray_data.intensity_value[xray_data.min_index:xray_data.max_index],
-            xray_data.error_value[xray_data.min_index:xray_data.max_index],
+            x, 
+            y,
             fmt='o',
             color='c',
             mfc='w',
-            ecolor='gray',
-            elinewidth=0.5, 
-            capsize=2,
-            zorder=0
+            zorder=1
         )
+        plt.errorbar(x, y-error, fmt='_', color='grey', zorder=0)
+        plt.errorbar(x, y+error, fmt='_', color='grey', zorder=0)
+
         plt.xscale('log')
         plt.xlabel('q(A-1)')
 
@@ -1309,7 +1334,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
-                    zorder=1
+                    zorder=2
                 )
             elif project.model_type == "AS":
                 plt.plot(
@@ -1317,7 +1342,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
-                    zorder=1
+                    zorder=2
                 )
 
         xray_figures.append(mpld3.fig_to_html(xray_fig))
@@ -1326,19 +1351,23 @@ def fit_main(request, project_id, sample_id, parameter_id):
 # Neutron fit graphs
     for neutron_data in neutron_datas:
         neutron_fig = plt.figure(figsize=(5.5,4.3))
+
+        x = np.asarray(neutron_data.q_value[neutron_data.min_index:neutron_data.max_index])
+        y = np.asarray(neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index])
+        error = np.asarray(neutron_data.error_value[neutron_data.min_index:neutron_data.max_index])
+
         # Data scatter plot
         plt.errorbar(
-            neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-            neutron_data.intensity_value[neutron_data.min_index:neutron_data.max_index],
-            neutron_data.error_value[neutron_data.min_index:neutron_data.max_index],
+            x,
+            y,
             fmt='o',
             color='c',
             mfc='w',
-            ecolor='gray', 
-            elinewidth=1, 
-            capsize=2,
-            zorder=0
+            zorder=1
         )
+        plt.errorbar(x, y-error, fmt='_', color='grey', zorder=0)
+        plt.errorbar(x, y+error, fmt='_', color='grey', zorder=0)
+
         plt.xscale('log')
         plt.xlabel('q(A-1)')
 
@@ -1355,7 +1384,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
-                    zorder=1
+                    zorder=2
                 )
             elif project.model_type == "AS":
                 plt.plot(
@@ -1363,7 +1392,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature),
                     color='r',
                     label='Best Fit',
-                    zorder=1
+                    zorder=2
                 )
 
         neutron_figures.append(mpld3.fig_to_html(neutron_fig))

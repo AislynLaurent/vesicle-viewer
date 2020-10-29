@@ -67,8 +67,8 @@ class Project_Lipid_Form(forms.ModelForm):
             'project_user_lipid_name',
         ]
         labels = {
-            'project_lipid_name': 'Lipid',
-            'project_user_lipid_name': 'Custom Lipid'
+            'project_lipid_name': 'Add a standard lipid',
+            'project_user_lipid_name': 'Or, add one of your custom lipids'
         }
 
     def __init__(self, owner, *args, **kwargs):
