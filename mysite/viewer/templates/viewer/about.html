@@ -5,11 +5,17 @@
 
 {% block content %}
 
+  <div class="content-box"><h1>About Vesicle Viewer</h1></div>
+
   <div class="content-box">
 
-    <h2>About The Project</h2>
+    <div id="text-container">
 
-    <p>At some point this page will tell you about how to cite this project and offer some tutorials on how to use it.</p>
+      <p>As progress is made toward more detailed methods of experimentation, larger volumes of data are generated. Much the critical information inside that data is inaccessible to researchers, who have limited time to analyze results by hand. Easy to use data visualization software can allow them to take full advantage of valuable data and maximize the use of limited resources. Vesicle Viewer is a web application developed to visualize data generated in the study of lipid bilayers. Small angle scattering (SAS) techniques are used to analyze the structure of generated bilayers. This data is then fitted to an appropriate model, after which it is visualized into various graphs. In this way composition, lipid volume and bilayer thickness can be determined and utilized in further study.</p>
+
+      <p>This application primarily uses Django, a python package specialized for the development of robust web applications. In addition, several other libraries are used to support the more technical aspects of the project – notable examples are MatPlotLib (for graphs) and NumPy (for calculations). The decision was made to develop a web application to allow scientists all over the world to take advantage of this solution. Without the barrier of downloading and installing software, users can take advantage of the application regardless of which operating system they use. This also allows for a shorter development cycle by eliminating the need to push updates or prepare multiple versions.</p>
+
+    </div>
 
   </div>
 
