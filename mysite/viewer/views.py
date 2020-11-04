@@ -775,13 +775,21 @@ def symmetrical_parameters_new(request, project_id, sample_id):
             # Math'ed values
             # Head
             parameters.headgroup_volume = combined_head_volume
-            parameters.headgroup_volume_upperbound = (abs(combined_head_volume)*1.20)
-            parameters.headgroup_volume_lowerbound = -(abs(combined_head_volume)*1.20)
+            if combined_head_volume == 0:
+                parameters.headgroup_volume_upperbound = 1
+                parameters.headgroup_volume_lowerbound = -1
+            else:
+                parameters.headgroup_volume_upperbound = (abs(combined_head_volume)*1.20)
+                parameters.headgroup_volume_lowerbound = -(abs(combined_head_volume)*1.20)
 
             # Chain
             parameters.chain_volume = combined_tail_volume
-            parameters.chain_volume_upperbound = (abs(combined_tail_volume)*1.10)
-            parameters.chain_volume_lowerbound = -(abs(combined_tail_volume)*1.10)
+            if combined_tail_volume == 0:
+                parameters.chain_volume_upperbound = 1
+                parameters.chain_volume_lowerbound = -1
+            else:
+                parameters.chain_volume_upperbound = (abs(combined_tail_volume)*1.10)
+                parameters.chain_volume_lowerbound = -(abs(combined_tail_volume)*1.10)
 
             parameters.save()
             return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
@@ -903,21 +911,37 @@ def asymmetrical_parameters_new(request, project_id, sample_id):
             # Math'ed values
             # Head
             parameters.in_headgroup_volume = in_combined_head_volume
-            parameters.in_headgroup_volume_upperbound = (abs(in_combined_head_volume)*1.20)
-            parameters.in_headgroup_volume_lowerbound = -(abs(in_combined_head_volume)*1.20)
+            if in_combined_head_volume == 0:
+                parameters.in_headgroup_volume_upperbound = 1
+                parameters.in_headgroup_volume_lowerbound = -1
+            else:
+                parameters.in_headgroup_volume_upperbound = (abs(in_combined_head_volume)*1.20)
+                parameters.in_headgroup_volume_lowerbound = -(abs(in_combined_head_volume)*1.20)
 
             parameters.out_headgroup_volume = out_combined_head_volume
-            parameters.out_headgroup_volume_upperbound = (abs(out_combined_head_volume)*1.20)
-            parameters.out_headgroup_volume_lowerbound = -(abs(out_combined_head_volume)*1.20)
+            if out_combined_head_volume == 0:
+                parameters.out_headgroup_volume_upperbound = 1
+                parameters.out_headgroup_volume_lowerbound = -1
+            else:
+                parameters.out_headgroup_volume_upperbound = (abs(out_combined_head_volume)*1.20)
+                parameters.out_headgroup_volume_lowerbound = -(abs(out_combined_head_volume)*1.20)
 
             # Chain
             parameters.in_chain_volume = in_combined_tail_volume
-            parameters.in_chain_volume_upperbound = (abs(in_combined_tail_volume)*1.10)
-            parameters.in_chain_volume_lowerbound = -(abs(in_combined_tail_volume)*1.10)
+            if in_combined_tail_volume == 0:
+                parameters.in_chain_volume_upperbound = 1
+                parameters.in_chain_volume_lowerbound = -1
+            else:
+                parameters.in_chain_volume_upperbound = (abs(in_combined_tail_volume)*1.10)
+                parameters.in_chain_volume_lowerbound = -(abs(in_combined_tail_volume)*1.10)
 
             parameters.out_chain_volume = out_combined_tail_volume
-            parameters.out_chain_volume_upperbound = (abs(out_combined_tail_volume)*1.10)
-            parameters.out_chain_volume_lowerbound = -(abs(out_combined_tail_volume)*1.10)
+            if out_combined_tail_volume == 0:
+                parameters.out_chain_volume_upperbound = 1
+                parameters.out_chain_volume_lowerbound = -1
+            else:
+                parameters.out_chain_volume_upperbound = (abs(out_combined_tail_volume)*1.10)
+                parameters.out_chain_volume_lowerbound = -(abs(out_combined_tail_volume)*1.10)
 
             parameters.save()
             return redirect('viewer:sample_detail', project_id=project.id, sample_id=sample.id)
