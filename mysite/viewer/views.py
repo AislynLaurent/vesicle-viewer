@@ -30,7 +30,7 @@ from .forms import *
 # Other imports
 from .symfit import *
 from .asymfit import *
-from .symprobabilities import *
+from .probabilities import *
 
 ## STATIC PAGES
 # Home
