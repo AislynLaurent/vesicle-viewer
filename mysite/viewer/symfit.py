@@ -571,7 +571,7 @@ def sym_additional_parameters(parameter, sample_lipids, data, temp, x_values, he
     # Calculate distance
     # Take the x value for the peaks and do your regular old distance calculation... if no prob has been calculated, skip it
     if not peak_indexes:
-        Dhh = [0]
+        Dhh = 0
     else:
         Dhh = (np.sqrt( (x_values[peak_indexes[1]] - x_values[peak_indexes[0]])**2 + (head_prob[peak_indexes[1]] - head_prob[peak_indexes[0]])**2 ))
 
