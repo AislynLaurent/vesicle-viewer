@@ -7,7 +7,7 @@ from .models import Molecule
 from .models import Data_Sample_Lipid_Augment
 
 # Other imports
-from .symprobabilities import *
+from .probabilities import *
 from scipy import signal as sig
 
 # Symmetrical model
@@ -569,8 +569,11 @@ def sym_additional_parameters(parameter, sample_lipids, data, temp, x_values, he
     peak_indexes = sig.argrelextrema(head_prob, np.greater)[0]
 
     # Calculate distance
-    # Take the x value for the peaks and do your regular old distance calculation
-    Dhh = (np.sqrt( (x_values[peak_indexes[1]] - x_values[peak_indexes[0]])**2 + (head_prob[peak_indexes[1]] - head_prob[peak_indexes[0]])**2 ))
+    # Take the x value for the peaks and do your regular old distance calculation... if no prob has been calculated, skip it
+    if not peak_indexes:
+        Dhh = [0]
+    else:
+        Dhh = (np.sqrt( (x_values[peak_indexes[1]] - x_values[peak_indexes[0]])**2 + (head_prob[peak_indexes[1]] - head_prob[peak_indexes[0]])**2 ))
 
     additional_parameters.append(round(Db, 2))
     additional_parameters.append(round(Dc, 2))
