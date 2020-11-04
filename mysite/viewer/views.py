@@ -676,7 +676,11 @@ def sample_custom_lipid_edit(request, project_id, sample_id, lipid_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
     lipid = get_object_or_404(Sample_Lipid, id=lipid_id)
-    custom_augment = Sample_Lipid_Augmentation.objects.get(sample_lipid_name=lipid)
+
+    try:
+        custom_augment = Sample_Lipid_Augmentation.objects.get(sample_lipid_name=lipid)
+    except Sample_Lipid_Augmentation.DoesNotExist:
+        custom_augment = False
 
     if request.method == 'POST':
         if custom_augment:

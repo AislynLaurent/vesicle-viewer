@@ -73,7 +73,8 @@ class Project_Lipid_Form(forms.ModelForm):
 
     def __init__(self, owner, *args, **kwargs):
         super(Project_Lipid_Form, self).__init__(*args, **kwargs)
-        self.fields['project_user_lipid_name'].queryset = User_Lipid.objects.filter(owner=owner)
+        self.fields['project_lipid_name'].queryset = self.fields['project_lipid_name'].queryset.order_by('lipid_name')
+        self.fields['project_user_lipid_name'].queryset = User_Lipid.objects.filter(owner=owner).order_by('user_lipid_name')
 
 class Project_User_Lipid_Volume_Form(forms.ModelForm):
     class Meta:
@@ -111,7 +112,7 @@ class Sym_Sample_Lipid_Form(forms.ModelForm):
 
     def __init__(self, project_id, *args, **kwargs):
         super(Sym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
-        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id)
+        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id).order_by('project_lipid_name', 'project_user_lipid_name')
 
 class Asym_Sample_Lipid(forms.ModelForm):
     class Meta:
