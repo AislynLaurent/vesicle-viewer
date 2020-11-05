@@ -328,7 +328,7 @@ class Sample_Lipid_Augmentation(models.Model):
     tg_scattering_net_change = models.FloatField(verbose_name='tail group scattering length net change', default=0)
 
     # Terminal methyl
-    tm_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
+    tmg_scattering_net_change = models.FloatField(verbose_name='terminal methyl scattering length net change', default=0)
 
     # Meta
     class Meta:

@@ -897,12 +897,12 @@ def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, d
     # Calculate distance
     # Take the x value for the peaks and do your regular old distance calculation for each side... if no prob has been calculated, skip it
     # inner peak -> 0 && 0 <- outer peak
-    if not in_peak_index:
+    if in_peak_index.size == 0:
         in_distance = [0]
     else:
         in_distance = (np.sqrt( (in_x_values[in_peak_index] - 0)**2 + (in_head_prob[in_peak_index] - in_head_prob[-1])**2 ))
 
-    if not out_peak_index:
+    if out_peak_index.size == 0:
         out_distance = [0]
     else:
         out_distance = (np.sqrt( (0 - out_x_values[out_peak_index])**2 + (out_head_prob[0] - out_head_prob[out_peak_index])**2 ))
