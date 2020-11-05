@@ -163,7 +163,7 @@ class Custom_Lipid_Augmentation_Form(forms.ModelForm):
             'augmentation_suffix',
             'hg_scattering_net_change',
             'tg_scattering_net_change',
-            'tm_scattering_net_change',
+            'tmg_scattering_net_change',
         ]
 
 class Symmetrical_Parameter_Form(forms.ModelForm):
