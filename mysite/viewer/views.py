@@ -1635,6 +1635,15 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     project.system_tempurature
                 )
 
+            additional_parameters = sym_additional_parameters(
+                    parameter,
+                    sample_lipids,
+                    neutron_data,
+                    project.system_tempurature,
+                    np.asarray(x_values),
+                    np.asarray(head_prob)
+                )
+
             neutron_sdp_data[neutron_data] = sdp_results
 
             if zero_parameter:
@@ -2034,6 +2043,18 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     sample_lipids_out, 
                     neutron_data,
                     project.system_tempurature
+                )
+
+            additional_parameters = asym_additional_parameters(
+                    parameter,
+                    sample_lipids_in,
+                    sample_lipids_out, 
+                    neutron_data,
+                    project.system_tempurature,
+                    np.asarray(in_head_prob),
+                    np.asarray(out_head_prob),
+                    in_x_values,
+                    out_x_values
                 )
 
             neutron_sdp_data[neutron_data] = sdp_results
