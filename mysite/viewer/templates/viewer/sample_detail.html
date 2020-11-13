@@ -229,6 +229,7 @@
         </div>
     {% endif %}
 
+    {% if data_xr or data_nu %}
     {% if tutorial and xuser_tutorial %}
         <div class="announcement">
             <p><strong>Parameters</strong> are the varibles used in the calculations done to analyze your data. When you generate a new set of parameters, you choose to change the values or leave them as suggested.</p>
@@ -309,6 +310,7 @@
         {% endif %}
         
     </div>
+    {% endif %}
 
     {% else %}
 

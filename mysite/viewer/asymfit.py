@@ -886,14 +886,6 @@ def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, d
     in_peak_index = sig.argrelextrema(in_head_prob, np.greater)[0]
     out_peak_index = sig.argrelextrema(out_head_prob, np.greater)[0]
 
-    print('prob')
-    print(in_head_prob)
-    print(out_head_prob)
-
-    print('peak')
-    print(in_peak_index)
-    print(out_peak_index)
-
     # Calculate distance
     # Take the x value for the peaks and do your regular old distance calculation for each side... if no prob has been calculated, skip it
     # inner peak -> 0 && 0 <- outer peak
@@ -906,12 +898,6 @@ def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, d
         out_distance = [0]
     else:
         out_distance = (np.sqrt( (0 - out_x_values[out_peak_index])**2 + (out_head_prob[0] - out_head_prob[out_peak_index])**2 ))
-
-    print('distance')
-    print(in_distance)
-    print((np.sqrt( (in_x_values[in_peak_index] - 0)**2 + (in_head_prob[in_peak_index] - in_head_prob[-1])**2 )))
-    print(out_distance)
-    print((np.sqrt( (0 - out_x_values[out_peak_index])**2 + (out_head_prob[0] - out_head_prob[out_peak_index])**2 )))
 
     additional_parameters.append(round(Dbi, 2))
     additional_parameters.append(round(Dci, 2))
