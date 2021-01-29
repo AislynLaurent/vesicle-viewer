@@ -1235,7 +1235,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     if project.model_type == "SM":
         if "fit" in request.POST:
             # Do fit
-            fit_result = symmetrical_fit(parameter, sample_lipids, datas, project.system_tempurature)
+            fit_result = symmetrical_fit(parameter, sample_lipids, datas, project.system_tempurature, project.advanced_options)
             fit_parameters = fit_result.params
 
             # Copy current instance
@@ -1269,7 +1269,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     elif project.model_type == "AS":
         if "fit" in request.POST:
             # Do fit
-            fit_result = asymmetrical_fit(parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature)
+            fit_result = asymmetrical_fit(parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature, project.advanced_options)
             fit_parameters = fit_result.params
 
             # Copy current instance
@@ -1359,7 +1359,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             if project.model_type == "SM":
                 plt.plot(
                     xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                    symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature),
+                    symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
                     color='r',
                     label='Best Fit',
                     zorder=2
@@ -1367,7 +1367,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             elif project.model_type == "AS":
                 plt.plot(
                     xray_data.q_value[xray_data.min_index:xray_data.max_index],
-                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature),
+                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
                     color='r',
                     label='Best Fit',
                     zorder=2
@@ -1409,7 +1409,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             if project.model_type == "SM":
                 plt.plot(
                     neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                    symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature),
+                    symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options),
                     color='r',
                     label='Best Fit',
                     zorder=2
@@ -1417,7 +1417,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
             elif project.model_type == "AS":
                 plt.plot(
                     neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature),
+                    asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options),
                     color='r',
                     label='Best Fit',
                     zorder=2
@@ -1544,7 +1544,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     water_prob,
                     sample_lipids,
                     xray_data,
-                    project.system_tempurature
+                    project.system_tempurature,
+                    project.advanced_options
                 )
 
             additional_parameters = sym_additional_parameters(
@@ -1553,7 +1554,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     xray_data,
                     project.system_tempurature,
                     np.asarray(x_values),
-                    np.asarray(head_prob)
+                    np.asarray(head_prob),
+                    project.advanced_options
                 )
 
             xray_sdp_data[xray_data] = sdp_results
@@ -1632,7 +1634,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     water_prob,
                     sample_lipids,
                     neutron_data,
-                    project.system_tempurature
+                    project.system_tempurature,
+                    project.advanced_options
                 )
 
             additional_parameters = sym_additional_parameters(
@@ -1641,7 +1644,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     neutron_data,
                     project.system_tempurature,
                     np.asarray(x_values),
-                    np.asarray(head_prob)
+                    np.asarray(head_prob),
+                    project.advanced_options
                 )
 
             neutron_sdp_data[neutron_data] = sdp_results
@@ -1906,7 +1910,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     sample_lipids_in,
                     sample_lipids_out, 
                     xray_data,
-                    project.system_tempurature
+                    project.system_tempurature,
+                    project.advanced_options
                 )
             
             additional_parameters = asym_additional_parameters(
@@ -1918,7 +1923,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     np.asarray(in_head_prob),
                     np.asarray(out_head_prob),
                     in_x_values,
-                    out_x_values
+                    out_x_values,
+                    project.advanced_options
                 )
 
             xray_sdp_data[xray_data] = sdp_results
@@ -2042,7 +2048,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     sample_lipids_in,
                     sample_lipids_out, 
                     neutron_data,
-                    project.system_tempurature
+                    project.system_tempurature,
+                    project.advanced_options
                 )
 
             additional_parameters = asym_additional_parameters(
@@ -2054,7 +2061,8 @@ def fit_main(request, project_id, sample_id, parameter_id):
                     np.asarray(in_head_prob),
                     np.asarray(out_head_prob),
                     in_x_values,
-                    out_x_values
+                    out_x_values,
+                    project.advanced_options
                 )
 
             neutron_sdp_data[neutron_data] = sdp_results
@@ -2218,9 +2226,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
         for xray_data in xray_datas:
             writer.writerow([xray_data.data_set_title])
             if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature)
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options)
             elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature)
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options)
 
             j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
@@ -2230,9 +2238,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
         for neutron_data in neutron_datas:
             writer.writerow([neutron_data.data_set_title])
             if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature)
+                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options)
             elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature)
+                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options)
 
             j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):

@@ -520,12 +520,36 @@ def adjust_b_values(data, in_sample_lipids, out_sample_lipids, water, d_water, t
     return(b_values)
 
 # Parameters
-def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp):
+def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp, advanced):
     ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
     d_water = Molecule.objects.get(compound_name='deuterated_water')
     
+    # If advanced options are not on, automatically lock volumes
+    # Inner 
+    # Vc
+    if advanced:
+        in_vc_lock = not(parameter.in_chain_volume_lock)
+    else:
+        in_vc_lock = False
+    # Vh
+    if advanced:
+        in_vh_lock = not(parameter.in_headgroup_volume_lock)
+    else:
+        in_vh_lock = False
+    # Outer 
+    # Vc
+    if advanced:
+        out_vc_lock = not(parameter.out_chain_volume_lock)
+    else:
+        out_vc_lock = False
+    # Vh
+    if advanced:
+        out_vh_lock = not(parameter.out_headgroup_volume_lock)
+    else:
+        out_vh_lock = False
+
     # Parameters
     # Check each value in the database and prepare a parameter (lmfit) object that includes each of them
     fit_parameters = lsq.Parameters()
@@ -534,12 +558,12 @@ def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data
         ( # Vc
             'in_chain_volume',
             parameter.in_chain_volume,
-            not(parameter.in_chain_volume_lock),
+            in_vc_lock,
         ),
         ( # Vh
             'in_headgroup_volume',
             parameter.in_headgroup_volume,
-            not(parameter.in_headgroup_volume_lock),
+            in_vh_lock,
         ),
         ( # Vt
             'in_terminal_methyl_volume',
@@ -567,12 +591,12 @@ def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data
         ( # Vc
             'out_chain_volume',
             parameter.out_chain_volume,
-            not(parameter.out_chain_volume_lock),
+            out_vc_lock,
         ),
         ( # Vh
             'out_headgroup_volume',
             parameter.out_headgroup_volume,
-            not(parameter.out_headgroup_volume_lock),
+            out_vh_lock,
         ),
         ( # Vt
             'out_terminal_methyl_volume',
@@ -758,9 +782,9 @@ def asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data
     return fit_parameters
 
 # Graphs / fit / probabilities / etc
-def asymmetrical_graph(parameter, in_sample_lipids, out_sample_lipids, data, temp):
+def asymmetrical_graph(parameter, in_sample_lipids, out_sample_lipids, data, temp, advanced):
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp, advanced)
 
     # Get result
     model_result = calc_asym_model(
@@ -772,9 +796,9 @@ def asymmetrical_graph(parameter, in_sample_lipids, out_sample_lipids, data, tem
 
     return model_result
 
-def asymmetrical_fit(parameter, in_sample_lipids, out_sample_lipids, datas, temp):
+def asymmetrical_fit(parameter, in_sample_lipids, out_sample_lipids, datas, temp, advanced):
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, datas, temp, advanced)
 
     # Get result
     x = None
@@ -787,13 +811,13 @@ def asymmetrical_fit(parameter, in_sample_lipids, out_sample_lipids, datas, temp
 
     return fit_result
 
-def asymmetrical_sdp(parameter, in_head_prob, in_methyl_prob, in_tm_prob, in_water_prob, out_head_prob, out_methyl_prob, out_tm_prob, out_water_prob, in_sample_lipids, out_sample_lipids, data, temp):
+def asymmetrical_sdp(parameter, in_head_prob, in_methyl_prob, in_tm_prob, in_water_prob, out_head_prob, out_methyl_prob, out_tm_prob, out_water_prob, in_sample_lipids, out_sample_lipids, data, temp, advanced):
     # Declare
     in_sdp_final = []
     out_sdp_final = []
 
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp, advanced)
 
     ## Unpack parameters
     # Inner
@@ -846,12 +870,12 @@ def asymmetrical_sdp(parameter, in_head_prob, in_methyl_prob, in_tm_prob, in_wat
 
     return(combined_sdp)
 
-def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, data, temp, in_head_prob, out_head_prob, in_x_values, out_x_values):
+def asym_additional_parameters(parameter, in_sample_lipids, out_sample_lipids, data, temp, in_head_prob, out_head_prob, in_x_values, out_x_values, advanced):
     # Declare
     additional_parameters = []
 
     # Get parameters
-    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp)
+    fit_parameters = asymmetrical_paramitize(parameter, in_sample_lipids, out_sample_lipids, data, temp, advanced)
 
     ## Inner
     # Calculated
