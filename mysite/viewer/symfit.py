@@ -304,12 +304,24 @@ def adjust_b_values(data, sample_lipids, water, d_water, temp):
     return(b_values)
 
 # Parameters
-def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
+def symmetrical_paramitize(parameter, sample_lipids, datas, temp, advanced):
     ## DELCARE
     # Other molecules
     water = Molecule.objects.get(compound_name='water')
     d_water = Molecule.objects.get(compound_name='deuterated_water')
     
+    # If advanced options are not on, automatically lock volumes
+    # Vc
+    if advanced:
+        vc_lock = not(parameter.chain_volume_lock)
+    else:
+        vc_lock = False
+    # Vh
+    if advanced:
+        vh_lock = not(parameter.headgroup_volume_lock)
+    else:
+        vh_lock = False
+
     # Parameters
     # Check each value in the database and prepare a parameter (lmfit) object that includes each of them
     fit_parameters = lsq.Parameters()
@@ -318,12 +330,12 @@ def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
         ( # Vc
             'chain_volume',
             parameter.chain_volume,
-            not(parameter.chain_volume_lock),
+            vc_lock,
         ),
         ( # Vh
             'headgroup_volume',
             parameter.headgroup_volume,
-            not(parameter.headgroup_volume_lock),
+            vh_lock,
         ),
         ( # Vt
             'terminal_methyl_volume',
@@ -473,9 +485,9 @@ def symmetrical_paramitize(parameter, sample_lipids, datas, temp):
     return fit_parameters
 
 # Fit / graphs / etc
-def symmetrical_graph(parameter, sample_lipids, data, temp):
+def symmetrical_graph(parameter, sample_lipids, data, temp, advanced):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp, advanced)
 
     # Get result
     model_result = calc_sym_model(
@@ -487,9 +499,9 @@ def symmetrical_graph(parameter, sample_lipids, data, temp):
 
     return model_result
 
-def symmetrical_fit(parameter, sample_lipids, datas, temp):
+def symmetrical_fit(parameter, sample_lipids, datas, temp, advanced):
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, datas, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, datas, temp, advanced)
 
     # Get result
     x = None
@@ -502,12 +514,12 @@ def symmetrical_fit(parameter, sample_lipids, datas, temp):
 
     return fit_result
 
-def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, sample_lipids, data, temp):
+def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, sample_lipids, data, temp, advanced):
     # Declare
     sdp_final = []
 
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp, advanced)
 
     # Shared
     Vh = fit_parameters['headgroup_volume'].value
@@ -539,12 +551,12 @@ def symmetrical_sdp(parameter, head_prob, methyl_prob, tm_prob, water_prob, samp
 
     return(combined_sdp)
 
-def sym_additional_parameters(parameter, sample_lipids, data, temp, x_values, head_prob):
+def sym_additional_parameters(parameter, sample_lipids, data, temp, x_values, head_prob, advanced):
     # Declare
     additional_parameters = []
 
     # Get parameters
-    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp)
+    fit_parameters = symmetrical_paramitize(parameter, sample_lipids, data, temp, advanced)
 
     # Calculated
     Al = fit_parameters['area_per_lipid'].value
