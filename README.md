@@ -1,6 +1,7 @@
 # Vesicle Viewer
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/AislynLaurent/vesicle-viewer/blob/master/LICENSE)
 [![Version](https://badge.fury.io/gh/tterb%2FHyde.svg)](https://badge.fury.io/gh/tterb%2FHyde)
+[![DOI](https://zenodo.org/badge/233126559.svg)](https://zenodo.org/badge/latestdoi/233126559)
 
 Vesicle Viewer is a web application developed to visualize data generated in the study of lipid bilayers. Small angle scattering (SAS) techniques are used to analyze the structure of generated bilayers. This data is then fitted to an appropriate model, after which it is visualized into various graphs. In this way composition, lipid volume and bilayer thickness can be determined and utilized in further study.
 
