@@ -65,8 +65,11 @@
     <footer>
         <p>Developed and supported by the LABR research team at the University of Windsor in collaboration with the
             University of Tennessee.</p>
-        <p>>> Last updated 02/07/2020</p>
-        <p>>> <em>version BETA 1.0</em></p>
+        <p>>> Last updated 04/27/2021</p>
+        <p>>> <em>version BETA 2.0</em></p>
+        <br />
+        <p>>> DOI: <a href="https://doi.org/10.26434/chemrxiv.14454645.v1">https://doi.org/10.26434/chemrxiv.14454645.v1</a> </p>
+        <p>>> <a href="{% url 'viewer:about' %}">Cite this tool in your work</a></p>
         <p>>> <a href="https://github.com/AislynLaurent/vesicle-viewer/issues">Report an issue</a></p>
         {% if user.is_authenticated %}
             <p>>> <a href="{% url 'viewer:enable_tutorials' %}">Permanently enable or disable tutorials</a></p>
