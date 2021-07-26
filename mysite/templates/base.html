@@ -46,7 +46,7 @@
                 <li><a href="{% url 'viewer:help' %}">Help</a></li>
                 <li><a href="{% url 'viewer:privacy' %}">Privacy</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'viewer:project_list' %}">Projects</a></li>
+                    <li class="button-style"><a href="{% url 'viewer:project_list' %}">Projects</a></li>
                     <li class="sign-in"><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <li class="sign-in"><a href="{% url 'login' %}">Login</a></li>

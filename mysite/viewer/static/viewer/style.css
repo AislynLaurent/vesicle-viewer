@@ -180,6 +180,20 @@ nav a {
     box-shadow: inset 0 0 4px #222;
 }
 
+.button-style a {
+    background-color: #FF8A00;
+    color: #222;
+    border-radius: 5px;
+    border: 0;
+    box-shadow: 0 0 4px #222;
+    padding: 8px 10px 8px 10px;
+    margin-top: 10px;
+}
+
+.button-style a:hover {
+    box-shadow: inset 0 0 4px #222;
+}
+
 /* Content */
 
 main h2, h3 {
