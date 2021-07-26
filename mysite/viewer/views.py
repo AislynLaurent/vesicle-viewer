@@ -1307,8 +1307,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
     # caluclated values
     calculated_i_values = []
 
-
-
     # Show stats / probabilities / graph
     if "statistics" in request.POST:
         show_statistics = True
