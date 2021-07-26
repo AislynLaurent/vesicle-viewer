@@ -117,6 +117,12 @@
         </div>
     {% endif %}
 
+    {% if "[[Correlations]] (unreported correlations are < 0.100)" not in parameter.fit_report and show_stats %}
+        <div class="announcement">
+            <p>No correlations are reported - most likely because they are smaller than 0.100, or possibly because there is some error preventing them from being calculated.</p>
+        </div>
+    {% endif %}
+
     <div class="content-box parameters" id="left">
 
         <form method="POST" enctype="multipart/form-data">
