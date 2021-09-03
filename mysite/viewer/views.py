@@ -692,7 +692,7 @@ def sample_custom_lipid_edit(request, project_id, sample_id, lipid_id):
             aug_suffix = form.cleaned_data['augmentation_suffix']
             hg_change = form.cleaned_data['hg_scattering_net_change']
             tg_change = form.cleaned_data['tg_scattering_net_change']
-            tm_change = form.cleaned_data['tm_scattering_net_change']
+            tm_change = form.cleaned_data['tmg_scattering_net_change']
 
             existing_augment, created_augment = Sample_Lipid_Augmentation.objects.update_or_create(
                 sample_lipid_name=lipid,
@@ -700,7 +700,7 @@ def sample_custom_lipid_edit(request, project_id, sample_id, lipid_id):
                     'augmentation_suffix':aug_suffix,
                     'hg_scattering_net_change':hg_change,
                     'tg_scattering_net_change':tg_change,
-                    'tm_scattering_net_change':tm_change,
+                    'tmg_scattering_net_change':tm_change,
             })
 
             return redirect('viewer:sample_lipid_edit', project_id=project.id, sample_id=sample.id, lipid_id=lipid.id)
