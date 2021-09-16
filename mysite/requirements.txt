@@ -18,7 +18,7 @@ python-magic==0.4.24
 pytz==2021.1
 scipy==1.7.1
 six==1.16.0
-sqlparse==0.4.1
+sqlparse==0.4.2
 typing-extensions==3.10.0.2
 uncertainties==3.1.6
 zipp==3.5.0
