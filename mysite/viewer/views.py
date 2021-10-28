@@ -32,6 +32,8 @@ from .symfit import *
 from .asymfit import *
 from .probabilities import *
 
+from viewer.fit import generate_fit_main
+
 ## STATIC PAGES
 # Home
 def index(request):
@@ -1093,6 +1095,13 @@ def fit_main(request, project_id, sample_id, parameter_id):
     project = get_object_or_404(Project, id=project_id)
     sample = get_object_or_404(Sample, id=sample_id)
 
+    # Data
+    datas = Data_Set.objects.filter(sample_title_id=sample_id)
+    data_exists = True if datas else False
+
+    # with the given project and sample, generate a fit main and return it. 
+    #generate_fit_main(project, sample, datas)
+
     if project.model_type == "SM":
         sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
         parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
@@ -1110,11 +1119,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
         if parameter.in_chain_volume == 0  or parameter.in_headgroup_volume == 0 or parameter.in_terminal_methyl_volume == 0 or parameter.in_lipid_area == 0 or parameter.out_chain_volume == 0  or parameter.out_headgroup_volume == 0 or parameter.out_terminal_methyl_volume == 0 or parameter.out_lipid_area == 0 or parameter.sigma == 0:
             zero_parameter = True
 
-# Data
-    data_exists = False
-    datas = Data_Set.objects.filter(sample_title_id=sample_id)
-    if datas:
-        data_exists = True
     xray_datas = datas.filter(data_type='XR')
     neutron_datas = datas.filter(data_type='NU')
 

@@ -111,7 +111,7 @@ class Molecule(models.Model):
     electrons = models.FloatField(verbose_name='electrons', default=0)
 
     # Slug
-    slug = AutoSlugField(populate_from='compund_name', always_update=True)
+    slug = AutoSlugField(populate_from='compound_name', always_update=True)
 
     # Meta
     class Meta:
