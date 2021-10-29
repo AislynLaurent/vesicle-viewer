@@ -1074,22 +1074,6 @@ def data_delete_warning(request, project_id, sample_id, data_id):
 ## Fit
 # Main fit page
 def fit_main(request, project_id, sample_id, parameter_id):
-## Tutorials
-    if request.user.is_anonymous:
-        xuser_tutorial = False
-    else:
-        xuser = ExtendedUser.objects.get(user=request.user)
-        xuser_tutorial = xuser.display_tutorial
-
-    tutorial = True
-    # Dismiss the tutorial
-    if "dismiss_this" in request.POST:
-        tutorial = False
-
-    # Dismiss all tutorials
-    if "dismiss_all" in request.POST:
-        xuser.display_tutorial = False
-        xuser.save()
 
 # Overall
 

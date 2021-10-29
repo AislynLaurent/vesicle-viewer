@@ -5,13 +5,31 @@ class Fit:
     def __init__(self, request, project_id, sample_id, parameter_id):
         self.request = request
 
+        ## Tutorials
+        if self.request.user.is_anonymous:
+            self.xuser_tutorial = False
+        else:
+            self.xuser = ExtendedUser.objects.get(user=self.request.user)
+            self.xuser_tutorial = self.xuser.display_tutorial
+
+        self.tutorial = True
+        # Dismiss the tutorial
+        if "dismiss_this" in self.request.POST:
+            self.tutorial = False
+
+        # Dismiss all tutorials
+        if "dismiss_all" in self.request.POST:
+            self.xuser.display_tutorial = False
+            self.xuser.save()
+
+        ## Overall
         # get initial project and sample
         self.project = get_object_or_404(Project, id=project_id)
         self.sample = get_object_or_404(Sample, id=sample_id)
 
         # Data
         self.datas = Data_Set.objects.filter(sample_title_id=sample_id)
-        self.data_exists = True if datas else False
+        self.data_exists = True if self.datas else False
 
         self.set_sample_lipids(sample_id)
         self.set_parameter(parameter_id)
@@ -19,8 +37,8 @@ class Fit:
 
         self.data_exists = True if self.datas else False
 
-        self.xray_datas = datas.filter(data_type='XR')
-        self.neutron_datas = datas.filter(data_type='NU')
+        self.xray_datas = self.datas.filter(data_type='XR')
+        self.neutron_datas = self.datas.filter(data_type='NU')
 
         # Declare
         self.now = timezone.now()
@@ -37,15 +55,15 @@ class Fit:
         self.calculated_i_values = []
 
         # Show stats / probabilities / graph
-        if "statistics" in request.POST:
+        if "statistics" in self.request.POST:
             self.show_statistics = True
             self.show_probabilities = False
 
-        if "probabilities" in request.POST:
+        if "probabilities" in self.request.POST:
             self.show_probabilities = True
             self.show_statistics = False
 
-        if "graphs" in request.POST:
+        if "graphs" in self.request.POST:
             self.show_statistics = False
             self.show_probabilities = False
 
@@ -55,7 +73,7 @@ class Fit:
 
         # X-Ray fit graphs
         for xray_data in self.xray_datas:
-            xray_fig = plt.figure(figsize=(5.5,4.3))
+            self.xray_fig = plt.figure(figsize=(5.5,4.3))
 
             x = np.asarray(xray_data.q_value[xray_data.min_index:xray_data.max_index])
             y = np.asarray(xray_data.intensity_value[xray_data.min_index:xray_data.max_index])
@@ -80,6 +98,12 @@ class Fit:
             plt.ylabel('Intensity (A.U.)')
 
             plt.title(xray_data.data_set_title)
+
+            if parameter.fit_report_xray:
+                self.fit_report_xray()
+            
+            xray_figures.append(mpld3.fig_to_html(xray_fig))
+            plt.cla()
 
         # Neutron fit graphs
         for neutron_data in neutron_datas:
@@ -111,7 +135,7 @@ class Fit:
 
             # Fit line
             if parameter.fit_report:
-                self.plot_fit_line()
+                self.fit_report_neutron()
 
             neutron_figures.append(mpld3.fig_to_html(neutron_fig))
             plt.cla()
@@ -364,7 +388,6 @@ class Fit:
             neutron_ranges.append(neutron_range_form)
             neutron_scales.append(neutron_scale_form)
 
-    
 class SymmetricalFit(Fit):
     def set_sample_lipids(self):
         self.sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
@@ -423,6 +446,24 @@ class SymmetricalFit(Fit):
             # print(lsq.fit_report(fit_result))
 
             return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
+
+    def fit_report_xray(self):
+        plt.plot(
+            xray_data.q_value[xray_data.min_index:xray_data.max_index],
+            symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            color='r',
+            label='Best Fit',
+            zorder=2
+        )
+
+    def fit_report_neutron(self):
+        plt.plot(
+            xray_data.q_value[xray_data.min_index:xray_data.max_index],
+            symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            color='r',
+            label='Best Fit',
+            zorder=2
+        )
 
     def water_probabilities(self):
         writer.writerow([])
@@ -583,8 +624,34 @@ class AsymmetricalFit(Fit):
                 data.save()
 
             # print(lsq.fit_report(fit_result))
-
             return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
+    
+    def fit_report_xray(self):
+        plt.plot(
+            xray_data.q_value[xray_data.min_index:xray_data.max_index],
+            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            color='r',
+            label='Best Fit',
+            zorder=2
+        )
+    
+    def fit_report_neutron(self):
+        plt.plot(
+            neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
+            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options),
+            color='r',
+            label='Best Fit',
+            zorder=2
+        )
+
+    def plot_fit_line(self):
+        plt.plot(
+            xray_data.q_value[xray_data.min_index:xray_data.max_index],
+            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            color='r',
+            label='Best Fit',
+            zorder=2
+        )
 
     def water_probabilities(self):
         writer.writerow([])
