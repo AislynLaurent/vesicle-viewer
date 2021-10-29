@@ -1092,16 +1092,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
         xuser.save()
 
 # Overall
-    project = get_object_or_404(Project, id=project_id)
-    sample = get_object_or_404(Sample, id=sample_id)
-
-    # Data
-    datas = Data_Set.objects.filter(sample_title_id=sample_id)
-    data_exists = True if datas else False
 
     # with the given project and sample, generate a fit main and return it. 
-    #generate_fit_main(project, sample, datas)
+    generate_fit_main(request, project_id, sample_id, parameter_id)
 
+"""
     if project.model_type == "SM":
         sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
         parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
@@ -1128,6 +1123,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     show_statistics = False
     show_probabilities = False
 
+"""
 ## Forms
 # Update parameters
     if project.model_type == "SM":
