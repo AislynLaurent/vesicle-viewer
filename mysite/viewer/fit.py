@@ -154,9 +154,9 @@ class Fit:
     def get_fit_main(self):
         # Fit data download
         if "fit_download" in request.POST:
-            return self.fit_download()
+            return self.fit_download(self.writer)
         elif "sdp_download" in request.POST:
-            return self.sdp_download()
+            return self.sdp_download(self.writer)
         else:
             xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
             neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
@@ -193,6 +193,7 @@ class Fit:
         response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
 
         writer = csv.writer(response)
+        self.writer = writer
         writer.writerow(['VesicleViewer Fit output', now])
         writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
         writer.writerow([project.project_title, sample.sample_title, parameter.name])
@@ -236,10 +237,7 @@ class Fit:
 
         for xray_data in xray_datas:
             writer.writerow([xray_data.data_set_title])
-            if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options)
-            elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options)
+            calculated_i_values = self.get_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options)
 
             j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
@@ -248,10 +246,7 @@ class Fit:
 
         for neutron_data in neutron_datas:
             writer.writerow([neutron_data.data_set_title])
-            if project.model_type == "SM":
-                calculated_i_values = symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options)
-            elif project.model_type == "AS":
-                calculated_i_values = asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options)
+            calculated_i_values = self.get_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options)
 
             j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):
@@ -269,6 +264,7 @@ class Fit:
         response['Content-Disposition'] = 'attachment; filename={0}'.format(file_name)
 
         writer = csv.writer(response)
+        self.writer = writer
         writer.writerow(['VesicleViewer SDP output', now])
         writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
         writer.writerow([project.project_title, sample.sample_title, parameter.name])
@@ -276,7 +272,7 @@ class Fit:
 
         # Water probablilities
         writer.writerow(['Volume Probabilities'])
-        self.water_probabilities()
+        self.water_probabilities(writer)
 
         # SDP and Scaled Probabilities
         writer.writerow([])
@@ -465,7 +461,7 @@ class SymmetricalFit(Fit):
             zorder=2
         )
 
-    def water_probabilities(self):
+    def water_probabilities(self, writer):
         writer.writerow([])
         writer.writerow(['Headgroup'])
         writer.writerow(['z', 'Ph(z)'])
@@ -496,7 +492,7 @@ class SymmetricalFit(Fit):
         for z, pw in zip (x_values, water_prob):
             writer.writerow([z, pw])
 
-    def sdp_xray_data(self):
+    def sdp_xray_data(self, writer):
         writer.writerow([])
         writer.writerow(['Combined SDP'])
         writer.writerow(['z', ''])
@@ -527,7 +523,7 @@ class SymmetricalFit(Fit):
         for z, sdpw in zip (x_values, sdp_results[4]):
             writer.writerow([z, sdpw])
     
-    def sdp_neutron_data(self):
+    def sdp_neutron_data(self, writer):
         writer.writerow([])
         writer.writerow(['Combined SDP'])
         writer.writerow(['z', ''])
@@ -653,7 +649,7 @@ class AsymmetricalFit(Fit):
             zorder=2
         )
 
-    def water_probabilities(self):
+    def water_probabilities(self, writer):
         writer.writerow([])
         writer.writerow(['Headgroup'])
         writer.writerow(['z', 'Ph(z)'])
@@ -714,7 +710,7 @@ class AsymmetricalFit(Fit):
         for z, pw in zip (out_x_values, out_water_prob):
             writer.writerow([z, pw])
             
-    def sdp_xray_data(self):
+    def sdp_xray_data(self, writer):
         writer.writerow([])
         writer.writerow(['Combined SDP'])
         writer.writerow(['z', 'Pch(z)'])
@@ -775,7 +771,7 @@ class AsymmetricalFit(Fit):
         for z, sdpw in zip (out_x_values, sdp_results[9]):
             writer.writerow([z, sdpw])
 
-    def sdp_neutron_data(self):
+    def sdp_neutron_data(self, writer):
         writer.writerow([])
         writer.writerow(['Combined SDP'])
         writer.writerow(['z', 'Pch(z)'])
