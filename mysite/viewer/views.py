@@ -1079,11 +1079,11 @@ def fit_main(request, project_id, sample_id, parameter_id):
 # Overall
 
     # with the given project and sample, generate a fit main and return it. 
-    generate_fit_main(request, project_id, sample_id, parameter_id)
+    return generate_fit_main(request, project_id, sample_id, parameter_id)
 
     """
-    old code for fit main below. will remove once fit.py works properly for
-    all test cases
+    # old code for fit main below. will remove once fit.py works properly for
+    # all test cases
 
     if project.model_type == "SM":
         sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')

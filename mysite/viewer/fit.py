@@ -32,8 +32,9 @@ from .asymfit import *
 from .probabilities import *
 
 class Fit:
-    def __init__(self, request, project_id, sample_id, parameter_id):
+    def __init__(self, request, project, sample_id, parameter_id):
         self.request = request
+        self.project = project
 
         ## Tutorials
         if self.request.user.is_anonymous:
@@ -54,7 +55,6 @@ class Fit:
 
         ## Overall
         # get initial project and sample
-        self.project = get_object_or_404(Project, id=project_id)
         self.sample = get_object_or_404(Sample, id=sample_id)
 
         # Data
@@ -494,7 +494,7 @@ class SymmetricalFit(Fit):
     def fit_report_neutron(self, neutron_data):
         plt.plot(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-            symmetrical_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options),
+            symmetrical_graph(parameter, sample_lipids, neutron_data, self.project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -614,7 +614,7 @@ class SymmetricalFit(Fit):
                     self.project.advanced_options
                 )
 
-            additional_parameters = sym_additional_parameters(
+            self.additional_parameters = sym_additional_parameters(
                     self.parameter,
                     self.sample_lipids,
                     xray_data,
@@ -689,7 +689,7 @@ class SymmetricalFit(Fit):
             self.xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
             plt.cla()
 
-        for neutron_data in neutron_datas:
+        for neutron_data in self.neutron_datas:
             neutron_sdp_fig = plt.figure(figsize=(5.5,4.3))
 
             self.sdp_results = symmetrical_sdp(
@@ -704,7 +704,7 @@ class SymmetricalFit(Fit):
                     project.advanced_options
                 )
 
-            additional_parameters = sym_additional_parameters(
+            self.additional_parameters = sym_additional_parameters(
                     self.parameter,
                     sample_lipids,
                     neutron_data,
@@ -1167,7 +1167,7 @@ class AsymmetricalFit(Fit):
                     project.advanced_options
                 )
             
-            additional_parameters = asym_additional_parameters(
+            self.additional_parameters = asym_additional_parameters(
                     parameter,
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
@@ -1285,7 +1285,7 @@ class AsymmetricalFit(Fit):
             self.xray_sdp_graphs.append(mpld3.fig_to_html(xray_sdp_fig))
             plt.cla()
 
-        for neutron_data in neutron_datas:
+        for neutron_data in self.neutron_datas:
             neutron_sdp_fig = plt.figure(figsize=(5.5,4.3))
 
             self.sdp_results = asymmetrical_sdp(
@@ -1305,7 +1305,7 @@ class AsymmetricalFit(Fit):
                     project.advanced_options
                 )
 
-            additional_parameters = asym_additional_parameters(
+            self.additional_parameters = asym_additional_parameters(
                     parameter,
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
@@ -1608,9 +1608,11 @@ class AsymmetricalFit(Fit):
 
 # generator function
 def generate_fit_main(request, project_id, sample_id, param_id):
+    project = get_object_or_404(Project, id=project_id)
+
     if project.model_type == "SM":
-        fit = SymmetricalFit(request, project_id, sample_id, param_id)
+        fit = SymmetricalFit(request, project, sample_id, param_id)
     elif project.model_type == "AS":
-        fit = AsymmetricalFit(request, project, sample, datas, param_id)
+        fit = AsymmetricalFit(request, project, sample_id, datas, param_id)
     
     return fit.get_fit_main()
