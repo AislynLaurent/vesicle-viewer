@@ -103,7 +103,7 @@ class Fit:
 
         # X-Ray fit graphs
         for xray_data in self.xray_datas:
-            self.xray_fig = plt.figure(figsize=(5.5,4.3))
+            xray_fig = plt.figure(figsize=(5.5,4.3))
 
             x = np.asarray(xray_data.q_value[xray_data.min_index:xray_data.max_index])
             y = np.asarray(xray_data.intensity_value[xray_data.min_index:xray_data.max_index])
@@ -129,14 +129,14 @@ class Fit:
 
             plt.title(xray_data.data_set_title)
 
-            if parameter.fit_report_xray:
+            if self.parameter.fit_report_xray:
                 self.fit_report_xray()
             
-            xray_figures.append(mpld3.fig_to_html(xray_fig))
+            self.xray_figures.append(mpld3.fig_to_html(xray_fig))
             plt.cla()
 
         # Neutron fit graphs
-        for neutron_data in neutron_datas:
+        for neutron_data in self.neutron_datas:
             neutron_fig = plt.figure(figsize=(5.5,4.3))
 
             x = np.asarray(neutron_data.q_value[neutron_data.min_index:neutron_data.max_index])
@@ -164,59 +164,59 @@ class Fit:
             plt.title(neutron_data.data_set_title)
 
             # Fit line
-            if parameter.fit_report:
+            if self.parameter.fit_report:
                 self.fit_report_neutron()
 
-            neutron_figures.append(mpld3.fig_to_html(neutron_fig))
+            self.neutron_figures.append(mpld3.fig_to_html(neutron_fig))
             plt.cla()
 
         # Probability graphs
         prob_fig = plt.figure(figsize=(6,5))
-        xray_sdp_graphs = []
-        xray_sdp_data = {}
-        neutron_sdp_graphs = []
-        neutron_sdp_data = {}
+        self.xray_sdp_graphs = []
+        self.xray_sdp_data = {}
+        self.neutron_sdp_graphs = []
+        self.neutron_sdp_data = {}
 
         self.calculate_probability_graphs()
-        prob_graph = mpld3.fig_to_html(prob_fig)
+        self.prob_graph = mpld3.fig_to_html(prob_fig)
 
 
     def get_fit_main(self):
         # Fit data download
-        if "fit_download" in request.POST:
+        if "fit_download" in self.request.POST:
             return self.fit_download(self.writer)
-        elif "sdp_download" in request.POST:
+        elif "sdp_download" in self.request.POST:
             return self.sdp_download(self.writer)
         else:
-            xray_graphs_and_forms = zip(xray_figures, xray_ranges, xray_scales, xray_datas)
-            neutron_graphs_and_forms = zip(neutron_figures, neutron_ranges, neutron_scales, neutron_datas)
+            self.xray_graphs_and_forms = zip(self.xray_figures, xray_ranges, xray_scales, self.xray_datas)
+            self.neutron_graphs_and_forms = zip(self.neutron_figures, neutron_ranges, neutron_scales, self.neutron_datas)
 
             plt.close('all')
 
             ## Done
-            return render(request, 'viewer/fit_main.html', {
-                'tutorial':tutorial,
-                'xuser_tutorial':xuser_tutorial,
-                'project':project,
-                'sample':sample,
-                'data_exists':data_exists,
-                'parameter':parameter,
-                'zero_parameter':zero_parameter,
+            return render(self.request, 'viewer/fit_main.html', {
+                'tutorial':self.tutorial,
+                'xuser_tutorial':self.xuser_tutorial,
+                'project':self.project,
+                'sample':self.sample,
+                'data_exists':self.data_exists,
+                'parameter':self.parameter,
+                'zero_parameter':self.zero_parameter,
                 'parameter_update_form':parameter_update_form,
-                'fit_result':fit_result,
-                'show_stats':show_statistics,
-                'show_probs':show_probabilities,
-                'xray_graphs_and_forms':xray_graphs_and_forms,
-                'neutron_graphs_and_forms':neutron_graphs_and_forms,
-                'prob_graph':prob_graph,
-                'xray_sdp_graphs':xray_sdp_graphs,
-                'neutron_sdp_graphs':neutron_sdp_graphs,
+                'fit_result':self.fit_result,
+                'show_stats':self.show_statistics,
+                'show_probs':self.show_probabilities,
+                'xray_graphs_and_forms':self.xray_graphs_and_forms,
+                'neutron_graphs_and_forms':self.neutron_graphs_and_forms,
+                'prob_graph':self.prob_graph,
+                'xray_sdp_graphs':self.xray_sdp_graphs,
+                'neutron_sdp_graphs':self.neutron_sdp_graphs,
                 'additional_parameters':additional_parameters
             })
 
     def fit_download(self):
         # Filename
-        file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_FIT_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
+        file_name = str(self.project.project_title).replace(' ','-').replace(':','.')+'_FIT_download_'+'_'+str(self.sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(self.parameter.name).replace(' ','-').replace(':','.')+self.now.strftime("%m-%d-%H.%M")+'.csv'
 
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type='text/csv')
@@ -224,20 +224,20 @@ class Fit:
 
         writer = csv.writer(response)
         self.writer = writer
-        writer.writerow(['VesicleViewer Fit output', now])
+        writer.writerow(['VesicleViewer Fit output', self.now])
         writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
-        writer.writerow([project.project_title, sample.sample_title, parameter.name])
+        writer.writerow([self.project.project_title, self.sample.sample_title, self.parameter.name])
         writer.writerow([])
 
-        if project.model_type == "SM":
+        if self.project.model_type == "SM":
             writer.writerow(['Calculated Parameters'])
             writer.writerow(['Db', additional_parameters[0]])
             writer.writerow(['2Dc', additional_parameters[1]])
             writer.writerow(['Dhh', additional_parameters[2]])
-            writer.writerow(['Dh', parameter.headgroup_thickness])
-            writer.writerow(['Al', parameter.lipid_area])
+            writer.writerow(['Dh', self.parameter.headgroup_thickness])
+            writer.writerow(['Al', self.parameter.lipid_area])
             writer.writerow([])
-        elif project.model_type == "AS":
+        elif self.project.model_type == "AS":
             writer.writerow(['Calculated Parameters'])
             writer.writerow([])
 
@@ -245,49 +245,49 @@ class Fit:
             writer.writerow(['Db', additional_parameters[0]])
             writer.writerow(['2Dc', additional_parameters[1]])
             writer.writerow(['Dhh', additional_parameters[4]])
-            writer.writerow(['Dh', parameter.in_headgroup_thickness])
-            writer.writerow(['Al', parameter.in_lipid_area])
+            writer.writerow(['Dh', self.parameter.in_headgroup_thickness])
+            writer.writerow(['Al', self.parameter.in_lipid_area])
             writer.writerow([])
 
             writer.writerow(['Outter'])
             writer.writerow(['Db', additional_parameters[2]])
             writer.writerow(['2Dc', additional_parameters[3]])
             writer.writerow(['Dhh', additional_parameters[5]])
-            writer.writerow(['Dh', parameter.out_headgroup_thickness])
-            writer.writerow(['Al', parameter.out_lipid_area])
+            writer.writerow(['Dh', self.parameter.out_headgroup_thickness])
+            writer.writerow(['Al', self.parameter.out_lipid_area])
             writer.writerow([])
 
         writer.writerow({'Fit Statistics'})
-        for line in parameter.fit_report:
+        for line in self.parameter.fit_report:
             writer.writerow([line])
 
         writer.writerow([])
 
         writer.writerow(['Q', 'Experimental i', 'Experimental Error', 'Calculated i'])
 
-        for xray_data in xray_datas:
+        for xray_data in self.xray_datas:
             writer.writerow([xray_data.data_set_title])
-            calculated_i_values = self.get_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options)
+            self.calculated_i_values = self.get_graph(self.parameter, self.sample_lipids, xray_data, self.project.system_tempurature, self.project.advanced_options)
 
             j = 0
             for i in range(xray_data.min_index, xray_data.max_index):
-                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], xray_data.error_value[i], calculated_i_values[j]])
+                writer.writerow([xray_data.q_value[i], xray_data.intensity_value[i], xray_data.error_value[i], self.calculated_i_values[j]])
                 j = j+1
 
-        for neutron_data in neutron_datas:
+        for neutron_data in self.neutron_datas:
             writer.writerow([neutron_data.data_set_title])
-            calculated_i_values = self.get_graph(parameter, sample_lipids, neutron_data, project.system_tempurature, project.advanced_options)
+            self.calculated_i_values = self.get_graph(self.parameter, self.sample_lipids, neutron_data, self.project.system_tempurature, self.project.advanced_options)
 
             j = 0
             for i in range(neutron_data.min_index, neutron_data.max_index):
-                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], neutron_data.error_value[i], calculated_i_values[j]])
+                writer.writerow([neutron_data.q_value[i], neutron_data.intensity_value[i], neutron_data.error_value[i], self.calculated_i_values[j]])
                 j = j+1
 
         return response
 
     def sdp_download(self):
         # Filename
-        file_name = str(project.project_title).replace(' ','-').replace(':','.')+'_SDP_download_'+'_'+str(sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(parameter.name).replace(' ','-').replace(':','.')+now.strftime("%m-%d-%H.%M")+'.csv'
+        file_name = str(self.project.project_title).replace(' ','-').replace(':','.')+'_SDP_download_'+'_'+str(self.sample.sample_title).replace(' ','-').replace(':','.')+'_'+str(self.parameter.name).replace(' ','-').replace(':','.')+self.now.strftime("%m-%d-%H.%M")+'.csv'
 
         # Create the HttpResponse object with the appropriate CSV header.
         response = HttpResponse(content_type='text/csv')
@@ -295,9 +295,9 @@ class Fit:
 
         writer = csv.writer(response)
         self.writer = writer
-        writer.writerow(['VesicleViewer SDP output', now])
+        writer.writerow(['VesicleViewer SDP output', self.now])
         writer.writerow(['Project Name', 'Sample Name', 'Parameter Set'])
-        writer.writerow([project.project_title, sample.sample_title, parameter.name])
+        writer.writerow([self.project.project_title, self.sample.sample_title, self.parameter.name])
         writer.writerow([])
 
         # Water probablilities
@@ -308,16 +308,16 @@ class Fit:
         writer.writerow([])
         writer.writerow(['Scattering Density Profile'])
 
-        for xray_data in xray_datas:
-            sdp_results = xray_sdp_data[xray_data]
+        for xray_data in self.xray_datas:
+            sdp_results = self.xray_sdp_data[xray_data]
 
             writer.writerow([])
             writer.writerow([xray_data.data_set_title])
 
             self.sdp_xray_data()
 
-        for neutron_data in neutron_datas:
-            sdp_results = neutron_sdp_data[neutron_data]
+        for neutron_data in self.neutron_datas:
+            sdp_results = self.neutron_sdp_data[neutron_data]
 
             writer.writerow([])
             writer.writerow([neutron_data.data_set_title])
@@ -331,11 +331,11 @@ class Fit:
         xray_scales = []
 
         # Update q range for all x-ray datasets
-        for xray_data in xray_datas:
+        for xray_data in self.xray_datas:
             
-            if xray_data.data_set_title in request.POST:
-                xray_range_form = Data_Range_Form(request.POST)
-                xray_scale_form = Data_Scale_Form(request.POST, instance=xray_data)
+            if xray_data.data_set_title in self.request.POST:
+                xray_range_form = Data_Range_Form(self.request.POST)
+                xray_scale_form = Data_Scale_Form(self.request.POST, instance=xray_data)
                 if xray_range_form.is_valid() and xray_scale_form.is_valid():
                     # Get scale values
                     scale_value = xray_scale_form.cleaned_data['scale']
@@ -362,7 +362,7 @@ class Fit:
                     except TypeError:
                         xray_data.save()
 
-                    return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=parameter.id)
+                    return redirect('viewer:fit_main', project_id=self.project.id, sample_id=self.sample.id, parameter_id=self.parameter.id)
 
             else:
                 xray_range_form = Data_Range_Form()
@@ -375,10 +375,10 @@ class Fit:
         neutron_scales = []
 
         # Update q range for all neutron datasets
-        for neutron_data in neutron_datas:
-            if neutron_data.data_set_title in request.POST:
-                neutron_range_form = Data_Range_Form(request.POST)
-                neutron_scale_form = Data_Scale_Form(request.POST, instance=neutron_data)
+        for neutron_data in self.neutron_datas:
+            if neutron_data.data_set_title in self.request.POST:
+                neutron_range_form = Data_Range_Form(self.request.POST)
+                neutron_scale_form = Data_Scale_Form(self.request.POST, instance=neutron_data)
                 if neutron_range_form.is_valid() and neutron_scale_form.is_valid():
                     # Get scale values
                     scale_value = neutron_scale_form.cleaned_data['scale']
@@ -405,7 +405,7 @@ class Fit:
                     except TypeError:
                         neutron_data.save()
 
-                    return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=parameter.id)
+                    return redirect('viewer:fit_main', project_id=self.project.id, sample_id=self.sample.id, parameter_id=self.parameter.id)
 
             else:
                 neutron_range_form = Data_Range_Form()
@@ -423,11 +423,11 @@ class SymmetricalFit(Fit):
 
     def set_zero_parameter(self):
         self.zero_parameter = True if \
-            parameter.chain_volume == 0 or \
-            parameter.headgroup_volume == 0 or \
-            parameter.terminal_methyl_volume == 0 or \
-            parameter.lipid_area == 0 or \
-            parameter.sigma == 0 \
+            self.parameter.chain_volume == 0 or \
+            self.parameter.headgroup_volume == 0 or \
+            self.parameter.terminal_methyl_volume == 0 or \
+            self.parameter.lipid_area == 0 or \
+            self.parameter.sigma == 0 \
             else False
 
     def parameter_update(self):
@@ -440,16 +440,16 @@ class SymmetricalFit(Fit):
             parameter_update_form = Symmetrical_Parameter_Fit_Form(instance=self.parameter)
     
     def do_fit(self):
-        if "fit" in request.POST:
+        if "fit" in self.request.POST:
             # Do fit
-            fit_result = symmetrical_fit(self.parameter, sample_lipids, datas, project.system_tempurature, project.advanced_options)
-            fit_parameters = fit_result.params
+            self.fit_result = symmetrical_fit(self.parameter, self.sample_lipids, self.datas, self.project.system_tempurature, self.project.advanced_options)
+            fit_parameters = self.fit_result.params
 
             # Copy current instance
             new_parameter = deepcopy(self.parameter)
 
             # Set title
-            new_parameter.name = now.strftime("%m/%d/%H:%M")
+            new_parameter.name = self.now.strftime("%m/%d/%H:%M")
 
             # Set params
             new_parameter.terminal_methyl_volume = round(fit_parameters['terminal_methyl_volume'].value, 6)
@@ -457,26 +457,26 @@ class SymmetricalFit(Fit):
             new_parameter.headgroup_thickness = round(fit_parameters['headgroup_thickness'].value, 6)
 
             # Set report
-            fit_report = lsq.fit_report(fit_result)
+            fit_report = lsq.fit_report(self.fit_result)
             new_parameter.fit_report = fit_report.split('\n')
 
             new_parameter.id = None
             new_parameter.save()
 
-            for data in datas:
+            for data in self.datas:
                 data.scale = fit_parameters['scale_%i' % data.id].value
                 data.background = fit_parameters['background_%i' % data.id].value
 
                 data.save()
 
-            # print(lsq.fit_report(fit_result))
+            # print(lsq.fit_report(self.fit_result))
 
-            return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
+            return redirect('viewer:fit_main', project_id=self.project.id, sample_id=self.sample.id, parameter_id=new_parameter.id)
 
     def fit_report_xray(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            symmetrical_graph(self.parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            symmetrical_graph(self.parameter, self.sample_lipids, xray_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -485,7 +485,7 @@ class SymmetricalFit(Fit):
     def fit_report_neutron(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            symmetrical_graph(self.parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            symmetrical_graph(self.parameter, self.sample_lipids, xray_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -613,19 +613,19 @@ class AsymmetricalFit(Fit):
                 self.parameter = parameter_update_form.save(commit=False)
                 self.parameter.save()
         else:
-            parameter_update_form = Asymmetrical_Parameter_Fit_Form(instance=parameter)
+            parameter_update_form = Asymmetrical_Parameter_Fit_Form(instance=self.parameter)
 
     def do_fit(self):
-        if "fit" in request.POST:
+        if "fit" in self.request.POST:
             # Do fit
-            fit_result = asymmetrical_fit(self.parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature, project.advanced_options)
-            fit_parameters = fit_result.params
+            self.fit_result = asymmetrical_fit(self.parameter, sample_lipids_in, sample_lipids_out, self.datas, self.project.system_tempurature, self.project.advanced_options)
+            fit_parameters = self.fit_result.params
 
             # Copy current instance
             new_parameter = deepcopy(self.parameter)
 
             # Set title
-            new_parameter.name = now.strftime("%m/%d/%H:%M")
+            new_parameter.name = self.now.strftime("%m/%d/%H:%M")
 
             # Set params
             new_parameter.in_terminal_methyl_volume = round(fit_parameters['in_terminal_methyl_volume'].value, 6)
@@ -637,25 +637,25 @@ class AsymmetricalFit(Fit):
             new_parameter.out_headgroup_thickness = round(fit_parameters['out_headgroup_thickness'].value, 6)
 
             # Set report
-            fit_report = lsq.fit_report(fit_result)
+            fit_report = lsq.fit_report(self.fit_result)
             new_parameter.fit_report = fit_report.split('\n')
 
             new_parameter.id = None
             new_parameter.save()
 
-            for data in datas:
+            for data in self.datas:
                 data.scale = fit_parameters['scale_%i' % data.id].value
                 data.background = fit_parameters['background_%i' % data.id].value
 
                 data.save()
 
-            # print(lsq.fit_report(fit_result))
-            return redirect('viewer:fit_main', project_id=project.id, sample_id=sample.id, parameter_id=new_parameter.id)
+            # print(lsq.fit_report(self.fit_result))
+            return redirect('viewer:fit_main', project_id=self.project.id, sample_id=self.sample.id, parameter_id=new_parameter.id)
     
     def fit_report_xray(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -664,7 +664,7 @@ class AsymmetricalFit(Fit):
     def fit_report_neutron(self):
         plt.plot(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, neutron_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -673,7 +673,7 @@ class AsymmetricalFit(Fit):
     def plot_fit_line(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
