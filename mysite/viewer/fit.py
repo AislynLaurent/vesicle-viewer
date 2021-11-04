@@ -1,5 +1,35 @@
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
+from django.http import HttpResponse
 from django.utils import timezone
+
+# note: might not need these?
+from django.utils import text
+from django.contrib import messages 
+
+# Other libraries
+import csv
+
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+
+import mpld3
+import numpy as np
+import lmfit as lsq
+from copy import deepcopy
+import re
+
+# note: test if you need these, importing * is annoying
+# Models
+from .models import *
+
+# Forms
+from .forms import *
+
+# Other imports
+from .symfit import *
+from .asymfit import *
+from .probabilities import *
 
 class Fit:
     def __init__(self, request, project_id, sample_id, parameter_id):
@@ -402,21 +432,21 @@ class SymmetricalFit(Fit):
 
     def parameter_update(self):
         if "parameter_update" in self.request.POST:
-            parameter_update_form = Symmetrical_Parameter_Fit_Form(self.request.POST, instance=parameter)
+            parameter_update_form = Symmetrical_Parameter_Fit_Form(self.request.POST, instance=self.parameter)
             if parameter_update_form.is_valid():
-                parameter = parameter_update_form.save(commit=False)
-                parameter.save()
+                self.parameter = parameter_update_form.save(commit=False)
+                self.parameter.save()
         else:
-            parameter_update_form = Symmetrical_Parameter_Fit_Form(instance=parameter)
+            parameter_update_form = Symmetrical_Parameter_Fit_Form(instance=self.parameter)
     
     def do_fit(self):
         if "fit" in request.POST:
             # Do fit
-            fit_result = symmetrical_fit(parameter, sample_lipids, datas, project.system_tempurature, project.advanced_options)
+            fit_result = symmetrical_fit(self.parameter, sample_lipids, datas, project.system_tempurature, project.advanced_options)
             fit_parameters = fit_result.params
 
             # Copy current instance
-            new_parameter = deepcopy(parameter)
+            new_parameter = deepcopy(self.parameter)
 
             # Set title
             new_parameter.name = now.strftime("%m/%d/%H:%M")
@@ -446,7 +476,7 @@ class SymmetricalFit(Fit):
     def fit_report_xray(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            symmetrical_graph(self.parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -455,7 +485,7 @@ class SymmetricalFit(Fit):
     def fit_report_neutron(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            symmetrical_graph(parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
+            symmetrical_graph(self.parameter, sample_lipids, xray_data, project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -565,34 +595,34 @@ class AsymmetricalFit(Fit):
     
     def set_zero_parameter(self):
         self.zero_parameter = True if \
-            parameter.in_chain_volume == 0 or \
-            parameter.in_headgroup_volume == 0 or \
-            parameter.in_terminal_methyl_volume == 0 or \
-            parameter.in_lipid_area == 0 or \
-            parameter.out_chain_volume == 0  or \
-            parameter.out_headgroup_volume == 0 or \
-            parameter.out_terminal_methyl_volume == 0 or \
-            parameter.out_lipid_area == 0 or \
-            parameter.sigma == 0 \
+            self.parameter.in_chain_volume == 0 or \
+            self.parameter.in_headgroup_volume == 0 or \
+            self.parameter.in_terminal_methyl_volume == 0 or \
+            self.parameter.in_lipid_area == 0 or \
+            self.parameter.out_chain_volume == 0  or \
+            self.parameter.out_headgroup_volume == 0 or \
+            self.parameter.out_terminal_methyl_volume == 0 or \
+            self.parameter.out_lipid_area == 0 or \
+            self.parameter.sigma == 0 \
             else False
     
     def parameter_update(self):
         if "parameter_update" in self.request.POST:
-            parameter_update_form = Asymmetrical_Parameter_Fit_Form(self.request.POST, instance=parameter)
+            parameter_update_form = Asymmetrical_Parameter_Fit_Form(self.request.POST, instance=self.parameter)
             if parameter_update_form.is_valid():
-                parameter = parameter_update_form.save(commit=False)
-                parameter.save()
+                self.parameter = parameter_update_form.save(commit=False)
+                self.parameter.save()
         else:
             parameter_update_form = Asymmetrical_Parameter_Fit_Form(instance=parameter)
 
     def do_fit(self):
         if "fit" in request.POST:
             # Do fit
-            fit_result = asymmetrical_fit(parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature, project.advanced_options)
+            fit_result = asymmetrical_fit(self.parameter, sample_lipids_in, sample_lipids_out, datas, project.system_tempurature, project.advanced_options)
             fit_parameters = fit_result.params
 
             # Copy current instance
-            new_parameter = deepcopy(parameter)
+            new_parameter = deepcopy(self.parameter)
 
             # Set title
             new_parameter.name = now.strftime("%m/%d/%H:%M")
@@ -625,7 +655,7 @@ class AsymmetricalFit(Fit):
     def fit_report_xray(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -634,7 +664,7 @@ class AsymmetricalFit(Fit):
     def fit_report_neutron(self):
         plt.plot(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, neutron_data, project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -643,7 +673,7 @@ class AsymmetricalFit(Fit):
     def plot_fit_line(self):
         plt.plot(
             xray_data.q_value[xray_data.min_index:xray_data.max_index],
-            asymmetrical_graph(parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
+            asymmetrical_graph(self.parameter, sample_lipids_in, sample_lipids_out, xray_data, project.system_tempurature, project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2

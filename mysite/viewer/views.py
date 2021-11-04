@@ -32,6 +32,7 @@ from .symfit import *
 from .asymfit import *
 from .probabilities import *
 
+# note: test if you need the above imports, as most of these imports are needed in fit.py as well
 from viewer.fit import generate_fit_main
 
 ## STATIC PAGES
@@ -1080,7 +1081,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     # with the given project and sample, generate a fit main and return it. 
     generate_fit_main(request, project_id, sample_id, parameter_id)
 
-"""
+    """
     if project.model_type == "SM":
         sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
         parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
@@ -1107,7 +1108,7 @@ def fit_main(request, project_id, sample_id, parameter_id):
     show_statistics = False
     show_probabilities = False
 
-"""
+    """
 ## Forms
 # Update parameters
     if project.model_type == "SM":
