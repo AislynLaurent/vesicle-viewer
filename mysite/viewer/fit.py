@@ -973,73 +973,73 @@ class AsymmetricalFit(Fit):
 
         # Calculate probabilities
         self.in_head_prob = head(
-                parameter.in_chain_volume,
-                parameter.in_headgroup_volume,
-                parameter.in_lipid_area,
-                parameter.in_headgroup_thickness,
-                parameter.sigma,
+                self.parameter.in_chain_volume,
+                self.parameter.in_headgroup_volume,
+                self.parameter.in_lipid_area,
+                self.parameter.in_headgroup_thickness,
+                self.parameter.sigma,
                 self.in_x_values
             )
         self.out_head_prob = head(
-                parameter.out_chain_volume,
-                parameter.out_headgroup_volume,
-                parameter.out_lipid_area,
-                parameter.out_headgroup_thickness,
-                parameter.sigma,
+                self.parameter.out_chain_volume,
+                self.parameter.out_headgroup_volume,
+                self.parameter.out_lipid_area,
+                self.parameter.out_headgroup_thickness,
+                self.parameter.sigma,
                 self.out_x_values
             )
         self.in_chain_prob = chain(
-                parameter.in_chain_volume,
-                parameter.in_lipid_area,
-                parameter.sigma,
+                self.parameter.in_chain_volume,
+                self.parameter.in_lipid_area,
+                self.parameter.sigma,
                 self.in_x_values
             )
         self.out_chain_prob = chain(
-                parameter.out_chain_volume,
-                parameter.out_lipid_area,
-                parameter.sigma,
+                self.parameter.out_chain_volume,
+                self.parameter.out_lipid_area,
+                self.parameter.sigma,
                 self.out_x_values
             )
         self.in_tm_prob = terminal(
-                parameter.in_terminal_methyl_volume,
-                parameter.in_lipid_area,
-                parameter.sigma,
+                self.parameter.in_terminal_methyl_volume,
+                self.parameter.in_lipid_area,
+                self.parameter.sigma,
                 self.in_x_values
             )
         self.out_tm_prob = terminal(
-                parameter.out_terminal_methyl_volume,
-                parameter.out_lipid_area,
-                parameter.sigma,
+                self.parameter.out_terminal_methyl_volume,
+                self.parameter.out_lipid_area,
+                self.parameter.sigma,
                 self.out_x_values
             )
         self.in_methylene_prob = methylene(
-                parameter.in_chain_volume,
-                parameter.in_terminal_methyl_volume,
-                parameter.in_lipid_area,
-                parameter.sigma,
+                self.parameter.in_chain_volume,
+                self.parameter.in_terminal_methyl_volume,
+                self.parameter.in_lipid_area,
+                self.parameter.sigma,
                 self.in_x_values
             )
         self.out_methylene_prob = methylene(
-                parameter.out_chain_volume,
-                parameter.out_terminal_methyl_volume,
-                parameter.out_lipid_area,
-                parameter.sigma,
+                self.parameter.out_chain_volume,
+                self.parameter.out_terminal_methyl_volume,
+                self.parameter.out_lipid_area,
+                self.parameter.sigma,
                 self.out_x_values
             )
         self.in_water_prob = water(
-                parameter.in_chain_volume,
-                parameter.in_headgroup_volume,
-                parameter.in_lipid_area,
-                parameter.in_headgroup_thickness,
-                parameter.sigma,
+                self.parameter.in_chain_volume,
+                self.parameter.in_headgroup_volume,
+                self.parameter.in_lipid_area,
+                self.parameter.in_headgroup_thickness,
+                self.parameter.sigma,
                 self.in_x_values
             )
         self.out_water_prob = water(
-                parameter.out_chain_volume,
-                parameter.out_headgroup_volume,
-                parameter.out_lipid_area,
-                parameter.out_headgroup_thickness,
-                parameter.sigma,
+                self.parameter.out_chain_volume,
+                self.parameter.out_headgroup_volume,
+                self.parameter.out_lipid_area,
+                self.parameter.out_headgroup_thickness,
+                self.parameter.sigma,
                 self.out_x_values
             )
 
@@ -1147,11 +1147,11 @@ class AsymmetricalFit(Fit):
             plt.xlabel('Distance from bilayer center [Å]')
             plt.ylabel('Volume probability')
 
-        for xray_data in xray_datas:
+        for xray_data in self.xray_datas:
             xray_sdp_fig = plt.figure(figsize=(5.5,4.3))
 
             self.sdp_results = asymmetrical_sdp(
-                    parameter,
+                    self.parameter,
                     self.in_head_prob,
                     self.in_methylene_prob,
                     self.in_tm_prob,
@@ -1163,26 +1163,26 @@ class AsymmetricalFit(Fit):
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
                     xray_data,
-                    project.system_tempurature,
-                    project.advanced_options
+                    self.project.system_tempurature,
+                    self.project.advanced_options
                 )
             
             self.additional_parameters = asym_additional_parameters(
-                    parameter,
+                    self.parameter,
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
                     xray_data,
-                    project.system_tempurature,
+                    self.project.system_tempurature,
                     np.asarray(self.in_head_prob),
                     np.asarray(self.out_head_prob),
                     self.in_x_values,
                     self.out_x_values,
-                    project.advanced_options
+                    self.project.advanced_options
                 )
 
-            xray_sdp_data[xray_data] = self.sdp_results
+            self.xray_sdp_data[xray_data] = self.sdp_results
 
-            if zero_parameter:
+            if self.zero_parameter:
                 plt.plot()
                 plt.title(str(xray_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
             else:
@@ -1289,7 +1289,7 @@ class AsymmetricalFit(Fit):
             neutron_sdp_fig = plt.figure(figsize=(5.5,4.3))
 
             self.sdp_results = asymmetrical_sdp(
-                    parameter,
+                    self.parameter,
                     self.in_head_prob,
                     self.in_methylene_prob,
                     self.in_tm_prob,
@@ -1301,26 +1301,26 @@ class AsymmetricalFit(Fit):
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
                     neutron_data,
-                    project.system_tempurature,
-                    project.advanced_options
+                    self.project.system_tempurature,
+                    self.project.advanced_options
                 )
 
             self.additional_parameters = asym_additional_parameters(
-                    parameter,
+                    self.parameter,
                     self.sample_lipids_in,
                     self.sample_lipids_out, 
                     neutron_data,
-                    project.system_tempurature,
+                    self.project.system_tempurature,
                     np.asarray(self.in_head_prob),
                     np.asarray(self.out_head_prob),
                     self.in_x_values,
                     self.out_x_values,
-                    project.advanced_options
+                    self.project.advanced_options
                 )
 
-            neutron_sdp_data[neutron_data] = self.sdp_results
+            self.neutron_sdp_data[neutron_data] = self.sdp_results
 
-            if zero_parameter:
+            if self.zero_parameter:
                 plt.plot()
                 plt.title(str(neutron_data.data_set_title)+' ! DIVIDE BY ZERO ERROR !')
             else:
@@ -1613,6 +1613,6 @@ def generate_fit_main(request, project_id, sample_id, param_id):
     if project.model_type == "SM":
         fit = SymmetricalFit(request, project, sample_id, param_id)
     elif project.model_type == "AS":
-        fit = AsymmetricalFit(request, project, sample_id, datas, param_id)
+        fit = AsymmetricalFit(request, project, sample_id, param_id)
     
     return fit.get_fit_main()
