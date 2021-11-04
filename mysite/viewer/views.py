@@ -1082,6 +1082,9 @@ def fit_main(request, project_id, sample_id, parameter_id):
     generate_fit_main(request, project_id, sample_id, parameter_id)
 
     """
+    old code for fit main below. will remove once fit.py works properly for
+    all test cases
+
     if project.model_type == "SM":
         sample_lipids = Sample_Lipid.objects.filter(sample_title_id=sample_id, lipid_location='BOTH')
         parameter = get_object_or_404(Symmetrical_Parameters, id=parameter_id)
@@ -1108,7 +1111,6 @@ def fit_main(request, project_id, sample_id, parameter_id):
     show_statistics = False
     show_probabilities = False
 
-    """
 ## Forms
 # Update parameters
     if project.model_type == "SM":
@@ -2567,3 +2569,4 @@ def fit_main(request, project_id, sample_id, parameter_id):
         'neutron_sdp_graphs':neutron_sdp_graphs,
         'additional_parameters':additional_parameters
     })
+    """
