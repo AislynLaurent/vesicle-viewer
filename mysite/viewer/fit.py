@@ -494,7 +494,7 @@ class SymmetricalFit(Fit):
     def fit_report_neutron(self, neutron_data):
         plt.plot(
             neutron_data.q_value[neutron_data.min_index:neutron_data.max_index],
-            symmetrical_graph(parameter, sample_lipids, neutron_data, self.project.system_tempurature, project.advanced_options),
+            symmetrical_graph(self.parameter, self.sample_lipids, neutron_data, self.project.system_tempurature, self.project.advanced_options),
             color='r',
             label='Best Fit',
             zorder=2
@@ -698,23 +698,23 @@ class SymmetricalFit(Fit):
                     self.methylene_prob,
                     self.tm_prob,
                     self.water_prob,
-                    sample_lipids,
+                    self.sample_lipids,
                     neutron_data,
-                    project.system_tempurature,
-                    project.advanced_options
+                    self.project.system_tempurature,
+                    self.project.advanced_options
                 )
 
             self.additional_parameters = sym_additional_parameters(
                     self.parameter,
-                    sample_lipids,
+                    self.sample_lipids,
                     neutron_data,
-                    project.system_tempurature,
+                    self.project.system_tempurature,
                     np.asarray(self.x_values),
                     np.asarray(self.head_prob),
-                    project.advanced_options
+                    self.project.advanced_options
                 )
 
-            neutron_sdp_data[neutron_data] = self.sdp_results
+            self.neutron_sdp_data[neutron_data] = self.sdp_results
 
             if self.zero_parameter:
                 plt.plot()
@@ -776,7 +776,7 @@ class SymmetricalFit(Fit):
 
                 plt.title(neutron_data.data_set_title)
 
-            neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
+            self.neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
             plt.cla()
 
     def water_probabilities(self, writer):
@@ -1420,7 +1420,7 @@ class AsymmetricalFit(Fit):
 
                 plt.title(neutron_data.data_set_title)
 
-            neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
+            self.neutron_sdp_graphs.append(mpld3.fig_to_html(neutron_sdp_fig))
             plt.cla()
 
     def water_probabilities(self, writer):
