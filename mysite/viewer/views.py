@@ -582,9 +582,10 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
         if "lipid_info" in request.POST:
             lipid_form = Asym_Sample_Lipid_Form(project.id, request.POST, instance=lipid)
             if lipid_form.is_valid():
+                print(lipid_form)
                 in_sample_lipid_name = lipid_form.cleaned_data['sample_lipid_name']
                 in_lipid_mol_fraction = lipid_form.cleaned_data['lipid_mol_fraction']
-                in_lipid_location = lipid_form.cleaned_data['lipid_location']
+                in_lipid_location = lipid_form.cleaned_data['location']
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
                     sample_lipid_name=in_sample_lipid_name,
