@@ -32,7 +32,7 @@ from .asymfit import *
 from .probabilities import *
 
 class Fit:
-    def __init__(self, request, project, sample_id, parameter_id):
+    def generate_fit_main(self, request, project, sample_id, parameter_id):
         self.request = request
         self.project = project
 
@@ -237,33 +237,7 @@ class Fit:
         writer.writerow([self.project.project_title, self.sample.sample_title, self.parameter.name])
         writer.writerow([])
 
-        if self.project.model_type == "SM":
-            writer.writerow(['Calculated Parameters'])
-            writer.writerow(['Db', self.additional_parameters[0]])
-            writer.writerow(['2Dc', self.additional_parameters[1]])
-            writer.writerow(['Dhh', self.additional_parameters[2]])
-            writer.writerow(['Dh', self.parameter.headgroup_thickness])
-            writer.writerow(['Al', self.parameter.lipid_area])
-            writer.writerow([])
-        elif self.project.model_type == "AS":
-            writer.writerow(['Calculated Parameters'])
-            writer.writerow([])
-
-            writer.writerow(['Inner'])
-            writer.writerow(['Db', self.additional_parameters[0]])
-            writer.writerow(['2Dc', self.additional_parameters[1]])
-            writer.writerow(['Dhh', self.additional_parameters[4]])
-            writer.writerow(['Dh', self.parameter.in_headgroup_thickness])
-            writer.writerow(['Al', self.parameter.in_lipid_area])
-            writer.writerow([])
-
-            writer.writerow(['Outter'])
-            writer.writerow(['Db', self.additional_parameters[2]])
-            writer.writerow(['2Dc', self.additional_parameters[3]])
-            writer.writerow(['Dhh', self.additional_parameters[5]])
-            writer.writerow(['Dh', self.parameter.out_headgroup_thickness])
-            writer.writerow(['Al', self.parameter.out_lipid_area])
-            writer.writerow([])
+        self.write_calc_param(writer)
 
         writer.writerow({'Fit Statistics'})
         for line in self.parameter.fit_report:
@@ -872,6 +846,14 @@ class SymmetricalFit(Fit):
         for z, sdpw in zip (self.x_values, self.sdp_results[4]):
             writer.writerow([z, sdpw])
 
+    def write_calc_param(self, writer):
+        writer.writerow(['Calculated Parameters'])
+        writer.writerow(['Db', self.additional_parameters[0]])
+        writer.writerow(['2Dc', self.additional_parameters[1]])
+        writer.writerow(['Dhh', self.additional_parameters[2]])
+        writer.writerow(['Dh', self.parameter.headgroup_thickness])
+        writer.writerow(['Al', self.parameter.lipid_area])
+        writer.writerow([])
 
 class AsymmetricalFit(Fit):
     def set_sample_lipids(self):
@@ -1606,13 +1588,34 @@ class AsymmetricalFit(Fit):
         for z, sdpw in zip (self.out_x_values, self.sdp_results[9]):
             writer.writerow([z, sdpw])
 
+    def write_calc_param(self, writer):
+        writer.writerow(['Calculated Parameters'])
+        writer.writerow([])
+
+        writer.writerow(['Inner'])
+        writer.writerow(['Db', self.additional_parameters[0]])
+        writer.writerow(['2Dc', self.additional_parameters[1]])
+        writer.writerow(['Dhh', self.additional_parameters[4]])
+        writer.writerow(['Dh', self.parameter.in_headgroup_thickness])
+        writer.writerow(['Al', self.parameter.in_lipid_area])
+        writer.writerow([])
+
+        writer.writerow(['Outter'])
+        writer.writerow(['Db', self.additional_parameters[2]])
+        writer.writerow(['2Dc', self.additional_parameters[3]])
+        writer.writerow(['Dhh', self.additional_parameters[5]])
+        writer.writerow(['Dh', self.parameter.out_headgroup_thickness])
+        writer.writerow(['Al', self.parameter.out_lipid_area])
+        writer.writerow([])
+
 # generator function
 def generate_fit_main(request, project_id, sample_id, param_id):
     project = get_object_or_404(Project, id=project_id)
 
     if project.model_type == "SM":
-        fit = SymmetricalFit(request, project, sample_id, param_id)
+        fit = SymmetricalFit()
     elif project.model_type == "AS":
-        fit = AsymmetricalFit(request, project, sample_id, param_id)
+        fit = AsymmetricalFit()
     
+    fit.generate_fit.main(request, project, sample_id, param_id)
     return fit.get_fit_main()
