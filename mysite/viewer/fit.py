@@ -772,7 +772,7 @@ class SymmetricalFit(Fit):
 
                 plt.legend(loc=1)
                 plt.xlabel('Distance from bilayer center [Å]')
-                plt.ylabel('NSLD (Å-3 x 10-5)')
+                plt.ylabel('NSLD (Å-2 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 
@@ -1416,7 +1416,7 @@ class AsymmetricalFit(Fit):
 
                 plt.legend(loc=1)
                 plt.xlabel('Distance from bilayer center [Å]')
-                plt.ylabel('NSLD (Å-3 x 10-5)')
+                plt.ylabel('NSLD (Å-2 x 10-5)')
 
                 plt.title(neutron_data.data_set_title)
 
