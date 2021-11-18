@@ -1,0 +1,18 @@
+{% load staticfiles%}
+
+<table>
+	<tr>
+		<td><h4>D<sub>b</sub> [&#8491;]</h4></td>
+		<td><h4>2D<sub>c</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>hh</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>h</sub> [&#8491;]</h4></td>
+		<td><h4>A<sub>L</sub> [&#8491;<sup>2</sup>]</h4></td>
+	</tr>
+	<tr>
+		<td>{{ additional_parameters.0 }}</td>
+		<td>{{ additional_parameters.1 }}</td>
+		<td>{{ additional_parameters.2 }}</td>
+		<td>{{ parameter.headgroup_thickness }}</td>
+		<td>{{ parameter.lipid_area }}</td>
+	</tr>
+</table>

@@ -1,0 +1,41 @@
+{% load staticfiles%}
+
+<tr>
+	<td>
+		<h4 id="inline">Db</h4>
+		<span tooltip tooltip-right tooltip-content="Bilayer Thickness [&#8491;]"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+	</td>
+</tr>
+<tr>
+	<td style="text-align: center;">{{ additional_parameters.0 }}</td>
+	<td style="text-align: center;">{{ additional_parameters.2 }}</td>
+</tr>
+<tr>
+	<td colspan="2"><hr /></td>
+</tr>
+<tr>
+	<td>
+		<h4 id="inline">2Dc</h4>
+		<span tooltip tooltip-right tooltip-content="Hydrocarbon Thickness [&#8491;]"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+	</td>
+</tr>
+<tr>
+	<td style="text-align: center;">{{ additional_parameters.1 }}</td>
+	<td style="text-align: center;">{{ additional_parameters.3 }}</td>
+</tr>
+<tr>
+	<td colspan="2"><hr /></td>
+</tr>
+<tr>
+	<td>
+		<h4 id="inline">Dhh</h4>
+		<span tooltip tooltip-right tooltip-content="Head to Head Thickness [&#8491;]"><img id="no-margins" src="{% static "viewer/images/what.png" %}" width="15px" alt="question icon">
+	</td>
+</tr>
+<tr>
+	<td style="text-align: center;">{{ additional_parameters.4 }}</td>
+	<td style="text-align: center;">{{ additional_parameters.5 }}</td>
+</tr>
+<tr>
+	<td colspan="2"><hr /></td>
+</tr>
