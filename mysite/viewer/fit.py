@@ -682,7 +682,7 @@ class SymmetricalFit(Fit):
 
                 plt.legend(loc=1)
                 plt.xlabel('Distance from bilayer center [Å]')
-                plt.ylabel('ED (e Å-3 )')
+                plt.ylabel('ED (e Å-2 )')
 
                 plt.title(xray_data.data_set_title)
 
@@ -1278,7 +1278,7 @@ class AsymmetricalFit(Fit):
 
                 plt.legend(loc=1)
                 plt.xlabel('Distance from bilayer center [Å]')
-                plt.ylabel('ED (e Å-3 )')
+                plt.ylabel('ED (e Å-2 )')
 
                 plt.title(xray_data.data_set_title)
 
