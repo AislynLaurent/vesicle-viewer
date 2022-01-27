@@ -355,7 +355,7 @@ class Symmetrical_Parameters(models.Model):
     separated = models.BooleanField(verbose_name="separated form factor", default=False)
 
     ## Use structure factor?
-    is_structure_factor = models.BooleanField(verbose_name="structure factor", default=False)
+    use_structure_factor = models.BooleanField(verbose_name="structure factor", default=False)
 
     ## Fixed
     # Chain volume
