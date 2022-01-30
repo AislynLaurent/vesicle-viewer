@@ -175,6 +175,7 @@ class Symmetrical_Parameter_Form(forms.ModelForm):
             'headgroup_thickness',
             'terminal_methyl_volume',
             'sigma',
+            'use_structure_factor',
         ]
 
 class Symmetrical_Parameter_Fit_Form(forms.ModelForm):
