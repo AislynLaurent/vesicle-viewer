@@ -1617,5 +1617,5 @@ def generate_fit_main(request, project_id, sample_id, param_id):
     elif project.model_type == "AS":
         fit = AsymmetricalFit()
     
-    fit.generate_fit.main(request, project, sample_id, param_id)
+    fit.generate_fit_main(request, project, sample_id, param_id)
     return fit.get_fit_main()
