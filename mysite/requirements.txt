@@ -1,6 +1,6 @@
 ﻿asteval==0.9.25
 cycler==0.10.0
-Django==2.2.24
+Django==2.2.27
 django-autoslug==1.9.8
 future==0.18.2
 importlib-metadata==4.8.1
