@@ -89,11 +89,12 @@ class Sample_Form(forms.ModelForm):
     def __init__(self, project_id, *args, **kwargs):
         super(Sample_Form, self).__init__(*args, **kwargs)
         self.project_id = project_id
+        self.instance = kwargs["instance"]
 
     def clean(self):
         samples = Sample.objects.filter(project_title_id=self.project_id, sample_title=self.data['sample_title'])
-        # Unique name per sample
-        if samples:
+        # Unique name per sample (except if instance is passed, which indicates an edit)
+        if samples and not self.instance:
             raise ValidationError('A sample with that name already exists for this project - please choose another')
 
     class Meta:
