@@ -41,7 +41,7 @@ def sym_model(
             ) **2
         ) + bg)
     )
-    
+
 # Symmetrical model for structure factor
 # Somewhat similar math according to the paper
 def sym_model_structure_factor(
@@ -63,10 +63,13 @@ def sym_model_structure_factor(
     bg      # bg
 ):
 
+    # I(q) = q^-2 * P(q) * S(q)                # original
+    # I(q) = q^-2 * P(q) * S(q) * scale + bg   # modified for the plot
     return (
         q**(-2) * scale * (
             (4 * 10**-8) * (
                 (
+                    # form factor is the same?
                     (8*(np.pi**2)*(r**2)*(rs**4)) * (1 + rs**-2) * (2 + rs**-2)
                 ) * (
                     1 - (
@@ -76,6 +79,7 @@ def sym_model_structure_factor(
                     )
                 )
             ) * (
+                # structure factor is different
                 ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
                 * np.abs(
                     Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))
