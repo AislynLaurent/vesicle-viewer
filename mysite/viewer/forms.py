@@ -89,12 +89,13 @@ class Sample_Form(forms.ModelForm):
     def __init__(self, project_id, *args, **kwargs):
         super(Sample_Form, self).__init__(*args, **kwargs)
         self.project_id = project_id
-        self.instance = kwargs["instance"]
+        if "instance" in kwargs:
+            self.instance = kwargs["instance"]
 
     def clean(self):
         samples = Sample.objects.filter(project_title_id=self.project_id, sample_title=self.data['sample_title'])
         # Unique name per sample (except if instance is passed, which indicates an edit)
-        if samples and self.data['sample_title'] != self.instance.sample_title:
+        if samples and self.instance and self.data['sample_title'] != self.instance.sample_title:
             raise ValidationError('A sample with that name already exists for this project - please choose another')
 
     class Meta:
@@ -113,7 +114,9 @@ class Sym_Sample_Lipid_Form(forms.ModelForm):
 
     def __init__(self, project_id, *args, **kwargs):
         super(Sym_Sample_Lipid_Form, self).__init__(*args, **kwargs)
-        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(project_title__id=project_id).order_by('project_lipid_name', 'project_user_lipid_name')
+        self.fields['sample_lipid_name'].queryset = Project_Lipid.objects.filter(
+            project_title__id=project_id
+        ).order_by('project_lipid_name', 'project_user_lipid_name')
 
 class Asym_Sample_Lipid(forms.ModelForm):
     class Meta:

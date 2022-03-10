@@ -503,6 +503,7 @@ def sample_lipid_new(request, project_id, sample_id):
                 in_lipid_location = "BOTH"
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_title=sample,
                     sample_lipid_name=in_sample_lipid_name,
                     defaults={
                         'sample_title':sample,
@@ -526,6 +527,7 @@ def sample_lipid_new(request, project_id, sample_id):
                 in_lipid_location = lipid_form.cleaned_data['location']
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_title=sample,
                     sample_lipid_name=in_sample_lipid_name,
                     lipid_location = in_lipid_location,
                     defaults={
@@ -559,7 +561,6 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
     data_augments = Data_Sample_Lipid_Augment.objects.filter(sample_lipid_name=lipid)
 
     data_augment_forms = []
-    
     if project.model_type == "SM":
         if "lipid_info" in request.POST:
             lipid_form = Sym_Sample_Lipid_Form(project.id, request.POST, instance=lipid)
@@ -569,6 +570,7 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
                 in_lipid_location = "BOTH"
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_title=sample,
                     sample_lipid_name=in_sample_lipid_name,
                     defaults={
                         'sample_title':sample,
@@ -588,6 +590,7 @@ def sample_lipid_edit(request, project_id, sample_id, lipid_id):
                 in_lipid_location = lipid_form.cleaned_data['location']
 
                 existing_lipid, created_lipid = Sample_Lipid.objects.update_or_create(
+                    sample_title=sample,
                     sample_lipid_name=in_sample_lipid_name,
                     lipid_location = in_lipid_location,
                     defaults={
