@@ -42,8 +42,7 @@ def sym_model(
         ) + bg)
     )
 
-# Symmetrical model for structure factor
-# Somewhat similar math according to the paper
+# Symmetrical model with structure factor Sn(q)
 def sym_model_structure_factor(
     q,      # independant
     Vc,     # chain_volume
@@ -63,13 +62,14 @@ def sym_model_structure_factor(
     bg      # bg
 ):
 
-    # I(q) = q^-2 * P(q) * S(q)                # original
-    # I(q) = q^-2 * P(q) * S(q) * scale + bg   # modified for the plot
+    # I(q) = q^-2 * P(q)                # original
+    # I(q) = q^-2 * P(q) * scale + bg   # modified for the plot
+    # I(q) = q^-2 * P(q) * S(q)         # extra data for structure factor
     return (
         q**(-2) * scale * (
+            # Pv(r,rs,q)
             (4 * 10**-8) * (
                 (
-                    # form factor is the same?
                     (8*(np.pi**2)*(r**2)*(rs**4)) * (1 + rs**-2) * (2 + rs**-2)
                 ) * (
                     1 - (
@@ -78,8 +78,8 @@ def sym_model_structure_factor(
                         ) / (1 + 4*(q**2)*(r**2)*(rs**4))
                     )
                 )
+            # Fb(q)^2
             ) * (
-                # structure factor is different
                 ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
                 * np.abs(
                     Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))
@@ -88,6 +88,8 @@ def sym_model_structure_factor(
                     + Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
                 )
             ) **2
+            # Sn(q)
+            * (1)
         ) + bg
     )
 
@@ -111,6 +113,10 @@ def sym_model_separated(
     scale,  # scale
     bg      # bg
 ):
+    nmax = 6 # p=0.999, lambda=0.5, -log(1-0.999)/lambda = 6 = nmax
+
+    for i in range(1, nmax+1):
+        pass    
 
     return (
         q**(-2) * scale * (
