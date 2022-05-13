@@ -8,10 +8,10 @@ Jinja2==3.0.1
 kiwisolver==1.3.2
 lmfit==1.0.2
 MarkupSafe==2.0.1
-matplotlib==3.0.3
+matplotlib
 mpld3==0.5.5
 numpy==1.22.1
-psycopg2-binary==2.8.4
+psycopg2-binary
 pyparsing==2.4.7
 python-dateutil==2.8.2
 python-magic==0.4.24

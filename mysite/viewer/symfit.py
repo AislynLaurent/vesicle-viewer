@@ -59,7 +59,10 @@ def sym_model_structure_factor(
     bt,     # terminal_methyl_b
     bw,     # water_b
     scale,  # scale
-    bg      # bg
+    bg,     # bg
+    
+    # structure factor input
+    N,      # number of bilayers 
 ):
 
     # I(q) = q^-2 * P(q)                # original
@@ -90,6 +93,7 @@ def sym_model_structure_factor(
             ) **2
             # Sn(q)
             * (1)
+            # * N + 2 * np.sum([(N - k) * np.cos(k*q*d) * np.exp(-(d * q / 2 * np.pi)) for k in range(1, N-1)])
         ) + bg
     )
 
@@ -113,11 +117,6 @@ def sym_model_separated(
     scale,  # scale
     bg      # bg
 ):
-    nmax = 6 # p=0.999, lambda=0.5, -log(1-0.999)/lambda = 6 = nmax
-
-    for i in range(1, nmax+1):
-        pass    
-
     return (
         q**(-2) * scale * (
             (4 * 10**-8) * (
