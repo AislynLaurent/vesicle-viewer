@@ -189,7 +189,8 @@ class Fit:
 
     def get_fit_main(self):
         # self.redirect could be made more modular (in its own function)
-        if self.redirect: return redirect
+        if self.redirect: 
+            return redirect('viewer:fit_main', project_id=self.project.id, sample_id=self.sample.id, parameter_id=self.parameter.id)
 
         # Fit data download
         if "fit_download" in self.request.POST:
@@ -1618,4 +1619,6 @@ def generate_fit_main(request, project_id, sample_id, param_id):
         fit = AsymmetricalFit()
     
     fit.generate_fit_main(request, project, sample_id, param_id)
-    return fit.get_fit_main()
+    res = fit.get_fit_main()
+    print(res)
+    return res

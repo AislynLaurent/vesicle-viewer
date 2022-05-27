@@ -68,6 +68,7 @@ def sym_model_structure_factor(
     # I(q) = q^-2 * P(q)                # original
     # I(q) = q^-2 * P(q) * scale + bg   # modified for the plot
     # I(q) = q^-2 * P(q) * S(q)         # extra data for structure factor
+    print("sf")
     return (
         q**(-2) * scale * (
             # Pv(r,rs,q)
@@ -92,8 +93,8 @@ def sym_model_structure_factor(
                 )
             ) **2
             # Sn(q)
-            * (1)
-            # * N + 2 * np.sum([(N - k) * np.cos(k*q*d) * np.exp(-(d * q / 2 * np.pi)) for k in range(1, N-1)])
+            * (2)
+            # * (N + 2 * np.sum([(N - k) * np.cos(k*q*d) * np.exp(-(d * q / 2 * np.pi)) for k in range(1, N-1)]))
         ) + bg
     )
 
@@ -144,6 +145,7 @@ def sym_model_separated(
 # Calculate result from model for an individual dataset
 # Connetc the model, the dataset and the parameters
 def calc_sym_model(fit_parameters, q, data, sff, use_structure_factor):
+    print("calculating sym model...")
     # Convert array
     q_array = np.array(q)
 
@@ -174,7 +176,6 @@ def calc_sym_model(fit_parameters, q, data, sff, use_structure_factor):
     if sff:
         calc_result = sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
     elif use_structure_factor:
-        # TODO: implement this
         calc_result = sym_model_structure_factor(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
     else:
         calc_result = sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
