@@ -111,7 +111,7 @@ class Molecule(models.Model):
     electrons = models.FloatField(verbose_name='electrons', default=0)
 
     # Slug
-    slug = AutoSlugField(populate_from='compund_name', always_update=True)
+    slug = AutoSlugField(populate_from='compound_name', always_update=True)
 
     # Meta
     class Meta:
@@ -353,6 +353,9 @@ class Symmetrical_Parameters(models.Model):
 
     ## Use the separated form factor?
     separated = models.BooleanField(verbose_name="separated form factor", default=False)
+
+    ## Use structure factor?
+    use_structure_factor = models.BooleanField(verbose_name="structure factor", default=False)
 
     ## Fixed
     # Chain volume

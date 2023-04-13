@@ -1,0 +1,42 @@
+{% load staticfiles%}
+
+<table>
+	<tr>
+		<td><h3>Inner</h3></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><h4>D<sub>b</sub> [&#8491;]</h4></td>
+		<td><h4>2D<sub>c</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>hh</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>h</sub> [&#8491;]</h4></td>
+		<td><h4>A<sub>L</sub> [&#8491;<sup>2</sup>]</h4></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>{{ additional_parameters.0 }}</td>
+		<td>{{ additional_parameters.1 }}</td>
+		<td>{{ additional_parameters.4 }}</td>
+		<td>{{ parameter.in_headgroup_thickness }}</td>
+		<td>{{ parameter.in_lipid_area }}</td>
+	</tr>
+	<tr>
+		<td><h3>Outter</h3></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><h4>D<sub>b</sub> [&#8491;]</h4></td>
+		<td><h4>2D<sub>c</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>hh</sub> [&#8491;]</h4></td>
+		<td><h4>D<sub>h</sub> [&#8491;]</h4></td>
+		<td><h4>A<sub>L</sub> [&#8491;<sup>2</sup>]</h4></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>{{ additional_parameters.2 }}</td>
+		<td>{{ additional_parameters.3 }}</td>
+		<td>{{ additional_parameters.5 }}</td>
+		<td>{{ parameter.out_headgroup_thickness }}</td>
+		<td>{{ parameter.out_lipid_area }}</td>
+	</tr>
+</table>

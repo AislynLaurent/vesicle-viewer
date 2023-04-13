@@ -42,6 +42,62 @@ def sym_model(
         ) + bg)
     )
 
+# Symmetrical model with structure factor Sn(q)
+def sym_model_structure_factor(
+    q,      # independant
+    Vc,     # chain_volume
+    Vh,     # headgroup_volume
+    Vt,     # terminal_methyl_volume
+    Vw,     # water_volume
+    Al,     # area_per_lipid
+    Dh,     # headgroup_thickness
+    sig,    # smearing factor
+    r,      # Average vesicle radius
+    rs,     # Relative size polydispersity
+    bc,     # chain_b
+    bh,     # headgroup_b
+    bt,     # terminal_methyl_b
+    bw,     # water_b
+    scale,  # scale
+    bg,     # bg
+    
+    # structure factor input
+    N,      # number of bilayers 
+):
+
+    # I(q) = q^-2 * P(q)                # original
+    # I(q) = q^-2 * P(q) * scale + bg   # modified for the plot
+    # I(q) = q^-2 * P(q) * S(q)         # extra data for structure factor
+    print("sf")
+    return (
+        q**(-2) * scale * (
+            # Pv(r,rs,q)
+            (4 * 10**-8) * (
+                (
+                    (8*(np.pi**2)*(r**2)*(rs**4)) * (1 + rs**-2) * (2 + rs**-2)
+                ) * (
+                    1 - (
+                        (
+                            ((1 + 4*(q**2)*(r**2)*(rs**4))**(-1 / (2*rs**2))) * (np.cos((2 + rs**-2) * np.arctan(2 * q * r * (rs**2))))
+                        ) / (1 + 4*(q**2)*(r**2)*(rs**4))
+                    )
+                )
+            # Fb(q)^2
+            ) * (
+                ((2*(np.exp(-((q*sig)**2)/2)))/(q*Dh*Al*Vt*Vw*(Vc-2*Vt)))
+                * np.abs(
+                    Vt*(bw*(Al*Dh-Vh)*(Vc-2*Vt)+Vw*bh*(Vc-2*Vt)-Vw*Al*Dh*(bc-2*bt))
+                    * np.sin(q*Vc/Al) 
+                    + Vt*(Vc-2*Vt)*(bw*Vh-bh*Vw)*np.sin(q*Dh+q*Vc/Al)
+                    + Vw*Al*Dh*(bc*Vt-bt*Vc)*np.sin(2*q*Vt/Al)
+                )
+            ) **2
+            # Sn(q)
+            * (2)
+            # * (N + 2 * np.sum([(N - k) * np.cos(k*q*d) * np.exp(-(d * q / 2 * np.pi)) for k in range(1, N-1)]))
+        ) + bg
+    )
+
 # Symmetrical model and separated form factor
 # The same math, but including the separated form factor equation
 def sym_model_separated(
@@ -62,7 +118,6 @@ def sym_model_separated(
     scale,  # scale
     bg      # bg
 ):
-
     return (
         q**(-2) * scale * (
             (4 * 10**-8) * (
@@ -89,7 +144,8 @@ def sym_model_separated(
 
 # Calculate result from model for an individual dataset
 # Connetc the model, the dataset and the parameters
-def calc_sym_model(fit_parameters, q, data, sff):
+def calc_sym_model(fit_parameters, q, data, sff, use_structure_factor):
+    print("calculating sym model...")
     # Convert array
     q_array = np.array(q)
 
@@ -119,6 +175,8 @@ def calc_sym_model(fit_parameters, q, data, sff):
     # Return the calculated model
     if sff:
         calc_result = sym_model_separated(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, r, rs, bc, bh, bt, bw, scale, bg)
+    elif use_structure_factor:
+        calc_result = sym_model_structure_factor(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
     else:
         calc_result = sym_model(q_array, Vc, Vh, Vt, Vw, Al, Dh, sig, bc, bh, bt, bw, scale, bg)
 
@@ -128,7 +186,7 @@ def calc_sym_model(fit_parameters, q, data, sff):
 
 # Objective function 
 # Create a residual for each dataset, then flatten into a single array for minimize()
-def symmetrical_objective_function(fit_parameters, x, datas, sff):
+def symmetrical_objective_function(fit_parameters, x, datas, sff, use_structure_factor):
     # Delcare
     current_residual = []
     combined_residuals = []
@@ -169,7 +227,7 @@ def symmetrical_objective_function(fit_parameters, x, datas, sff):
             current_error.append(value)
 
         # Do math
-        current_residual = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff)
+        current_residual = data.intensity_value[data.min_index:data.max_index] - calc_sym_model(fit_parameters, data.q_value[data.min_index:data.max_index], data, sff, use_structure_factor)
         # Weight for error
         weighted_residual = np.power(current_residual, 2) / np.power(current_error, 2)
         # Append
@@ -509,7 +567,7 @@ def symmetrical_fit(parameter, sample_lipids, datas, temp, advanced):
     fit_result = lsq.minimize(
         symmetrical_objective_function,
         fit_parameters,
-        args=(x, datas, parameter.separated)
+        args=(x, datas, parameter.separated, parameter.use_structure_factor)
     )
 
     return fit_result
