@@ -1,4 +1,4 @@
-﻿asteval==0.9.25
+asteval==0.9.25
 cycler==0.10.0
 Django==2.2.24
 django-autoslug==1.9.8
@@ -18,7 +18,7 @@ python-magic==0.4.24
 pytz==2021.1
 scipy==1.7.1
 six==1.16.0
-sqlparse==0.4.2
+sqlparse==0.4.4
 typing-extensions==3.10.0.2
 uncertainties==3.1.6
 zipp==3.5.0
